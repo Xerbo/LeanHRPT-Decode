@@ -1,0 +1,85 @@
+### C++ ###
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Linker files
+*.ilk
+
+# Debugger Files
+*.pdb
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+### CMake ###
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+CMakeUserPresets.json
+
+### CMake Patch ###
+# External projects
+*-prefix/
+
+### LeanHRPT ###
+# Images
+*.bmp
+*.jpg
+*.png
+!images/*.jpg
+!logo128.png
+!logo64.png
+
+# Binary files
+*.bin
+
+# Baseband/symbols
+*.wav
+*.raw
+*.soft
+*.soft8
+data/
+
+# CMake build directory
+build/
+
+# VSCode
+.vscode/
+
+# Compiler flowcharts
+Flowgraphs/*.py

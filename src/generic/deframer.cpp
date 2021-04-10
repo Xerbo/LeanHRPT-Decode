@@ -1,0 +1,155 @@
+/*
+ * LeanHRPT Decode
+ * Copyright (C) 2021 Xerbo
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#include "deframer.h"
+
+#include <cstring>
+#include <bit>
+#include <stdexcept>
+
+// Gets a bit...
+template <typename T>
+inline bool getBit(T data, unsigned int bit) {
+    return (data >> bit) & 1;
+}
+
+// Constructor
+template <typename ASM_T, ASM_T ASM, unsigned int ASM_SIZE, unsigned int FRAME_SIZE>
+ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::ArbitraryDeframer(unsigned int incorrectBitThreshold, bool checkInverted, bool byteAligned)
+    : frameBuffer(new uint8_t[FRAME_SIZE / 8]),
+      checkInverted(checkInverted),
+      incorrectBitThreshold(incorrectBitThreshold),
+      byteAligned(byteAligned) {
+    if (sizeof(ASM_T)*8 > ASM_SIZE) {
+        throw std::runtime_error("ArbitraryDeframer: ASM size larger than what ASM_T allows");
+    }
+}
+
+template <typename ASM_T, ASM_T ASM, unsigned int ASM_SIZE, unsigned int FRAME_SIZE>
+ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::~ArbitraryDeframer() {
+    delete[] frameBuffer;
+}
+
+// Push a byte into the buffer
+template <typename ASM_T, ASM_T ASM, unsigned int ASM_SIZE, unsigned int FRAME_SIZE>
+void ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::pushByte(uint8_t byte) {
+    frameBuffer[bufferPosition++] = byte;
+}
+
+// Push a bit into the buffer
+template <typename ASM_T, ASM_T ASM, unsigned int ASM_SIZE, unsigned int FRAME_SIZE>
+void ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::pushBit(bool bit) {
+    byteBuffer = byteBuffer << 1 | bit;
+    bufferBitPosition++;
+
+    if(bufferBitPosition == 8){
+        pushByte(byteBuffer);
+        bufferBitPosition = 0;
+    }
+}
+
+template <typename ASM_T, ASM_T ASM, unsigned int ASM_SIZE, unsigned int FRAME_SIZE>
+bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::fuzzyBitCompare(ASM_T a, ASM_T b, int threshold) {
+#if 1
+    if (sizeof(ASM_T)*8 == ASM_SIZE) {
+        if(std::__popcount(a ^ b) > threshold) return false;
+    } else {
+        if(std::__popcount((a ^ b) & ((ASM_T)1 << ASM_SIZE) - 1) > threshold) return false;
+    }
+#else
+    size_t bad_bits = 0;
+    for(int i = ASM_SIZE - 1; i >= 0; i--) {
+        if(getBit(a, i) != getBit(b, i))
+            bad_bits++;
+        if(bad_bits == threshold+1)
+            return false;
+    }
+#endif
+
+    return true;
+}
+
+// Push a bit into the buffer
+template <typename ASM_T, ASM_T ASM, unsigned int ASM_SIZE, unsigned int FRAME_SIZE>
+void ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::startWriting() {
+    bufferPosition = 0;
+    bufferBitPosition = 0;
+    bitsWritten = 0;
+    writingData = true;
+}
+
+// Work function
+template <typename ASM_T, ASM_T ASM, unsigned int ASM_SIZE, unsigned int FRAME_SIZE>
+bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::work(uint8_t *data, uint8_t *out, unsigned int len) {
+    bool complete_frame = 0;
+
+    for(size_t i = 0; i < len; i++) {
+        for(int j = 7; j >= 0; j--) {
+            bool bit = getBit(data[i], j);
+            if(invert) bit = !bit;
+
+            shifter = shifter << 1 | bit;
+
+            if(writingData) {
+                // Append syncword, backwards
+                if(bitsWritten == 0) {
+                    for(int ASMBit = ASM_SIZE-1; ASMBit >= 0; ASMBit--) {
+                        pushBit(getBit(ASM, ASMBit));
+                    }
+                    bitsWritten += ASM_SIZE;
+                }
+
+                pushBit(bit);
+                bitsWritten++;
+
+                // At the end of a frame, copy the data into the output pointer and reset
+                if(bitsWritten == FRAME_SIZE) {
+                    writingData = false;
+                    bitsWritten = 0;
+
+                    complete_frame = 1;
+                    std::memcpy(out, frameBuffer, FRAME_SIZE / 8);
+
+                    continue;
+                }
+            }
+
+            if(fuzzyBitCompare(shifter, ASM, incorrectBitThreshold)) {
+                startWriting();
+            } else if(checkInverted && fuzzyBitCompare(shifter, ~ASM, incorrectBitThreshold)) {
+                startWriting();
+                invert = !invert;
+            }
+        }
+    }
+
+    return complete_frame;
+}
+
+// Standard CCSDS
+// DEPRECATED: Use ccsds::Deframer instead
+//template class ArbitraryDeframer<uint32_t, 0x1ACFFC1D, 32, 8192>;
+
+// Meteor MSU-MR
+template class ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8>;
+
+// NOAA HRPT
+template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 11090 * 10>;
+
+// Fengyun VIRR
+template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 208400>;

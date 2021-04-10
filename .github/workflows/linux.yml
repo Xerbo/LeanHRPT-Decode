@@ -1,0 +1,82 @@
+name: Linux Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  BUILD_TYPE: Release
+  TEMP_PATH: /tmp/build
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    
+    - name: Install apt dependencies
+      run: 'sudo apt-get update && sudo apt-get install -y cmake make git g++ python3 python3-pip mesa-common-dev libglu1-mesa-dev'
+
+    - name: Install pip dependencies
+      run: 'pip3 install aqtinstall'
+
+    - name: Create build path
+      run: 'mkdir $TEMP_PATH'
+
+    - name: Install Qt
+      run: 'aqt install 5.14.2 linux desktop &&
+            cp -r 5.14.2/gcc_64/* $TEMP_PATH'
+
+    - name: Install libcorrect
+      run: 'git clone https://github.com/quiet/libcorrect &&
+            cd libcorrect &&
+            mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            sudo make install'
+
+    - name: Compile LeanHRPT
+      run: 'mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            make'
+
+    - name: Package
+      run: 'mkdir LeanHRPT-Decode &&
+            mkdir LeanHRPT-Decode/plugins &&
+            mkdir LeanHRPT-Decode/lib &&
+            cp $TEMP_PATH/plugins/platforms/ LeanHRPT-Decode/plugins/ &&
+            cp $TEMP_PATH/lib/libQt5Gui.so.5 LeanHRPT-Decode/lib/ &&
+            cp $TEMP_PATH/lib/libQt5Widgets.so.5 LeanHRPT-Decode/lib/ &&
+            cp $TEMP_PATH/lib/libQt5Core.so.5 LeanHRPT-Decode/lib/ &&
+            cp $TEMP_PATH/lib/libicuuc.so.56 LeanHRPT-Decode/lib/ &&
+            cp $TEMP_PATH/lib/libicui18n.so.56 LeanHRPT-Decode/lib/ &&
+            cp $TEMP_PATH/lib/libicudata.so.56 LeanHRPT-Decode/lib/ &&
+            cp $TEMP_PATH/lib/libcorrect.so LeanHRPT-Decode/lib/ &&
+            cp build/LeanHRPT-Decode LeanHRPT-Decode/ &&
+            tar -czf LeanHRPT-Decode.linux.amd64.tar.gz --owner=0 --group=0 LeanHRPT-Decode/'
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      id: create_release
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: A release wow
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload compiled package
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./LeanHRPT-Decode.linux.amd64.tar.gz
+        asset_name: LeanHRPT-Decode.linux.amd64.tar.gz
+        asset_content_type: application/gzip
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
