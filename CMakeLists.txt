@@ -25,4 +25,7 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 target_link_libraries(LeanHRPT-Decode PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
+# Bodge fix for GitHub Actions
+target_link_directories(LeanHRPT-Decode PRIVATE /tmp/build/lib)
+
 target_link_libraries(LeanHRPT-Decode PUBLIC correct)
