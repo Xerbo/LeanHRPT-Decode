@@ -120,9 +120,9 @@ void ImageCompositor::equalise(QImage *image) {
             break;
         }
         case Stretch: {
-            size_t low = SIZE_MAX, high;
+            size_t low = 0, high = 65536;
             for(size_t i = 0; i < 65536; i++) {
-                if(low == SIZE_MAX && cf[i] > 0.01*65536) {
+                if(low == 0 && cf[i] > 0.01*65536) {
                     low = i;
                 }
                 if(cf[i] > 0.99*65536) {

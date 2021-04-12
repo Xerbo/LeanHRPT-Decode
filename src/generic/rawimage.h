@@ -35,7 +35,7 @@ class RawImage {
         void push16Bit(uint16_t *data, int offset);
 
         unsigned short *getChannel(size_t channel) {
-            if (channel >= 0 && channel < m_channels) {
+            if (channel < m_channels) {
                 return imageBuffer[channel];
             }
             throw std::runtime_error("Channel index out of range");

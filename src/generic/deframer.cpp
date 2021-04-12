@@ -69,7 +69,7 @@ bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::fuzzyBitCompare(ASM_T 
     if (sizeof(ASM_T)*8 == ASM_SIZE) {
         if(std::__popcount(a ^ b) > threshold) return false;
     } else {
-        if(std::__popcount((a ^ b) & ((ASM_T)1 << ASM_SIZE) - 1) > threshold) return false;
+        if(std::__popcount((a ^ b) & (((ASM_T)1 << ASM_SIZE) - 1)) > threshold) return false;
     }
 #else
     size_t bad_bits = 0;
