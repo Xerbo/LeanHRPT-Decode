@@ -19,16 +19,11 @@
 #include "derand.h"
 
 #include <cstring>
+#include <bitset>
 
 namespace ccsds {
     Derand::Derand() {
         generateRandomTable();
-    }
-
-    // Gets a bit...
-    template <typename T>
-    inline bool getBit(T data, unsigned int bit) {
-        return (data >> bit) & 1;
     }
 
     // Polynomial is standard CCSDS, 1 + x3 + x5 + x7 + x8
@@ -41,13 +36,13 @@ namespace ccsds {
             for (int j = 0; j < 8; j++) {
                 // Take latest bit from `shiftRegisiter` and put it into `randomTable`
                 randomTable[i] = randomTable[i] << 1;
-                randomTable[i] |= getBit(shiftRegisiter, 7);
+                randomTable[i] |= std::bitset<8>(shiftRegisiter).test(7);
 
                 // Next bit in PN sequence is XOR of all polynomials
-                bool next = getBit(shiftRegisiter, 7) ^
-                            getBit(shiftRegisiter, 4) ^
-                            getBit(shiftRegisiter, 2) ^
-                            getBit(shiftRegisiter, 0);
+                bool next = std::bitset<8>(shiftRegisiter).test(7) ^
+                            std::bitset<8>(shiftRegisiter).test(4) ^
+                            std::bitset<8>(shiftRegisiter).test(2) ^
+                            std::bitset<8>(shiftRegisiter).test(0);
 
                 // Shift the shift regisiter
                 shiftRegisiter = shiftRegisiter << 1;

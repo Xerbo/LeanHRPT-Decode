@@ -19,20 +19,20 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 
 template <typename ASM_T, ASM_T ASM, unsigned int ASM_SIZE, unsigned int FRAME_SIZE>
 class ArbitraryDeframer {
     public:
-        ArbitraryDeframer(unsigned int incorrectBitThreshold = 10, bool checkInverted = false, bool byteAligned = false);
+        ArbitraryDeframer(unsigned int incorrectBitThreshold = 10, bool checkInverted = false);
         ~ArbitraryDeframer();
-        bool work(uint8_t *data, uint8_t *out, unsigned int len);
+        bool work(const uint8_t *data, uint8_t *out, unsigned int len);
     private:
         uint8_t *frameBuffer;
 
         // Options
         bool checkInverted;
         unsigned int incorrectBitThreshold;
-        bool byteAligned;
 
         // Used for loading data into `frameBuffer`
         uint8_t byteBuffer;
@@ -46,5 +46,5 @@ class ArbitraryDeframer {
         bool writingData = false;
         bool invert = false;
         void startWriting();
-        bool fuzzyBitCompare(ASM_T a, ASM_T b, int threshold);
+        bool fuzzyBitCompare(ASM_T a, ASM_T b, size_t threshold);
 };

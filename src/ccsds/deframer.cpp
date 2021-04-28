@@ -20,9 +20,10 @@
 
 #include <stdexcept>
 #include <cstring>
+#include <bitset>
 
 // Slightly modified from Oleg's original values
-unsigned int stateThresholds[4] = { 0, 2, 6, 16 };
+const unsigned int stateThresholds[4] = { 0, 2, 6, 16 };
 
 #define ASM_SIZE 32
 #define ASM 0x1ACFFC1D
@@ -30,12 +31,6 @@ unsigned int stateThresholds[4] = { 0, 2, 6, 16 };
 
 #define FRAME_SIZE 8192
 #define FRAME_SIZE_BYTES (FRAME_SIZE/8)
-
-// Gets a bit...
-template <typename T>
-inline bool getBit(T data, unsigned int bit) {
-    return (data >> bit) & 1;
-}
 
 namespace ccsds {
     Deframer::Deframer() 
@@ -58,18 +53,7 @@ namespace ccsds {
     }
 
     bool Deframer::asmCompare(asm_t a, asm_t b) {
-#if ASM_SIZE == 32
-        if(__builtin_popcount(a ^ b) > stateThresholds[state]) return false;
-#else
-        unsigned int bad_bits = 0;
-        for(int i = ASM_SIZE - 1; i >= 0; i--) {
-            if(getBit(a, i) != getBit(b, i))
-                bad_bits++;
-            if(bad_bits == stateThresholds[state]+1)
-                return false;
-        }
-#endif
-        return true;
+        return std::bitset<ASM_SIZE>(a ^ b).count() <= stateThresholds[state];
     }
 
     // Push a byte into the buffer
@@ -101,12 +85,12 @@ namespace ccsds {
         state = newState;
     }
 
-    size_t Deframer::work(uint8_t *in, uint8_t *out, size_t len) {
+    bool Deframer::work(const uint8_t *in, uint8_t *out, size_t len) {
         bool complete_frame = false;
 
         for(unsigned int i = 0; i < len; i++) {
             for(int j = 7; j >= 0; j--) {
-                bool bit = getBit(in[i], j);
+                bool bit = std::bitset<ASM_SIZE>(in[i]).test(j);
                 if(invert) bit = !bit;
 
                 shifter = shifter << 1 | bit;
@@ -115,7 +99,7 @@ namespace ccsds {
                     // Append syncword, backwards
                     if(bitsWritten == 0) {
                         for(int ASMBit = ASM_SIZE-1; ASMBit >= 0; ASMBit--) {
-                            pushBit(getBit(ASM, ASMBit));
+                            pushBit(std::bitset<ASM_SIZE>(ASM).test(ASMBit));
                         }
                         bitsWritten += ASM_SIZE;
                     }

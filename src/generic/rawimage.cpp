@@ -39,7 +39,7 @@ RawImage::~RawImage() {
     }
 }
 
-void RawImage::push10Bit(uint8_t *data, int offset) {
+void RawImage::push10Bit(const uint8_t *data, int offset) {
     int j = offset/4 * 5; // Offset as close as we can get in just bytes
     int pxoffset = offset % 4; // Numbers of pixels to offset after byte shifting
 
@@ -59,7 +59,7 @@ void RawImage::push10Bit(uint8_t *data, int offset) {
 
     push16Bit(rowBuffer, pxoffset);
 }
-void RawImage::push16Bit(uint16_t *data, int offset) {
+void RawImage::push16Bit(const uint16_t *data, int offset) {
     for (size_t channel = 0; channel < m_channels; channel++) {
         if (m_interleavingSize == 1) { 
             for (size_t x = 0; x < m_width; x++) {

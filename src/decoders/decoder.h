@@ -24,7 +24,7 @@
 
 class Decoder {
     public:
-        ~Decoder() {
+        virtual ~Decoder() {
             delete image;
         }
         virtual bool decodeFile(std::string filename)=0;

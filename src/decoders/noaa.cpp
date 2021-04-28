@@ -22,12 +22,6 @@
 #include "noaa.h"
 #include "generic/deframer.h"
 
-// Gets a bit...
-template <typename T>
-inline bool getBit(T data, unsigned int bit) {
-    return (data >> bit) & 1;
-}
-
 NOAADecoder::NOAADecoder() {
     image = new RawImage(2048, 5);
 }

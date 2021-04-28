@@ -19,20 +19,19 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 
 namespace ccsds {
     enum SyncMachineState { State0, State1, State2, State3 };
 
     using asm_t = uint32_t;
-    // ???
-    using size_t = std::size_t;
 
     // A deframer based on http://www.sat.cc.ua/data/CADU%20Frame%20Synchro.pdf
     class Deframer {
         public:
             Deframer();
             ~Deframer();
-            size_t work(uint8_t *in, uint8_t *out, size_t len);
+            bool work(const uint8_t *in, uint8_t *out, size_t len);
         private:
             asm_t shifter;
             bool asmCompare(asm_t a, asm_t b);

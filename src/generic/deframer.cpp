@@ -19,22 +19,15 @@
 #include "deframer.h"
 
 #include <cstring>
-#include <bit>
 #include <stdexcept>
-
-// Gets a bit...
-template <typename T>
-inline bool getBit(T data, unsigned int bit) {
-    return (data >> bit) & 1;
-}
+#include <bitset>
 
 // Constructor
 template <typename ASM_T, ASM_T ASM, unsigned int ASM_SIZE, unsigned int FRAME_SIZE>
-ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::ArbitraryDeframer(unsigned int incorrectBitThreshold, bool checkInverted, bool byteAligned)
+ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::ArbitraryDeframer(unsigned int incorrectBitThreshold, bool checkInverted)
     : frameBuffer(new uint8_t[FRAME_SIZE / 8]),
       checkInverted(checkInverted),
-      incorrectBitThreshold(incorrectBitThreshold),
-      byteAligned(byteAligned) {
+      incorrectBitThreshold(incorrectBitThreshold) {
     if (sizeof(ASM_T)*8 > ASM_SIZE) {
         throw std::runtime_error("ArbitraryDeframer: ASM size larger than what ASM_T allows");
     }
@@ -64,24 +57,8 @@ void ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::pushBit(bool bit) {
 }
 
 template <typename ASM_T, ASM_T ASM, unsigned int ASM_SIZE, unsigned int FRAME_SIZE>
-bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::fuzzyBitCompare(ASM_T a, ASM_T b, int threshold) {
-#if 1
-    if (sizeof(ASM_T)*8 == ASM_SIZE) {
-        if(std::__popcount(a ^ b) > threshold) return false;
-    } else {
-        if(std::__popcount((a ^ b) & (((ASM_T)1 << ASM_SIZE) - 1)) > threshold) return false;
-    }
-#else
-    size_t bad_bits = 0;
-    for(int i = ASM_SIZE - 1; i >= 0; i--) {
-        if(getBit(a, i) != getBit(b, i))
-            bad_bits++;
-        if(bad_bits == threshold+1)
-            return false;
-    }
-#endif
-
-    return true;
+bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::fuzzyBitCompare(ASM_T a, ASM_T b, size_t threshold) {
+    return std::bitset<ASM_SIZE>(a ^ b).count() <= threshold;
 }
 
 // Push a bit into the buffer
@@ -95,12 +72,12 @@ void ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::startWriting() {
 
 // Work function
 template <typename ASM_T, ASM_T ASM, unsigned int ASM_SIZE, unsigned int FRAME_SIZE>
-bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::work(uint8_t *data, uint8_t *out, unsigned int len) {
-    bool complete_frame = 0;
+bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::work(const uint8_t *data, uint8_t *out, unsigned int len) {
+    bool complete_frame = false;
 
     for(size_t i = 0; i < len; i++) {
         for(int j = 7; j >= 0; j--) {
-            bool bit = getBit(data[i], j);
+            bool bit = std::bitset<ASM_SIZE>(data[i]).test(j);
             if(invert) bit = !bit;
 
             shifter = shifter << 1 | bit;
@@ -109,7 +86,7 @@ bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::work(uint8_t *data, ui
                 // Append syncword, backwards
                 if(bitsWritten == 0) {
                     for(int ASMBit = ASM_SIZE-1; ASMBit >= 0; ASMBit--) {
-                        pushBit(getBit(ASM, ASMBit));
+                        pushBit(std::bitset<ASM_SIZE>(ASM).test(ASMBit));
                     }
                     bitsWritten += ASM_SIZE;
                 }

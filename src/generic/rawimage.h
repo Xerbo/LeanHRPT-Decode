@@ -31,8 +31,8 @@ class RawImage {
         RawImage(size_t width, size_t channels);
         ~RawImage();
 
-        void push10Bit(uint8_t *data, int offset);
-        void push16Bit(uint16_t *data, int offset);
+        void push10Bit(const uint8_t *data, int offset);
+        void push16Bit(const uint16_t *data, int offset);
 
         unsigned short *getChannel(size_t channel) {
             if (channel < m_channels) {

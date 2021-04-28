@@ -41,7 +41,7 @@ bool MeteorDecoder::decodeFile(std::string filename) {
     QDataStream dataStream(&fileSource);
 
     ccsds::Deframer deframer;
-    ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8> MSUMRDeframer(10, false, true);
+    ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8> MSUMRDeframer(10, false);
     
     uint8_t *buffer = new uint8_t[BUFFER_SIZE];
     uint8_t *frame = new uint8_t[1024];
