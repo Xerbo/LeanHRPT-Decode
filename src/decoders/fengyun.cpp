@@ -38,7 +38,7 @@ bool FengyunDecoder::decodeFile(std::string filename) {
 
     ccsds::Deframer deframer;
     ccsds::Derand derand;
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 208400> virrDeframer(10, false);
+    ArbitraryDeframer<uint64_t, 0xA116FD719D8CC950, 64, 208400> virrDeframer(10, false);
 
     // Reed Solomon (from libsathelper)
     SatHelper::ReedSolomon reedSolomon;

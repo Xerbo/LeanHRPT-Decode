@@ -32,7 +32,7 @@ bool NOAADecoder::decodeFile(std::string filename) {
         return false;
     QDataStream dataStream(&fileSource);
 
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 11090 * 10> deframer(9, true);
+    ArbitraryDeframer<uint64_t, 0xA116FD719D8CC950, 64, 11090 * 10> deframer(10, true);
 
     uint8_t *buffer = new uint8_t[BUFFER_SIZE];
     uint8_t *frame = new uint8_t[13863]; // Actually 4 bits too big

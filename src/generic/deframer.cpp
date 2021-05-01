@@ -118,7 +118,7 @@ bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::work(const uint8_t *da
     return complete_frame;
 }
 
-// Standard CCSDS
+// Standard 8192 bit CCSDS frames
 // DEPRECATED: Use ccsds::Deframer instead
 //template class ArbitraryDeframer<uint32_t, 0x1ACFFC1D, 32, 8192>;
 
@@ -126,7 +126,9 @@ bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::work(const uint8_t *da
 template class ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8>;
 
 // NOAA HRPT
-template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 11090 * 10>;
+//template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 11090 * 10>;
+template class ArbitraryDeframer<uint64_t, 0xA116FD719D8CC950, 64, 11090 * 10>;
 
 // Fengyun VIRR
-template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 208400>;
+//template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 208400>;
+template class ArbitraryDeframer<uint64_t, 0xA116FD719D8CC950, 64, 208400>;
