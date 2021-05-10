@@ -119,7 +119,7 @@ void MainWindow::displayQImage(QImage *image) {
  * These 3 functions are the ones which actually decode the image
  */
 void MainWindow::on_actionOpen_triggered() {
-    QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Binary files (*.bin *.raw)");
+    QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Binary files (*.bin)");
 
     if (!filename.isEmpty()) {
         QMessageBox satelliteSelection;
@@ -169,6 +169,11 @@ void MainWindow::startDecode(Satellite satellite, std::string filename) {
     delete decoder;
 }
 void MainWindow::decodeFinished() {
+    if (compositor->height() == 0) {
+        ui->statusbar->showMessage(QString("Decode failed"));
+        return;
+    }
+
     channel   = QImage(compositor->width(), compositor->height(), QImage::Format_Grayscale16);
     composite = QImage(compositor->width(), compositor->height(), QImage::Format_RGBX64);
     ndvi      = QImage(compositor->width(), compositor->height(), QImage::Format_Grayscale16);
