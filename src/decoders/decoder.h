@@ -16,7 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#ifndef LEANHRPT_DECODERS_DECODER_H
+#define LEANHRPT_DECODERS_DECODER_H
 
 #include "generic/rawimage.h"
 
@@ -37,3 +38,5 @@ class Decoder {
     protected:
         RawImage *image;
 };
+
+#endif

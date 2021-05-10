@@ -16,7 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#ifndef LEANHRPT_IMAGECOMPOSITOR_H
+#define LEANHRPT_IMAGECOMPOSITOR_H
 
 #include <vector>
 
@@ -64,3 +65,5 @@ class ImageCompositor {
         size_t *histogram;
         size_t *cf;
 };
+
+#endif

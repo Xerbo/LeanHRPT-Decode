@@ -16,7 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#ifndef LEANHRPT_CCSDS_DEFRAMER_H
+#define LEANHRPT_CCSDS_DEFRAMER_H
 
 #include <cstdint>
 #include <cstddef>
@@ -55,3 +56,5 @@ namespace ccsds {
             int skip;
     };
 }
+
+#endif

@@ -16,7 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#ifndef LEANHRPT_DECODERS_METEOR_H
+#define LEANHRPT_DECODERS_METEOR_H
 
 #include <string>
 #include <cstdint>
@@ -31,3 +32,5 @@ class MeteorDecoder : public Decoder {
             return "MSU-MR";
         }
 };
+
+#endif

@@ -16,7 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#ifndef LEANHRPT_CCSDS_DEMUXER_H
+#define LEANHRPT_CCSDS_DEMUXER_H
 
 #include <cstdint>
 #include <vector>
@@ -34,3 +35,5 @@ namespace ccsds {
             std::vector<uint8_t> packet;
     };
 }
+
+#endif

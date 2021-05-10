@@ -16,7 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#ifndef LEANHRPT_GENERIC_DEFRAMER_H
+#define LEANHRPT_GENERIC_DEFRAMER_H
 
 #include <cstdint>
 #include <cstddef>
@@ -48,3 +49,5 @@ class ArbitraryDeframer {
         void startWriting();
         bool fuzzyBitCompare(ASM_T a, ASM_T b, size_t threshold);
 };
+
+#endif

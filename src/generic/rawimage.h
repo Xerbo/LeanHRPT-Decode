@@ -16,7 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#ifndef LEANHRPT_GENERIC_RAWIMAGE_H
+#define LEANHRPT_GENERIC_RAWIMAGE_H
 
 // Maybe consider dynamic allocation?
 #define MAX_HEIGHT 7000
@@ -53,3 +54,5 @@ class RawImage {
         size_t m_interleavingSize;
         size_t m_rows;
 };
+
+#endif

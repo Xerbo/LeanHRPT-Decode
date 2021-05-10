@@ -16,7 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#ifndef LEANHRPT_DECODERS_FENGYUN_H
+#define LEANHRPT_DECODERS_FENGYUN_H
 
 #include <string>
 #include <cstdint>
@@ -31,3 +32,5 @@ class FengyunDecoder : public Decoder {
             return "VIRR";
         }
 };
+
+#endif

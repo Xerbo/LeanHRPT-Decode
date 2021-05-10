@@ -16,7 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#ifndef LEANHRPT_CCSDS_DERAND_H
+#define LEANHRPT_CCSDS_DERAND_H
 
 #include <cstdint>
 
@@ -30,3 +31,5 @@ namespace ccsds {
             void generateRandomTable();
     };
 }
+
+#endif
