@@ -35,9 +35,9 @@ bool NOAADecoder::decodeFile(std::string filename) {
     ArbitraryDeframer<uint64_t, 0xA116FD719D8CC950, 64, 11090 * 10> deframer(10, true);
 
     uint8_t *buffer = new uint8_t[BUFFER_SIZE];
-    uint8_t *frame = new uint8_t[13863]; // Actually 4 bits too big
+    uint8_t *frame = new uint8_t[(11090*10) / 8];
 
-    while(dataStream.readRawData((char *)buffer, BUFFER_SIZE)) {
+    while(dataStream.readRawData(reinterpret_cast<char *>(buffer), BUFFER_SIZE)) {
         if(deframer.work(buffer, frame, BUFFER_SIZE)) {
             image->push10Bit(frame, 750);
         }

@@ -58,9 +58,9 @@ void ImageCompositor::getChannel(QImage *image, unsigned int channel) {
 }
 
 void ImageCompositor::getNdvi(QImage *image) {
-    quint16 *bits = (quint16 *)image->bits();
-    quint16 *ch1 = (quint16 *)rawChannels[0].bits();
-    quint16 *ch2 = (quint16 *)rawChannels[1].bits();
+    quint16 *bits = reinterpret_cast<quint16 *>(image->bits());
+    quint16 *ch1 = reinterpret_cast<quint16 *>(rawChannels[0].bits());
+    quint16 *ch2 = reinterpret_cast<quint16 *>(rawChannels[1].bits());
 
     for (size_t i = 0; i < m_height*m_width; i++) {
         float red = ch1[i];
@@ -72,14 +72,14 @@ void ImageCompositor::getNdvi(QImage *image) {
 }
 
 void ImageCompositor::getComposite(QImage *image, int chs[3]) {
-    QRgba64 *bits = (QRgba64 *)image->bits();
+    QRgba64 *bits = reinterpret_cast<QRgba64 *>(image->bits());
 
     QImage equalised[3];
     quint16 *equalisedBits[3];
     for (size_t i = 0; i < 3; i++) {
         equalised[i] = QImage(rawChannels[chs[i]-1]);
         equalise(&equalised[i]);
-        equalisedBits[i] = (quint16 *)equalised[i].bits();
+        equalisedBits[i] = reinterpret_cast<quint16 *>(equalised[i].bits());
     }
 
     for (size_t i = 0; i < m_height*m_width; i++) {
@@ -97,7 +97,7 @@ T clamp(T v, T lo, T hi) {
 }
 
 void ImageCompositor::equalise(QImage *image) {
-    quint16 *bits = (quint16 *)image->bits();
+    quint16 *bits = reinterpret_cast<quint16 *>(image->bits());
 
     std::memset(histogram, 0, sizeof(size_t) * 65536);
     for (size_t i = 0; i < m_height*m_width; i++) {
@@ -133,7 +133,7 @@ void ImageCompositor::equalise(QImage *image) {
 
             // Rescale [low, high] to [0, 65535]
             for (size_t i = 0; i < m_height*m_width; i++) { 
-                float val = ((float)bits[i] - low) * 65535.0f/(high - low);
+                float val = (static_cast<float>(bits[i]) - low) * 65535.0f/(high - low);
                 bits[i] = clamp(val, 0.0f, 65535.0f);
             }
             break;

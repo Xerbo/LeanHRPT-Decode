@@ -48,7 +48,7 @@ bool FengyunDecoder::decodeFile(std::string filename) {
     uint8_t *frame = new uint8_t[1024];
     uint8_t *line = new uint8_t[208400 / 8];
 
-    while (dataStream.readRawData((char *)buffer, BUFFER_SIZE)) {
+    while (dataStream.readRawData(reinterpret_cast<char *>(buffer), BUFFER_SIZE)) {
         if (deframer.work(buffer, frame, BUFFER_SIZE)) {
             derand.work(frame, 1024);
 
@@ -58,7 +58,7 @@ bool FengyunDecoder::decodeFile(std::string filename) {
                 reedSolomon.interleave(rsWorkBuffer, &frame[4], i, 4);
             }
 
-            uint8_t VCID = frame[5] & 0b111111;
+            uint8_t VCID = frame[5] & 0x3f; // 0b111111
             if (VCID == 5) {
                 if (virrDeframer.work(&frame[14], line, 882)) {
                     image->push10Bit(line, 349);

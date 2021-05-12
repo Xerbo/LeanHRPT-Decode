@@ -42,13 +42,13 @@ bool MeteorDecoder::decodeFile(std::string filename) {
 
     ccsds::Deframer deframer;
     ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8> MSUMRDeframer(10, false);
-    
+
     uint8_t *buffer = new uint8_t[BUFFER_SIZE];
     uint8_t *frame = new uint8_t[1024];
     uint8_t *msumrBuffer = new uint8_t[948];
     uint8_t *msumrFrame = new uint8_t[11850];
 
-    while (dataStream.readRawData((char *)buffer, BUFFER_SIZE)) {
+    while (dataStream.readRawData(reinterpret_cast<char *>(buffer), BUFFER_SIZE)) {
         if (deframer.work(buffer, frame, BUFFER_SIZE)) {
             // See Table 1 - Structure of a transport frame
             std::memcpy(&msumrBuffer[0    ], &frame[23-1 ], 238);

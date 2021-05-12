@@ -46,7 +46,7 @@ bool MetOpDecoder::decodeFile(std::string filename) {
     uint8_t *buffer = new uint8_t[BUFFER_SIZE];
     uint8_t *frame = new uint8_t[1024];
 
-    while (dataStream.readRawData((char *)buffer, BUFFER_SIZE)) {
+    while (dataStream.readRawData(reinterpret_cast<char *>(buffer), BUFFER_SIZE)) {
         if (deframer.work(buffer, frame, BUFFER_SIZE)) {
             derand.work(frame, 1024);
 
@@ -56,7 +56,7 @@ bool MetOpDecoder::decodeFile(std::string filename) {
                 reedSolomon.interleave(rsWorkBuffer, &frame[4], i, 4);
             }
 
-            uint8_t VCID = frame[5] & 0b111111;
+            uint8_t VCID = frame[5] & 0x3f; // 0b111111
             if (VCID == 9) {
                 std::vector<uint8_t> line = demux.work(frame);
                 // The only thing that VCID 9 will ever contain is AVHRR data so no need for APID filtering

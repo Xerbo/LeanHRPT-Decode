@@ -170,7 +170,7 @@ void MainWindow::startDecode(Satellite satellite, std::string filename) {
 }
 void MainWindow::decodeFinished() {
     if (compositor->height() == 0) {
-        ui->statusbar->showMessage(QString("Decode failed"));
+        ui->statusbar->showMessage("Decode failed");
         return;
     }
 
@@ -316,8 +316,11 @@ void MainWindow::on_actionSave_All_Channels_triggered() {
     QString dirname = QFileDialog::getExistingDirectory(this, "Save All Channels", "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
     if (!dirname.isEmpty()) {
+        ui->statusbar->showMessage("Saving image...");
         QtConcurrent::run(this, &MainWindow::saveAllChannels, dirname);
     }
+
+    ui->statusbar->showMessage("Done");
 
     // Reset channel
     compositor->getChannel(&channel, selectedChannel);
@@ -326,7 +329,10 @@ void MainWindow::saveAllChannels(QString dirname) {
     QImage temporaryChannel(compositor->width(), compositor->height(), QImage::Format_Grayscale16);
 
     for(unsigned int i = 0; i < compositor->channels(); i++) {
+        ui->statusbar->showMessage(QString("Saving channel %1...").arg(i + 1));
         compositor->getChannel(&temporaryChannel, i + 1);
         temporaryChannel.save(QString("%1/%2-%3.png").arg(dirname).arg(imagerName).arg(i + 1), "PNG");
     }
+
+    ui->statusbar->showMessage("Done");
 }

@@ -10,9 +10,8 @@ set(CMAKE_AUTOUIC ON)
 file(GLOB_RECURSE CXX_SOURCE_FILES src/*.cpp)
 add_executable(LeanHRPT-Decode ${CXX_SOURCE_FILES})
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set_property(TARGET LeanHRPT-Decode PROPERTY CXX_EXTENSIONS OFF)
+set_property(TARGET LeanHRPT-Decode PROPERTY CXX_STANDARD 11)
 
 target_include_directories(LeanHRPT-Decode PUBLIC src)
 
