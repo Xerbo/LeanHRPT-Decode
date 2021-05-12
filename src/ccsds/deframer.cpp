@@ -116,7 +116,7 @@ namespace ccsds {
                         std::memcpy(out, frameBuffer, FRAME_SIZE_BYTES);
                     }
 
-                    continue;
+                    if (state != State1) continue;
                 }
 
                 // Skip until next sync marker
@@ -137,7 +137,7 @@ namespace ccsds {
                             startWriting();
                         }
                         break;
-                    // Allow up to 2 bit errors, if we check 3 frames without success go back to State0
+                    // Allow up to 2 bit errors, if we check 5 frames without success go back to State0
                     // assuming we have lost all lock
                     case State1:
                         if (asmCompare(shifter, ASM)) {
