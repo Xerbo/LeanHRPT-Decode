@@ -19,24 +19,69 @@
 #ifndef LEANHRPT_DECODERS_DECODER_H
 #define LEANHRPT_DECODERS_DECODER_H
 
+#include <istream>
+#include <fstream>
+
 #include "generic/rawimage.h"
 
 #define BUFFER_SIZE 1024
 
 class Decoder {
     public:
+        Decoder() {
+            buffer = new uint8_t[BUFFER_SIZE];
+        }
         virtual ~Decoder() {
             delete image;
+            delete[] buffer;
         }
-        virtual bool decodeFile(std::string filename)=0;
+
+        bool decodeFile(std::string filename) {
+            std::filebuf file = std::filebuf();
+            if (!file.open(filename, std::ios::in | std::ios::binary)) {
+                return false;
+            }
+            std::istream stream(&file);
+
+            stream.seekg(stream.end);
+            filesize = stream.tellg();
+            stream.seekg(stream.beg);
+
+            while (!stream.eof() && is_running) {
+                stream.read(reinterpret_cast<char *>(buffer), BUFFER_SIZE);
+                read += BUFFER_SIZE;
+                work();
+            }
+
+            file.close();
+
+            return true;
+        }
+
+        float progress() {
+            return static_cast<float>(read) / static_cast<float>(filesize);
+        }
+
+        void stop() {
+            is_running = false;
+        }
+
         virtual std::string imagerName() {
             return "Unknown";
         };
         RawImage *getImage() {
             return image;
         };
+
     protected:
+        uint8_t *buffer;
         RawImage *image;
+        virtual void work()=0;
+
+    private:
+        bool is_running = true;
+        size_t read = 0;
+        size_t filesize = 1;
 };
 
 #endif

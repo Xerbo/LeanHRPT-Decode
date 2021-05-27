@@ -19,18 +19,47 @@
 #ifndef LEANHRPT_DECODERS_FENGYUN_H
 #define LEANHRPT_DECODERS_FENGYUN_H
 
-#include <string>
 #include <cstdint>
 
 #include "decoder.h"
+#include "generic/deframer.h"
+#include "ccsds/derand.h"
+#include "generic/reedsolomon.h"
+#include "ccsds/deframer.h"
 
 class FengyunDecoder : public Decoder {
     public:
-        FengyunDecoder();
-        bool decodeFile(std::string filename);
+        FengyunDecoder() : virrDeframer(10, false) {
+            frame = new uint8_t[1024];
+            line = new uint8_t[208400 / 8];
+            image = new RawImage(2048, 10);
+        }
+        ~FengyunDecoder() {
+            delete[] frame;
+            delete[] line;
+        }
+        void work() {
+            if (deframer.work(buffer, frame, BUFFER_SIZE)) {
+                derand.work(frame, 1024);
+                reedSolomon.decode_intreleaved_ccsds(frame);
+
+                uint8_t VCID = frame[5] & 0x3f; // 0b111111
+                if (VCID == 5) {
+                    if (virrDeframer.work(&frame[14], line, 882)) {
+                        image->push10Bit(line, 349);
+                    }
+                }
+            }
+        }
         std::string imagerName() {
             return "VIRR";
         }
+    private:
+        uint8_t *frame, *line;
+        ArbitraryDeframer<uint64_t, 0xA116FD719D8CC950, 64, 208400> virrDeframer;
+        ccsds::Deframer deframer;
+        ccsds::Derand derand;
+        SatHelper::ReedSolomon reedSolomon;
 };
 
 #endif

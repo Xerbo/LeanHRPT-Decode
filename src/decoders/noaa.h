@@ -23,14 +23,28 @@
 #include <cstdint>
 
 #include "decoder.h"
+#include "generic/deframer.h"
 
 class NOAADecoder : public Decoder {
     public:
-        NOAADecoder();
-        bool decodeFile(std::string filename);
+        NOAADecoder() : deframer(10, true) {
+            frame = new uint8_t[(11090*10) / 8];
+            image = new RawImage(2048, 5);
+        }
+        ~NOAADecoder() {
+            delete[] frame;
+        }
+        void work() {
+            if(deframer.work(buffer, frame, BUFFER_SIZE)) {
+                image->push10Bit(frame, 750);
+            }
+        }
         std::string imagerName() {
             return "AVHRR";
         }
+    private:
+        uint8_t *frame;
+        ArbitraryDeframer<uint64_t, 0xA116FD719D8CC950, 64, 11090 * 10> deframer;
 };
 
 #endif

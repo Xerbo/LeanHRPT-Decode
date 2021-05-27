@@ -19,18 +19,48 @@
 #ifndef LEANHRPT_DECODERS_METOP_H
 #define LEANHRPT_DECODERS_METOP_H
 
-#include <string>
 #include <cstdint>
 
 #include "decoder.h"
+#include "ccsds/deframer.h"
+#include "ccsds/derand.h"
+#include "generic/reedsolomon.h"
+#include "ccsds/demuxer.h"
 
 class MetOpDecoder : public Decoder {
     public:
-        MetOpDecoder();
-        bool decodeFile(std::string filename);
+        MetOpDecoder() : demux(882) {
+            image = new RawImage(2048, 5);
+            frame = new uint8_t[1024];
+        }
+        ~MetOpDecoder() {
+            delete[] frame;
+        }
+        void work() {
+            if (deframer.work(buffer, frame, BUFFER_SIZE)) {
+                derand.work(frame, 1024);
+                reedSolomon.decode_intreleaved_ccsds(frame);
+
+                uint8_t VCID = frame[5] & 0x3f; // 0b111111
+                if (VCID == 9) {
+                    std::vector<uint8_t> line = demux.work(frame);
+
+                    // The only thing that VCID 9 will ever contain is AVHRR data so no need for APID filtering
+                    if(line.size() == 12966) {
+                        image->push10Bit(&line[20], 11*5);
+                    }
+                }
+            }
+        }
         std::string imagerName() {
             return "MetOp-AVHRR";
         }
+    private:
+        uint8_t *frame;
+        SatHelper::ReedSolomon reedSolomon;
+        ccsds::Deframer deframer;
+        ccsds::Derand derand;
+        ccsds::Demuxer demux;
 };
 
 #endif
