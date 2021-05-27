@@ -59,6 +59,19 @@ ssize_t ReedSolomon::decode_ccsds(uint8_t *data) {
     return errors;
 }
 
+std::vector<ssize_t> ReedSolomon::decode_intreleaved_ccsds(uint8_t *data, size_t n) {
+    uint8_t rsWorkBuffer[255];
+    std::vector<ssize_t> errors;
+
+    for (size_t i = 0; i < n; i++) {        
+        deinterleave(&data[4], rsWorkBuffer, i, n);
+        errors.push_back(decode_ccsds(rsWorkBuffer));
+        interleave(rsWorkBuffer, &data[4], i, n);
+    }
+
+    return errors;
+}
+
 ssize_t ReedSolomon::decode_rs8(uint8_t *data) {
     uint8_t odata[255];
     ssize_t err = correct_reed_solomon_decode(this->rs, data, 255, odata);
