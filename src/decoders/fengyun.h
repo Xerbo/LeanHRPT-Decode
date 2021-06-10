@@ -24,7 +24,7 @@
 #include "decoder.h"
 #include "generic/deframer.h"
 #include "ccsds/derand.h"
-#include "generic/reedsolomon.h"
+#include "ccsds/reedsolomon.h"
 #include "ccsds/deframer.h"
 
 class FengyunDecoder : public Decoder {
