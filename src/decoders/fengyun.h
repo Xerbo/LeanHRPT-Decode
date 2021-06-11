@@ -39,14 +39,23 @@ class FengyunDecoder : public Decoder {
             delete[] line;
         }
         void work() {
-            if (deframer.work(buffer, frame, BUFFER_SIZE)) {
-                derand.work(frame, 1024);
-                reedSolomon.decode_intreleaved_ccsds(frame);
-
-                uint8_t VCID = frame[5] & 0x3f; // 0b111111
+            if (buffer[0] == 0x1A && buffer[1] == 0xCF && buffer[2] && 0xFC && buffer[3] == 0x1D) {
+                uint8_t VCID = buffer[5] & 0x3f; // 0b111111
                 if (VCID == 5) {
-                    if (virrDeframer.work(&frame[14], line, 882)) {
+                    if (virrDeframer.work(&buffer[14], line, 882)) {
                         image->push10Bit(line, 349);
+                    }
+                }
+            } else {
+                if (deframer.work(buffer, frame, BUFFER_SIZE)) {
+                    derand.work(frame, 1024);
+                    reedSolomon.decode_intreleaved_ccsds(frame);
+
+                    uint8_t VCID = frame[5] & 0x3f; // 0b111111
+                    if (VCID == 5) {
+                        if (virrDeframer.work(&frame[14], line, 882)) {
+                            image->push10Bit(line, 349);
+                        }
                     }
                 }
             }

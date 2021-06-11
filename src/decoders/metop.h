@@ -37,17 +37,29 @@ class MetOpDecoder : public Decoder {
             delete[] frame;
         }
         void work() {
-            if (deframer.work(buffer, frame, BUFFER_SIZE)) {
-                derand.work(frame, 1024);
-                reedSolomon.decode_intreleaved_ccsds(frame);
-
-                uint8_t VCID = frame[5] & 0x3f; // 0b111111
+            if (buffer[0] == 0x1A && buffer[1] == 0xCF && buffer[2] && 0xFC && buffer[3] == 0x1D) {
+                uint8_t VCID = buffer[5] & 0x3f; // 0b111111
                 if (VCID == 9) {
-                    std::vector<uint8_t> line = demux.work(frame);
+                    std::vector<uint8_t> line = demux.work(buffer);
 
                     // The only thing that VCID 9 will ever contain is AVHRR data so no need for APID filtering
                     if(line.size() == 12966) {
                         image->push10Bit(&line[20], 11*5);
+                    }
+                }
+            } else {
+                if (deframer.work(buffer, frame, BUFFER_SIZE)) {
+                    derand.work(frame, 1024);
+                    reedSolomon.decode_intreleaved_ccsds(frame);
+
+                    uint8_t VCID = frame[5] & 0x3f; // 0b111111
+                    if (VCID == 9) {
+                        std::vector<uint8_t> line = demux.work(frame);
+
+                        // The only thing that VCID 9 will ever contain is AVHRR data so no need for APID filtering
+                        if(line.size() == 12966) {
+                            image->push10Bit(&line[20], 11*5);
+                        }
                     }
                 }
             }

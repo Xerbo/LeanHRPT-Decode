@@ -31,6 +31,7 @@ namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
 enum Satellite {
+    Satellite_Unknown,
     Satellite_NOAA,
     Satellite_Meteor,
     Satellite_Fengyun,

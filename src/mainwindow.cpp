@@ -28,6 +28,8 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QScrollBar>
 
+#include "fingerprint.h"
+
 #include "decoders/meteor.h"
 #include "decoders/noaa.h"
 #include "decoders/fengyun.h"
@@ -119,32 +121,36 @@ void MainWindow::displayQImage(QImage *image) {
  * These 3 functions are the ones which actually decode the image
  */
 void MainWindow::on_actionOpen_triggered() {
-    QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Binary files (*.bin)");
+    QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Binary files (*.bin *.cadu)");
 
     if (!filename.isEmpty()) {
-        QMessageBox satelliteSelection;
-        satelliteSelection.setWindowTitle("Select Satellite");
-        satelliteSelection.setText("Which satellite did this file come from?");
-        QPushButton *meteorButton = satelliteSelection.addButton("Meteor", QMessageBox::AcceptRole);
-        QPushButton *noaaButton = satelliteSelection.addButton("NOAA", QMessageBox::AcceptRole);
-        QPushButton *metopButton = satelliteSelection.addButton("MetOp", QMessageBox::AcceptRole);
-        QPushButton *fengyunButton = satelliteSelection.addButton("Fengyun", QMessageBox::AcceptRole);
-        QPushButton *abortButton = satelliteSelection.addButton(QMessageBox::Abort);
-        satelliteSelection.exec();
+        Satellite satellite = fingerprint(filename.toStdString());
 
-        Satellite satellite;
-        if (satelliteSelection.clickedButton() == meteorButton) {
-            satellite = Satellite_Meteor;
-        } else if (satelliteSelection.clickedButton() == noaaButton) {
-            satellite = Satellite_NOAA;
-        } else if (satelliteSelection.clickedButton() == fengyunButton) {
-            satellite = Satellite_Fengyun;
-        } else if (satelliteSelection.clickedButton() == metopButton) {
-            satellite = Satellite_MetOp;
-        } else if (satelliteSelection.clickedButton() == abortButton) {
-            return;
-        } else {
-            throw std::runtime_error("invalid button pressed in satellite selector message box");
+        // If the fingerprint cant detect the satellite manually then ask
+        if (satellite == Satellite_Unknown) {
+            QMessageBox satelliteSelection;
+            satelliteSelection.setWindowTitle("Select Satellite");
+            satelliteSelection.setText("Which satellite did this file come from?");
+            QPushButton *meteorButton = satelliteSelection.addButton("Meteor", QMessageBox::AcceptRole);
+            QPushButton *noaaButton = satelliteSelection.addButton("NOAA", QMessageBox::AcceptRole);
+            QPushButton *metopButton = satelliteSelection.addButton("MetOp", QMessageBox::AcceptRole);
+            QPushButton *fengyunButton = satelliteSelection.addButton("Fengyun", QMessageBox::AcceptRole);
+            QPushButton *abortButton = satelliteSelection.addButton(QMessageBox::Abort);
+            satelliteSelection.exec();
+
+            if (satelliteSelection.clickedButton() == meteorButton) {
+                satellite = Satellite_Meteor;
+            } else if (satelliteSelection.clickedButton() == noaaButton) {
+                satellite = Satellite_NOAA;
+            } else if (satelliteSelection.clickedButton() == fengyunButton) {
+                satellite = Satellite_Fengyun;
+            } else if (satelliteSelection.clickedButton() == metopButton) {
+                satellite = Satellite_MetOp;
+            } else if (satelliteSelection.clickedButton() == abortButton) {
+                return;
+            } else {
+                throw std::runtime_error("invalid button pressed in satellite selector message box");
+            }
         }
 
         ui->statusbar->showMessage(QString("Decoding %1 (might take a while)...").arg(filename));

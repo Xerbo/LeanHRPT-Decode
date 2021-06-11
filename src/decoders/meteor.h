@@ -40,15 +40,27 @@ class MeteorDecoder : public Decoder {
             delete[] msumrFrame;
         }
         void work() {
-            if (deframer.work(buffer, frame, BUFFER_SIZE)) {
+            if (buffer[0] == 0x1A && buffer[1] == 0xCF && buffer[2] && 0xFC && buffer[3] == 0x1D) {
                 // See Table 1 - Structure of a transport frame
-                std::memcpy(&msumrBuffer[238*0], &frame[ 23-1], 238);
-                std::memcpy(&msumrBuffer[238*1], &frame[279-1], 238);
-                std::memcpy(&msumrBuffer[238*2], &frame[535-1], 238);
-                std::memcpy(&msumrBuffer[238*3], &frame[791-1], 234);
+                std::memcpy(&msumrBuffer[238*0], &buffer[ 23-1], 238);
+                std::memcpy(&msumrBuffer[238*1], &buffer[279-1], 238);
+                std::memcpy(&msumrBuffer[238*2], &buffer[535-1], 238);
+                std::memcpy(&msumrBuffer[238*3], &buffer[791-1], 234);
 
                 if (MSUMRDeframer.work(msumrBuffer, msumrFrame, 948)) {
                     image->push10Bit(&msumrFrame[50], 0);
+                }
+            } else {
+                if (deframer.work(buffer, frame, BUFFER_SIZE)) {
+                    // See Table 1 - Structure of a transport frame
+                    std::memcpy(&msumrBuffer[238*0], &frame[ 23-1], 238);
+                    std::memcpy(&msumrBuffer[238*1], &frame[279-1], 238);
+                    std::memcpy(&msumrBuffer[238*2], &frame[535-1], 238);
+                    std::memcpy(&msumrBuffer[238*3], &frame[791-1], 234);
+
+                    if (MSUMRDeframer.work(msumrBuffer, msumrFrame, 948)) {
+                        image->push10Bit(&msumrFrame[50], 0);
+                    }
                 }
             }
         }
