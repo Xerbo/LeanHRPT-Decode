@@ -34,6 +34,7 @@ RawImage::RawImage(size_t width, size_t channels)
     : RawImage(width, channels, 1) { }
 
 RawImage::~RawImage() {
+    delete[] rowBuffer;
     for (unsigned short *channel : imageBuffer) {
         delete[] channel;
     }

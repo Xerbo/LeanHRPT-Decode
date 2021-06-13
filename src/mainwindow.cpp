@@ -68,6 +68,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     setEnabled(false);
 }
 MainWindow::~MainWindow() {
+    delete zoomIn;
+    delete zoomOut;
+    delete flip;
+    delete compositor;
+    delete graphicsScene;
+    delete decodeWatcher;
     delete ui;
 }
 
@@ -202,7 +208,7 @@ void MainWindow::on_zoomSelector_activated(int index) {
     QGraphicsView * views[] = { ui->channelView, ui->compositeView, ui->ndviView };
 
     for(QGraphicsView *view : views) {
-        view->resetMatrix();
+        view->resetTransform();
         view->scale(zoomLevels[index], zoomLevels[index]);
     }
 }

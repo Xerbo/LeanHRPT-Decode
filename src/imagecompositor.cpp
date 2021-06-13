@@ -28,6 +28,11 @@ ImageCompositor::ImageCompositor()
       histogram(new size_t[65536]),
       cf(new size_t[65536]) { }
 
+ImageCompositor::~ImageCompositor() {
+    delete[] histogram;
+    delete[] cf;
+}
+
 void ImageCompositor::importFromRaw(RawImage *image) {
     m_width = image->width();
     m_height = image->rows();

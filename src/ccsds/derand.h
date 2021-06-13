@@ -20,14 +20,15 @@
 #define LEANHRPT_CCSDS_DERAND_H
 
 #include <cstdint>
+#include <cstddef>
 
 namespace ccsds {
     class Derand {
         public:
             Derand();
-            void work(uint8_t *data, int len);
+            void work(uint8_t *data, size_t len);
         private:
-            unsigned char randomTable[1024];
+            uint8_t randomTable[1024];
             void generateRandomTable();
     };
 }

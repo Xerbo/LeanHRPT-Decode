@@ -28,7 +28,7 @@ namespace ccsds {
 
     // Polynomial is standard CCSDS, 1 + x3 + x5 + x7 + x8
     void Derand::generateRandomTable() {
-        unsigned char shiftRegisiter = 0xff;
+        uint8_t shiftRegisiter = 0xff;
         std::memset(randomTable, 0, 1024);
 
         // 1024 bytes in a packet, 4 of which are the ASM
@@ -50,16 +50,16 @@ namespace ccsds {
             }
         }
 
-    #if 0
+#if 0
         // Print randomization table
         for (int i = 0; i < 1024; i++) {
             printf("%i: %X\n", i, randomTable[i]);
-        }      
-    #endif
+        }
+#endif
     }
 
-    void Derand::work(uint8_t *data, int len) {
-        for(int i = 0; i < len; i++) {
+    void Derand::work(uint8_t *data, size_t len) {
+        for(size_t i = 0; i < len; i++) {
             data[i] ^= randomTable[i];
         }
     }

@@ -15,7 +15,12 @@ set_property(TARGET LeanHRPT-Decode PROPERTY CXX_STANDARD 11)
 
 target_include_directories(LeanHRPT-Decode PUBLIC src)
 
-target_compile_options(LeanHRPT-Decode PRIVATE -Wall -Wextra -pedantic)
+target_compile_options(LeanHRPT-Decode PRIVATE -Wall -Wextra -Wpedantic)
+
+if (USE_ADDRESS_SANITIZER)
+    target_compile_options(LeanHRPT-Decode PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+    target_link_options(LeanHRPT-Decode PRIVATE -fsanitize=address)
+endif()
 
 # If you CPU doesn't have SSE 4.2 then get a newer CPU
 target_compile_options(LeanHRPT-Decode PRIVATE -msse4.2)

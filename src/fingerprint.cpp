@@ -75,7 +75,7 @@ bool is_noaa(std::istream &stream) {
         stream.read(reinterpret_cast<char *>(buffer), 1024);
         if (deframer2.work(buffer, line, 1024)) {
             frames++;
-            if (frames > 30) { 
+            if (frames > 30) {
                 delete[] line;
                 return true;
             }
