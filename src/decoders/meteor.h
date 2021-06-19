@@ -26,6 +26,8 @@
 #include "ccsds/deframer.h"
 #include "generic/deframer.h"
 
+#include <iostream>
+
 class MeteorDecoder : public Decoder {
     public:
         MeteorDecoder() : MSUMRDeframer(10, false) {
@@ -39,31 +41,6 @@ class MeteorDecoder : public Decoder {
             delete[] msumrBuffer;
             delete[] msumrFrame;
         }
-        void work() {
-            if (buffer[0] == 0x1A && buffer[1] == 0xCF && buffer[2] && 0xFC && buffer[3] == 0x1D) {
-                // See Table 1 - Structure of a transport frame
-                std::memcpy(&msumrBuffer[238*0], &buffer[ 23-1], 238);
-                std::memcpy(&msumrBuffer[238*1], &buffer[279-1], 238);
-                std::memcpy(&msumrBuffer[238*2], &buffer[535-1], 238);
-                std::memcpy(&msumrBuffer[238*3], &buffer[791-1], 234);
-
-                if (MSUMRDeframer.work(msumrBuffer, msumrFrame, 948)) {
-                    image->push10Bit(&msumrFrame[50], 0);
-                }
-            } else {
-                if (deframer.work(buffer, frame, BUFFER_SIZE)) {
-                    // See Table 1 - Structure of a transport frame
-                    std::memcpy(&msumrBuffer[238*0], &frame[ 23-1], 238);
-                    std::memcpy(&msumrBuffer[238*1], &frame[279-1], 238);
-                    std::memcpy(&msumrBuffer[238*2], &frame[535-1], 238);
-                    std::memcpy(&msumrBuffer[238*3], &frame[791-1], 234);
-
-                    if (MSUMRDeframer.work(msumrBuffer, msumrFrame, 948)) {
-                        image->push10Bit(&msumrFrame[50], 0);
-                    }
-                }
-            }
-        }
         std::string imagerName() {
             return "MSU-MR";
         }
@@ -71,6 +48,30 @@ class MeteorDecoder : public Decoder {
         uint8_t *frame, *msumrBuffer, *msumrFrame;
         ccsds::Deframer deframer;
         ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8> MSUMRDeframer;
+
+        void work(std::istream &stream) {
+            if (is_ccsds_frames) {
+                stream.read(reinterpret_cast<char *>(frame), 1024);
+                frame_work(frame);
+            } else {
+                stream.read(reinterpret_cast<char *>(buffer), BUFFER_SIZE);
+                if (deframer.work(buffer, frame, BUFFER_SIZE)) {
+                    frame_work(frame);
+                }
+            }
+        }
+
+        void frame_work(uint8_t *ptr) {
+            // See Table 1 - Structure of a transport frame
+            std::memcpy(&msumrBuffer[238*0], &ptr[ 23-1], 238);
+            std::memcpy(&msumrBuffer[238*1], &ptr[279-1], 238);
+            std::memcpy(&msumrBuffer[238*2], &ptr[535-1], 238);
+            std::memcpy(&msumrBuffer[238*3], &ptr[791-1], 234);
+
+            if (MSUMRDeframer.work(msumrBuffer, msumrFrame, 948)) {
+                image->push10Bit(&msumrFrame[50], 0);
+            }
+        }
 };
 
 #endif

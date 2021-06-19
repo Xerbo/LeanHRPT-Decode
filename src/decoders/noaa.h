@@ -34,7 +34,9 @@ class NOAADecoder : public Decoder {
         ~NOAADecoder() {
             delete[] frame;
         }
-        void work() {
+        void work(std::istream &stream) {
+            stream.read(reinterpret_cast<char *>(buffer), BUFFER_SIZE);
+
             if(deframer.work(buffer, frame, BUFFER_SIZE)) {
                 image->push10Bit(frame, 750);
             }

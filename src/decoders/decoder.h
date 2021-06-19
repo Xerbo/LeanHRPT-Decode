@@ -24,7 +24,6 @@
 
 #include "generic/rawimage.h"
 
-// DO NOT CHANGE, changing will break the ability to read CCSDS frames
 #define BUFFER_SIZE 1024
 
 class Decoder {
@@ -43,26 +42,19 @@ class Decoder {
                 return false;
             }
             std::istream stream(&file);
-
-            stream.seekg(stream.end);
-            filesize = stream.tellg();
-            stream.seekg(stream.beg);
+            read_meta(stream);
 
             while (!stream.eof() && is_running) {
-                stream.read(reinterpret_cast<char *>(buffer), BUFFER_SIZE);
-                read += BUFFER_SIZE;
-                work();
+                work(stream);
+                read = stream.tellg();
             }
 
             file.close();
-
             return true;
         }
-
         float progress() {
             return static_cast<float>(read) / static_cast<float>(filesize);
         }
-
         void stop() {
             is_running = false;
         }
@@ -77,12 +69,27 @@ class Decoder {
     protected:
         uint8_t *buffer;
         RawImage *image;
-        virtual void work()=0;
+        virtual void work(std::istream &stream)=0;
+        bool is_ccsds_frames = false;
 
     private:
         bool is_running = true;
         size_t read = 0;
         size_t filesize = 1;
+
+        void read_meta(std::istream &stream) {
+            // Determine weather the file is CCSDS frames or not
+            uint8_t header[4];
+            stream.read(reinterpret_cast<char *>(header), 4);
+            is_ccsds_frames = (header[0] == 0x1A && header[1] == 0xCF && header[2] && 0xFC && header[3] == 0x1D);
+
+            // Get filesize
+            stream.seekg(stream.end);
+            filesize = stream.tellg();
+
+            // Reset
+            stream.seekg(stream.beg);
+        }
 };
 
 #endif
