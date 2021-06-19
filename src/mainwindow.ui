@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../logo64.png</normaloff>../logo64.png</iconset>
+    <normaloff>logo128.png</normaloff>logo128.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -352,7 +352,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>29</height>
+     <height>34</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
