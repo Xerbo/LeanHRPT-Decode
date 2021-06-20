@@ -43,6 +43,7 @@ public:
     QAction *actionIssue_Tracker;
     QAction *actionAbout_LeanHRPT;
     QAction *actionAbout_Qt;
+    QAction *actionSave_Current_Image_Corrected;
     QWidget *centralwidget;
     QHBoxLayout *horizontalLayout;
     QWidget *optionsSidebar;
@@ -114,6 +115,8 @@ public:
         actionAbout_LeanHRPT->setObjectName(QString::fromUtf8("actionAbout_LeanHRPT"));
         actionAbout_Qt = new QAction(MainWindow);
         actionAbout_Qt->setObjectName(QString::fromUtf8("actionAbout_Qt"));
+        actionSave_Current_Image_Corrected = new QAction(MainWindow);
+        actionSave_Current_Image_Corrected->setObjectName(QString::fromUtf8("actionSave_Current_Image_Corrected"));
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         horizontalLayout = new QHBoxLayout(centralwidget);
@@ -319,6 +322,7 @@ public:
         menuFile->addAction(actionOpen);
         menuFile->addSeparator();
         menuFile->addAction(actionSave_Current_Image);
+        menuFile->addAction(actionSave_Current_Image_Corrected);
         menuFile->addAction(actionSave_All_Channels);
         menuOptions->addAction(actionFlip);
         menuHelp->addAction(actionDocumentation);
@@ -349,6 +353,7 @@ public:
         actionIssue_Tracker->setText(QCoreApplication::translate("MainWindow", "Issue Tracker", nullptr));
         actionAbout_LeanHRPT->setText(QCoreApplication::translate("MainWindow", "About LeanHRPT", nullptr));
         actionAbout_Qt->setText(QCoreApplication::translate("MainWindow", "About Qt", nullptr));
+        actionSave_Current_Image_Corrected->setText(QCoreApplication::translate("MainWindow", "Save Current Image (Corrected)", nullptr));
         channelSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Channel Selector", nullptr));
         compoisteSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Composite Channel Selector", nullptr));
         redLabel->setText(QCoreApplication::translate("MainWindow", "Red", nullptr));

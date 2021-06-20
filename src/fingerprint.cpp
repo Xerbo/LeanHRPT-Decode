@@ -15,7 +15,7 @@ Satellite fingerprint_ccsds_frames(std::istream &stream) {
     for (size_t i = 0; i < 50; i++) {
         stream.read(reinterpret_cast<char *>(frame), 1024);
         if (frame[0] != 0x1A || frame[1] != 0xCF || frame[2] != 0xFC || frame[3] != 0x1D) {
-            return Satellite_Unknown;
+            return Satellite::Unknown;
         }
         uint8_t VCID = frame[5] & 0x3f; // 0b111111
         virtual_channels[VCID]++;
@@ -23,11 +23,11 @@ Satellite fingerprint_ccsds_frames(std::istream &stream) {
 
     // Perform virtual channel analysis
     if (virtual_channels[5] > 12) {
-        return Satellite_Fengyun;
+        return Satellite::FengYun;
     } else if (virtual_channels[9] > 8) {
-        return Satellite_MetOp;
+        return Satellite::MetOp;
     } else {
-        return Satellite_Meteor;
+        return Satellite::Meteor;
     }
 }
 
@@ -44,7 +44,7 @@ Satellite fingerprint_ccsds_data(std::istream &stream) {
         stream.read(reinterpret_cast<char *>(buffer), 1024);
         if (deframer.work(buffer, frame, 1024)) {
             if (frame[10] == 0 && frame[11] == 0 && frame[12] == 0 && frame[13] == 0) {
-                return Satellite_Meteor;
+                return Satellite::Meteor;
             }
 
             frames++;
@@ -56,13 +56,13 @@ Satellite fingerprint_ccsds_data(std::istream &stream) {
 
     if (frames > 50) {
         if (virtual_channels[5] > frames/10) {
-            return Satellite_Fengyun;
+            return Satellite::FengYun;
         } else if (virtual_channels[9] > frames/10) {
-            return Satellite_MetOp;
+            return Satellite::MetOp;
         }
     }
 
-    return Satellite_Unknown;
+    return Satellite::Unknown;
 }
 
 bool is_noaa(std::istream &stream) {
@@ -89,19 +89,19 @@ bool is_noaa(std::istream &stream) {
 Satellite fingerprint(std::string filename) {
     std::filebuf file = std::filebuf();
     if (!file.open(filename, std::ios::in | std::ios::binary)) {
-        return Satellite_Unknown;
+        return Satellite::Unknown;
     }
     std::istream stream(&file);
 
     Satellite satellite = fingerprint_ccsds_frames(stream);
-    if (satellite != Satellite_Unknown) {
+    if (satellite != Satellite::Unknown) {
         file.close();
         return satellite;
     }
 
     stream.seekg(stream.beg);
     satellite = fingerprint_ccsds_data(stream);
-    if (satellite != Satellite_Unknown) {
+    if (satellite != Satellite::Unknown) {
         file.close();
         return satellite;
     }
@@ -109,9 +109,9 @@ Satellite fingerprint(std::string filename) {
     stream.seekg(stream.beg);
     if (is_noaa(stream)) {
         file.close();
-        return Satellite_NOAA;
+        return Satellite::NOAA;
     }
 
     file.close();
-    return Satellite_Unknown;
+    return Satellite::Unknown;
 }

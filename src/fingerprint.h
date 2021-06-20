@@ -1,7 +1,8 @@
 #ifndef LEANHRPT_FINGERPRINT_H
 #define LEANHRPT_FINGERPRINT_H
 
-#include "mainwindow.h"
+#include "satinfo.h"
+#include <string>
 
 Satellite fingerprint(std::string filename);
 
