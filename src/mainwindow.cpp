@@ -176,7 +176,6 @@ void MainWindow::startDecode(Satellite satellite, std::string filename) {
         case Satellite::NOAA: decoder = new NOAADecoder; break;
         default: throw std::runtime_error("invalid value in enum `Satellite`");
     }
-    decoder = new MeteorDecoder;
     imagerName = QString::fromStdString(decoder->imagerName());
     decoder->decodeFile(filename);
     sat = satellite;
@@ -275,9 +274,9 @@ void MainWindow::saveCurrentImage(bool corrected) {
 void MainWindow::writeCurrentImage(QString filename, bool corrected) {
     if (corrected) {
         switch (ui->imageTabs->currentIndex()) {
-            case 0: correct_geometry(channel, Satellite::Meteor).save(filename); break;
-            case 1: correct_geometry(composite, Satellite::Meteor).save(filename); break;
-            case 2: correct_geometry(ndvi, Satellite::Meteor).save(filename); break;
+            case 0: correct_geometry(channel, sat).save(filename); break;
+            case 1: correct_geometry(composite, sat).save(filename); break;
+            case 2: correct_geometry(ndvi, sat).save(filename); break;
             default: throw std::runtime_error("invalid tab index");
         }
     } else {
