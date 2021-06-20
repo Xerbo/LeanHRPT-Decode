@@ -53,6 +53,8 @@ jobs:
             cp $TEMP_PATH/lib/libQt5Gui.so.5 LeanHRPT-Decode/lib/ &&
             cp $TEMP_PATH/lib/libQt5Widgets.so.5 LeanHRPT-Decode/lib/ &&
             cp $TEMP_PATH/lib/libQt5Core.so.5 LeanHRPT-Decode/lib/ &&
+            cp $TEMP_PATH/lib/libQt5XcbQpa.so.5 LeanHRPT-Decode/lib/ &&
+            cp $TEMP_PATH/lib/libQt5DBus.so.5 LeanHRPT-Decode/lib/ &&
             cp $TEMP_PATH/lib/libicuuc.so.56 LeanHRPT-Decode/lib/ &&
             cp $TEMP_PATH/lib/libicui18n.so.56 LeanHRPT-Decode/lib/ &&
             cp $TEMP_PATH/lib/libicudata.so.56 LeanHRPT-Decode/lib/ &&
