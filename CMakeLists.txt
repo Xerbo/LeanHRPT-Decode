@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.0.0)
-project(LeanHRPT-Decode CXX)
+project(LeanHRPT-Decode)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -7,7 +7,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-file(GLOB_RECURSE CXX_SOURCE_FILES src/*.cpp)
+file(GLOB_RECURSE CXX_SOURCE_FILES src/*.cpp src/tinyexpr/tinyexpr.c)
 add_executable(LeanHRPT-Decode ${CXX_SOURCE_FILES})
 
 set_property(TARGET LeanHRPT-Decode PROPERTY CXX_EXTENSIONS OFF)

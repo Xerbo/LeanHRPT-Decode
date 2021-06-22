@@ -48,7 +48,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     ui->channelView->setScene(graphicsScene);
     ui->compositeView->setScene(graphicsScene);
-    ui->ndviView->setScene(graphicsScene);
+    ui->presetView->setScene(graphicsScene);
 
     zoomIn = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Plus), this);
     zoomOut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus), this);
@@ -184,6 +184,8 @@ void MainWindow::startDecode(Satellite satellite, std::string filename) {
 
     delete decoder;
 }
+
+#include <iostream>
 void MainWindow::decodeFinished() {
     if (compositor->height() == 0) {
         ui->statusbar->showMessage("Decode failed");
@@ -193,15 +195,27 @@ void MainWindow::decodeFinished() {
 
     channel   = QImage(compositor->width(), compositor->height(), QImage::Format_Grayscale16);
     composite = QImage(compositor->width(), compositor->height(), QImage::Format_RGBX64);
-    ndvi      = QImage(compositor->width(), compositor->height(), QImage::Format_Grayscale16);
+    preset    = QImage(compositor->width(), compositor->height(), QImage::Format_RGBX64);
 
     populateChannelSelectors(compositor->channels());
-    compositor->getNdvi(&ndvi);
-    compositor->getComposite(&composite, selectedComposite);
-    compositor->getChannel(&channel, selectedChannel);
-    setEqualization(selectedEqualization);
 
     ui->statusbar->showMessage(QString("Decode finished: %1, %2 lines").arg(QString(imagerName)).arg(compositor->height()));
+
+    selected_presets.clear();
+    for (auto preset : presets) {
+        if (preset.second.satellites.count(sat)) {
+            
+            selected_presets.insert(preset);
+        }
+    }
+
+    ui->comboBox->clear();
+    for (auto item : selected_presets) {
+        ui->comboBox->addItem(QString::fromStdString(item.first));
+    }
+    on_comboBox_activated(ui->comboBox->currentText());
+
+    setEqualization(selectedEqualization);
 
     reloadImage();
     setState(WindowState::Finished);
@@ -210,7 +224,7 @@ void MainWindow::decodeFinished() {
 // Zoom selector combo box
 void MainWindow::on_zoomSelector_activated(int index) {
     float zoomLevels[] = { 0.25f, 0.5f, 1.0f, 2.0f };
-    QGraphicsView *views[] = { ui->channelView, ui->compositeView, ui->ndviView };
+    QGraphicsView *views[] = { ui->channelView, ui->compositeView, ui->presetView };
 
     for(QGraphicsView *view : views) {
         view->resetTransform();
@@ -234,14 +248,15 @@ void MainWindow::setEqualization(Equalization type) {
     compositor->setEqualization(type);
     compositor->getComposite(&composite, selectedComposite);
     compositor->getChannel(&channel, selectedChannel);
+    compositor->getExpression(&preset, selected_presets.at(ui->comboBox->currentText().toStdString()).expression);
     reloadImage();
 }
 
 void MainWindow::on_actionFlip_triggered() {
     compositor->flip();
-    compositor->getNdvi(&ndvi);
     compositor->getComposite(&composite, selectedComposite);
     compositor->getChannel(&channel, selectedChannel);
+    compositor->getExpression(&preset, selected_presets.at(ui->comboBox->currentText().toStdString()).expression);
     reloadImage();
 }
 
@@ -249,14 +264,14 @@ void MainWindow::reloadImage() {
     on_imageTabs_currentChanged(ui->imageTabs->currentIndex());
 }
 void MainWindow::on_imageTabs_currentChanged(int index) {
-    QGraphicsView *tabs[] = { ui->channelView, ui->compositeView, ui->ndviView };
+    QGraphicsView *tabs[] = { ui->channelView, ui->compositeView, ui->presetView };
     tabs[index]->horizontalScrollBar()->setValue(tabs[previousTabIndex]->horizontalScrollBar()->value());
     tabs[index]->verticalScrollBar()->setValue(tabs[previousTabIndex]->verticalScrollBar()->value());
 
     switch (index) {
         case 0: displayQImage(&channel); break;
         case 1: displayQImage(&composite); break;
-        case 2: displayQImage(&ndvi); break;
+        case 2: displayQImage(&preset); break;
         default: throw std::runtime_error("invalid tab index");
     }
 
@@ -264,7 +279,7 @@ void MainWindow::on_imageTabs_currentChanged(int index) {
 }
 
 void MainWindow::saveCurrentImage(bool corrected) {
-    QString types[3] = { QString::number(selectedChannel), "Composite", "NDVI" };
+    QString types[3] = { QString::number(selectedChannel), "Composite", ui->comboBox->currentText() };
     QString name = QString("%1-%2.png").arg(imagerName).arg(types[ui->imageTabs->currentIndex()]);
     QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", name, "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
 
@@ -276,14 +291,14 @@ void MainWindow::writeCurrentImage(QString filename, bool corrected) {
         switch (ui->imageTabs->currentIndex()) {
             case 0: correct_geometry(channel, sat).save(filename); break;
             case 1: correct_geometry(composite, sat).save(filename); break;
-            case 2: correct_geometry(ndvi, sat).save(filename); break;
+            case 2: correct_geometry(preset, sat).save(filename); break;
             default: throw std::runtime_error("invalid tab index");
         }
     } else {
         switch (ui->imageTabs->currentIndex()) {
             case 0: channel.save(filename); break;
             case 1: composite.save(filename); break;
-            case 2: ndvi.save(filename); break;
+            case 2: preset.save(filename); break;
             default: throw std::runtime_error("invalid tab index");
         }
     }
@@ -307,4 +322,10 @@ void MainWindow::saveAllChannels(QString directory) {
     }
 
     ui->statusbar->showMessage("Done");
+}
+
+void MainWindow::on_comboBox_activated(QString text) {
+    ui->lineEdit->setText(QString::fromStdString(presets.at(text.toStdString()).expression));
+    compositor->getExpression(&preset, selected_presets.at(ui->comboBox->currentText().toStdString()).expression);
+    reloadImage();
 }

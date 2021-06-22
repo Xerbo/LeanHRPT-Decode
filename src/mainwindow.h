@@ -27,8 +27,10 @@
 #include <QGraphicsView>
 #include <QFutureWatcher>
 #include <QShortcut>
+#include <QString>
 
 #include "imagecompositor.h"
+#include "preset.h"
 #include "satinfo.h"
 
 QT_BEGIN_NAMESPACE
@@ -64,17 +66,23 @@ class MainWindow : public QMainWindow {
         QShortcut *zoomIn;
         QShortcut *zoomOut;
 
+        QImage channel;
+        QImage composite;
+        QImage preset;
+
+        std::map<std::string, Preset> selected_presets;
+
         // unassorted shit
         Satellite sat;
         ImageCompositor *compositor;
         QFutureWatcher<void> *decodeWatcher;
-        QImage channel, composite, ndvi;
         int selectedChannel = 1;
         int selectedComposite[3] = { 2, 2, 1 };
         Equalization selectedEqualization = None;
         QString imagerName;
         int previousTabIndex = 0;
         QGraphicsScene *graphicsScene;
+        std::string thing = "rgb(ch1, ch9, ch7)";
 
         void incrementZoom(int amount);
         void startDecode(Satellite satellite, std::string filename);
@@ -123,6 +131,8 @@ class MainWindow : public QMainWindow {
         void on_equalisationNone_clicked()      { setEqualization(Equalization::None); };
         void on_equalisationStretch_clicked()   { setEqualization(Equalization::Stretch); };
         void on_equalisationHistogram_clicked() { setEqualization(Equalization::Histogram); };
+
+        void on_comboBox_activated(QString text);
 };
 
 #endif // MAINWINDOW_H

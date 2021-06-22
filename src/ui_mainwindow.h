@@ -19,6 +19,7 @@
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
@@ -65,6 +66,11 @@ public:
     QLabel *blueLabel;
     QComboBox *blueSelector;
     QWidget *ndviPage;
+    QVBoxLayout *verticalLayout_8;
+    QGroupBox *groupBox_2;
+    QFormLayout *formLayout_3;
+    QLineEdit *lineEdit;
+    QComboBox *comboBox;
     QSpacerItem *verticalSpacer;
     QGroupBox *groupBox;
     QVBoxLayout *verticalLayout;
@@ -81,9 +87,9 @@ public:
     QWidget *compositeTab;
     QVBoxLayout *verticalLayout_6;
     QGraphicsView *compositeView;
-    QWidget *ndviTab;
+    QWidget *presetTab;
     QVBoxLayout *verticalLayout_4;
-    QGraphicsView *ndviView;
+    QGraphicsView *presetView;
     QMenuBar *menubar;
     QMenu *menuFile;
     QMenu *menuOptions;
@@ -203,6 +209,32 @@ public:
         stackedOptions->addWidget(compositePage);
         ndviPage = new QWidget();
         ndviPage->setObjectName(QString::fromUtf8("ndviPage"));
+        verticalLayout_8 = new QVBoxLayout(ndviPage);
+        verticalLayout_8->setObjectName(QString::fromUtf8("verticalLayout_8"));
+        verticalLayout_8->setContentsMargins(0, 0, 0, 0);
+        groupBox_2 = new QGroupBox(ndviPage);
+        groupBox_2->setObjectName(QString::fromUtf8("groupBox_2"));
+        formLayout_3 = new QFormLayout(groupBox_2);
+        formLayout_3->setObjectName(QString::fromUtf8("formLayout_3"));
+        lineEdit = new QLineEdit(groupBox_2);
+        lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
+        lineEdit->setEnabled(false);
+
+        formLayout_3->setWidget(1, QFormLayout::FieldRole, lineEdit);
+
+        comboBox = new QComboBox(groupBox_2);
+        comboBox->setObjectName(QString::fromUtf8("comboBox"));
+        QSizePolicy sizePolicy1(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(comboBox->sizePolicy().hasHeightForWidth());
+        comboBox->setSizePolicy(sizePolicy1);
+
+        formLayout_3->setWidget(0, QFormLayout::FieldRole, comboBox);
+
+
+        verticalLayout_8->addWidget(groupBox_2);
+
         stackedOptions->addWidget(ndviPage);
 
         options->addWidget(stackedOptions);
@@ -284,20 +316,20 @@ public:
         verticalLayout_6->addWidget(compositeView);
 
         imageTabs->addTab(compositeTab, QString());
-        ndviTab = new QWidget();
-        ndviTab->setObjectName(QString::fromUtf8("ndviTab"));
-        verticalLayout_4 = new QVBoxLayout(ndviTab);
+        presetTab = new QWidget();
+        presetTab->setObjectName(QString::fromUtf8("presetTab"));
+        verticalLayout_4 = new QVBoxLayout(presetTab);
         verticalLayout_4->setObjectName(QString::fromUtf8("verticalLayout_4"));
         verticalLayout_4->setContentsMargins(0, 0, 0, 0);
-        ndviView = new QGraphicsView(ndviTab);
-        ndviView->setObjectName(QString::fromUtf8("ndviView"));
-        ndviView->setFrameShape(QFrame::NoFrame);
-        ndviView->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop);
-        ndviView->setDragMode(QGraphicsView::ScrollHandDrag);
+        presetView = new QGraphicsView(presetTab);
+        presetView->setObjectName(QString::fromUtf8("presetView"));
+        presetView->setFrameShape(QFrame::NoFrame);
+        presetView->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop);
+        presetView->setDragMode(QGraphicsView::ScrollHandDrag);
 
-        verticalLayout_4->addWidget(ndviView);
+        verticalLayout_4->addWidget(presetView);
 
-        imageTabs->addTab(ndviTab, QString());
+        imageTabs->addTab(presetTab, QString());
 
         horizontalLayout->addWidget(imageTabs);
 
@@ -334,9 +366,9 @@ public:
         retranslateUi(MainWindow);
         QObject::connect(imageTabs, SIGNAL(currentChanged(int)), stackedOptions, SLOT(setCurrentIndex(int)));
 
-        stackedOptions->setCurrentIndex(0);
+        stackedOptions->setCurrentIndex(2);
         zoomSelector->setCurrentIndex(2);
-        imageTabs->setCurrentIndex(0);
+        imageTabs->setCurrentIndex(2);
 
 
         QMetaObject::connectSlotsByName(MainWindow);
@@ -359,6 +391,8 @@ public:
         redLabel->setText(QCoreApplication::translate("MainWindow", "Red", nullptr));
         greenLabel->setText(QCoreApplication::translate("MainWindow", "Green", nullptr));
         blueLabel->setText(QCoreApplication::translate("MainWindow", "Blue", nullptr));
+        groupBox_2->setTitle(QCoreApplication::translate("MainWindow", "Select Preset", nullptr));
+        lineEdit->setText(QString());
         groupBox->setTitle(QCoreApplication::translate("MainWindow", "Equalisation", nullptr));
         equalisationNone->setText(QCoreApplication::translate("MainWindow", "None", nullptr));
         equalisationStretch->setText(QCoreApplication::translate("MainWindow", "Stretch", nullptr));
@@ -371,7 +405,7 @@ public:
 
         imageTabs->setTabText(imageTabs->indexOf(channelTab), QCoreApplication::translate("MainWindow", "Single Channel", nullptr));
         imageTabs->setTabText(imageTabs->indexOf(compositeTab), QCoreApplication::translate("MainWindow", "Composite", nullptr));
-        imageTabs->setTabText(imageTabs->indexOf(ndviTab), QCoreApplication::translate("MainWindow", "NDVI", nullptr));
+        imageTabs->setTabText(imageTabs->indexOf(presetTab), QCoreApplication::translate("MainWindow", "Presets", nullptr));
         menuFile->setTitle(QCoreApplication::translate("MainWindow", "File", nullptr));
         menuOptions->setTitle(QCoreApplication::translate("MainWindow", "Options", nullptr));
         menuHelp->setTitle(QCoreApplication::translate("MainWindow", "Help", nullptr));

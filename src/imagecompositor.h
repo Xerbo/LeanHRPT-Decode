@@ -46,13 +46,15 @@ class ImageCompositor {
         // Return images
         void getChannel(QImage *image, unsigned int channel);
         void getComposite(QImage *image, int chs[3]);
-        void getNdvi(QImage *image);
+        void getExpression(QImage *image, std::string experssion);
 
         unsigned int width() { return m_width; };
         unsigned int height() { return m_height; };
         unsigned int channels() { return m_channels; };
     private:
-        void equalise(QImage *image);
+        void equalise(QImage *image, size_t mul, size_t shift);
+        void equalise_rgb(QImage *image) { equalise(image, 4, 0); equalise(image, 4, 1); equalise(image, 4, 2); };
+        void equalise_bw(QImage *image) { equalise(image, 1, 0); };
         size_t m_width;
         size_t m_height;
         size_t m_channels;

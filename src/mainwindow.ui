@@ -37,7 +37,7 @@
        <item>
         <widget class="QStackedWidget" name="stackedOptions">
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="channelPage">
           <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -150,7 +150,51 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="ndviPage"/>
+         <widget class="QWidget" name="ndviPage">
+          <layout class="QVBoxLayout" name="verticalLayout_8">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QGroupBox" name="groupBox_2">
+             <property name="title">
+              <string>Select Preset</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_3">
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="lineEdit">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="comboBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
        <item>
@@ -244,7 +288,7 @@
        <enum>QTabWidget::West</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="channelTab">
        <attribute name="title">
@@ -310,9 +354,9 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="ndviTab">
+      <widget class="QWidget" name="presetTab">
        <attribute name="title">
-        <string>NDVI</string>
+        <string>Presets</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <property name="leftMargin">
@@ -328,7 +372,7 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QGraphicsView" name="ndviView">
+         <widget class="QGraphicsView" name="presetView">
           <property name="frameShape">
            <enum>QFrame::NoFrame</enum>
           </property>
