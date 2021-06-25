@@ -27,13 +27,23 @@
 
 struct Preset {
     std::string description;
+    std::string author;
     std::set<Satellite> satellites;
     std::string expression;
 };
 
 const std::map<std::string, Preset> presets = {
-    { "NDVI", { "Normalized Difference Vegetation Index", { NOAA, Meteor, FengYun, MetOp }, "bw((ch2-ch1)/(ch2+ch1)*0.5 + 0.5)" } },
-    { "FengYun Truecolor", { "RGB197 composite from the VIRR imager", { FengYun }, "rgb(ch1, ch9, ch7)" } }
+    // Universal
+    { "NDVI",             { "Normalized Difference Vegetation Index", "Xerbo", { NOAA, Meteor, FengYun, MetOp }, "bw((ch2-ch1)/(ch2+ch1)*0.5 + 0.5)" } },
+    { "RGB221",           { "Direct RGB221 composite",                "Xerbo", { NOAA, Meteor, FengYun, MetOp }, "rgb(ch2, ch2, ch1)" } },
+    // FengYun exclusives
+    { "True Color",       { "Direct RGB197 composite",                "Xerbo", { FengYun },                      "rgb(ch1, ch9, ch7)" } },
+    { "Natural Color",    { "A mix of true color and SWIR",           "Derek", { FengYun },                      "rgb(blend(ch1, max(ch1, ch6), 0.85), blend(ch9, (ch9, ch2), 0.85), blend(ch7, max(ch7, ch1), 0.85))" } },
+    // SWIR
+    { "FY SWIR",          { "Direct RGB621 composite",                "Xerbo", { FengYun },                      "rgb(ch6, ch2, ch1)" } },
+    { "SWIR",             { "Direct RGB321 composite",                "Xerbo", { Meteor, MetOp },                "rgb(ch3, ch2, ch1)" } },
+    { "FY Enhanced SWIR", { "RGB621 without the blue tint",           "Derek", { FengYun },                      "rgb(max(ch6, ch2), ch2, ch1)" } },
+    { "Enhanced SWIR",    { "RGB321 without the blue tint",           "Derek", { Meteor, MetOp },                "rgb(max(ch3, ch2), ch2, ch1)" } },
 };
 
 #endif
