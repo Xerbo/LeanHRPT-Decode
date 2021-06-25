@@ -20,8 +20,14 @@
 
 #include <cmath>
 #include <cstring>
+#include <iostream>
 
 #include <tinyexpr/tinyexpr.h>
+
+template<typename T>
+T clamp(T v, T lo, T hi) {
+    return std::max(lo, std::min(hi, v));
+}
 
 // Constructor
 ImageCompositor::ImageCompositor()
@@ -68,17 +74,26 @@ void ImageCompositor::getChannel(QImage *image, unsigned int channel) {
 extern "C" {
 double set_rgb(double r, double g, double b) {
     QRgba64 a;
-    a.setRed(r * (double)UINT16_MAX);
-    a.setGreen(g * (double)UINT16_MAX);
-    a.setBlue(b * (double)UINT16_MAX);
+    a.setRed(clamp(r, 0.0, 1.0) * (double)UINT16_MAX);
+    a.setGreen(clamp(g, 0.0, 1.0) * (double)UINT16_MAX);
+    a.setBlue(clamp(b, 0.0, 1.0) * (double)UINT16_MAX);
     return *(double *)&a;
 }
 double set_bw(double val) {
     QRgba64 a;
-    a.setRed(val * (double)UINT16_MAX);
-    a.setGreen(val * (double)UINT16_MAX);
-    a.setBlue(val * (double)UINT16_MAX);
+    a.setRed(clamp(val, 0.0, 1.0) * (double)UINT16_MAX);
+    a.setGreen(clamp(val, 0.0, 1.0) * (double)UINT16_MAX);
+    a.setBlue(clamp(val, 0.0, 1.0) * (double)UINT16_MAX);
     return *(double *)&a;
+}
+double max(double a, double b) {
+    return std::max(a, b);
+}
+double min(double a, double b) {
+    return std::min(a, b);
+}
+double blend(double a, double b, double c) {
+    return a*c + b*(1.0-c);
 }
 }
 
@@ -92,6 +107,9 @@ void ImageCompositor::getExpression(QImage *image, std::string experssion) {
     std::vector<te_variable> vars = {
         {"rgb", (const char *)set_rgb, TE_FUNCTION3},
         {"bw", (const char *)set_bw, TE_FUNCTION1},
+        {"min", (const char *)min, TE_FUNCTION2},
+        {"max", (const char *)max, TE_FUNCTION2},
+        {"blend", (const char *)blend, TE_FUNCTION3},
         {"x", &x2},
         {"y", &y2},
         {"w", &w},
@@ -108,8 +126,10 @@ void ImageCompositor::getExpression(QImage *image, std::string experssion) {
         {"ch10", &ch[9]}
     };
 
-    te_expr *n = te_compile(experssion.c_str(), vars.data(), vars.size(), NULL);
+    int error;
+    te_expr *n = te_compile(experssion.c_str(), vars.data(), vars.size(), &error);
     if (n == NULL) {
+        std::cout << "Error around character " << error << " in expression" << std::endl;
         return;
     }
 
@@ -149,11 +169,6 @@ void ImageCompositor::getComposite(QImage *image, int chs[3]) {
     }
 
     //equalise_rgb(image);
-}
-
-template<typename T>
-T clamp(T v, T lo, T hi) {
-    return std::max(lo, std::min(hi, v));
 }
 
 void ImageCompositor::equalise(QImage *image, size_t mul, size_t shift) {
