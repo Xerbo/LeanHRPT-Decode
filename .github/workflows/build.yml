@@ -1,0 +1,51 @@
+name: Build
+
+on: [push]
+
+env:
+  BUILD_TYPE: Release
+  TEMP_PATH: /tmp/build
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Checkout submodules
+      run: 'git submodule update --init --recursive'
+    
+    - name: Install apt dependencies
+      run: 'sudo apt-get update && sudo apt-get install -y cmake make git g++ python3 python3-pip mesa-common-dev libglu1-mesa-dev'
+
+    - name: Install pip dependencies
+      run: 'pip3 install -U pip && pip3 install aqtinstall'
+
+    - name: Create build path
+      run: 'mkdir $TEMP_PATH'
+
+    - name: Install Qt
+      run: 'aqt install 5.14.2 linux desktop &&
+            cp -r 5.14.2/gcc_64/* $TEMP_PATH'
+
+    - name: Install libcorrect
+      run: 'git clone https://github.com/quiet/libcorrect &&
+            cd libcorrect &&
+            mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            make -j4 &&
+            make install'
+
+    - name: Compile LeanHRPT
+      run: 'mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            make -j4'
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: LeanHRPT-Decode
+        path: build/LeanHRPT-Decode
