@@ -28,6 +28,7 @@
 #include <QFutureWatcher>
 #include <QShortcut>
 
+#include "decoders/decoder.h"
 #include "imagecompositor.h"
 #include "satinfo.h"
 
@@ -75,6 +76,8 @@ class MainWindow : public QMainWindow {
         QString imagerName;
         int previousTabIndex = 0;
         QGraphicsScene *graphicsScene;
+        Decoder *decoder;
+        QLabel *status;
 
         void incrementZoom(int amount);
         void startDecode(Satellite satellite, std::string filename);

@@ -23,6 +23,7 @@
 #include <QFileDialog>
 #include <QtConcurrent/QtConcurrent>
 #include <QScrollBar>
+#include <QProgressBar>
 
 #include "fingerprint.h"
 #include "geometry.h"
@@ -66,6 +67,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     });
 
     setState(WindowState::Idle);
+
+    status = new QLabel();
+    ui->statusbar->addPermanentWidget(status, 1);
+    QProgressBar * _progressBar = new QProgressBar();
+    _progressBar->setRange(0, 100);
+    _progressBar->setValue(0);
+    _progressBar->setTextVisible(false);
+    ui->statusbar->addPermanentWidget(_progressBar, 1);
+
+    QTimer *timer = new QTimer(this);
+    QTimer::connect(timer, &QTimer::timeout, this, [this, _progressBar]() {
+        if (decoder != nullptr) {
+            _progressBar->setValue(decoder->progress()*100.0f);
+        } else {
+            _progressBar->setValue(0);
+        }
+    });
+    timer->start(1000.0f/60.0f);
 }
 
 MainWindow::~MainWindow() {
@@ -162,13 +181,12 @@ void MainWindow::on_actionOpen_triggered() {
         }
 
         setState(WindowState::Decoding);
-        ui->statusbar->showMessage(QString("Decoding %1 (might take a while)...").arg(filename));
+        status->setText(QString("Decoding %1...").arg(filename));
         decodeWatcher->setFuture(QtConcurrent::run(this, &MainWindow::startDecode, satellite, filename.toStdString()));
     }
 }
 
 void MainWindow::startDecode(Satellite satellite, std::string filename) {
-    Decoder *decoder;
     switch (satellite) {
         case Satellite::FengYun: decoder = new FengyunDecoder; break;
         case Satellite::Meteor: decoder = new MeteorDecoder; break;
@@ -182,11 +200,12 @@ void MainWindow::startDecode(Satellite satellite, std::string filename) {
 
     compositor->importFromRaw(decoder->getImage());
 
+    decoder = nullptr;
     delete decoder;
 }
 void MainWindow::decodeFinished() {
     if (compositor->height() == 0) {
-        ui->statusbar->showMessage("Decode failed");
+        status->setText("Decode failed");
         setState(WindowState::Idle);
         return;
     }
@@ -201,7 +220,7 @@ void MainWindow::decodeFinished() {
     compositor->getChannel(&channel, selectedChannel);
     setEqualization(selectedEqualization);
 
-    ui->statusbar->showMessage(QString("Decode finished: %1, %2 lines").arg(QString(imagerName)).arg(compositor->height()));
+    status->setText(QString("Decode finished: %1, %2 lines").arg(QString(imagerName)).arg(compositor->height()));
 
     reloadImage();
     setState(WindowState::Finished);
@@ -301,10 +320,10 @@ void MainWindow::saveAllChannels(QString directory) {
     QImage channel(compositor->width(), compositor->height(), QImage::Format_Grayscale16);
 
     for(size_t i = 0; i < compositor->channels(); i++) {
-        ui->statusbar->showMessage(QString("Saving channel %1...").arg(i + 1));
+        status->setText(QString("Saving channel %1...").arg(i + 1));
         compositor->getChannel(&channel, i + 1);
         channel.save(QString("%1/%2-%3.png").arg(directory).arg(imagerName).arg(i + 1), "PNG");
     }
 
-    ui->statusbar->showMessage("Done");
+    status->setText("Done");
 }
