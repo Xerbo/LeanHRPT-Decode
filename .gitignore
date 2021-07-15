@@ -61,9 +61,8 @@ CMakeUserPresets.json
 *.bmp
 *.jpg
 *.png
-!images/*.jpg
+!images/*
 !logo128.png
-!logo64.png
 
 # Binary files
 *.bin
