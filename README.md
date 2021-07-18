@@ -1,5 +1,7 @@
 # LeanHRPT Decode
 
+[![Build](https://github.com/Xerbo/LeanHRPT-Decode/actions/workflows/build.yml/badge.svg)](https://github.com/Xerbo/LeanHRPT-Decode/actions/workflows/build.yml)
+
 A high quality, easy to use HRPT decoder.
 
 ## Usage
