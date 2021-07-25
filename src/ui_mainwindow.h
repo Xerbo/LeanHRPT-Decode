@@ -19,10 +19,10 @@
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
-#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QRadioButton>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QStackedWidget>
@@ -65,12 +65,15 @@ public:
     QComboBox *greenSelector;
     QLabel *blueLabel;
     QComboBox *blueSelector;
-    QWidget *ndviPage;
+    QWidget *presetPage;
     QVBoxLayout *verticalLayout_8;
-    QGroupBox *groupBox_2;
+    QGroupBox *presetSelectorBox;
     QFormLayout *formLayout_3;
-    QLineEdit *lineEdit;
-    QComboBox *comboBox;
+    QComboBox *presetSelector;
+    QLabel *presetDescription;
+    QPushButton *presetReload;
+    QLabel *presetAuthor;
+    QLabel *presetCategory;
     QSpacerItem *verticalSpacer;
     QGroupBox *groupBox;
     QVBoxLayout *verticalLayout;
@@ -207,35 +210,52 @@ public:
         verticalLayout_3->addWidget(compoisteSelectorBox);
 
         stackedOptions->addWidget(compositePage);
-        ndviPage = new QWidget();
-        ndviPage->setObjectName(QString::fromUtf8("ndviPage"));
-        verticalLayout_8 = new QVBoxLayout(ndviPage);
+        presetPage = new QWidget();
+        presetPage->setObjectName(QString::fromUtf8("presetPage"));
+        verticalLayout_8 = new QVBoxLayout(presetPage);
         verticalLayout_8->setObjectName(QString::fromUtf8("verticalLayout_8"));
         verticalLayout_8->setContentsMargins(0, 0, 0, 0);
-        groupBox_2 = new QGroupBox(ndviPage);
-        groupBox_2->setObjectName(QString::fromUtf8("groupBox_2"));
-        formLayout_3 = new QFormLayout(groupBox_2);
+        presetSelectorBox = new QGroupBox(presetPage);
+        presetSelectorBox->setObjectName(QString::fromUtf8("presetSelectorBox"));
+        formLayout_3 = new QFormLayout(presetSelectorBox);
         formLayout_3->setObjectName(QString::fromUtf8("formLayout_3"));
-        lineEdit = new QLineEdit(groupBox_2);
-        lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
-        lineEdit->setEnabled(false);
-
-        formLayout_3->setWidget(1, QFormLayout::FieldRole, lineEdit);
-
-        comboBox = new QComboBox(groupBox_2);
-        comboBox->setObjectName(QString::fromUtf8("comboBox"));
+        presetSelector = new QComboBox(presetSelectorBox);
+        presetSelector->setObjectName(QString::fromUtf8("presetSelector"));
         QSizePolicy sizePolicy1(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
         sizePolicy1.setHorizontalStretch(0);
         sizePolicy1.setVerticalStretch(0);
-        sizePolicy1.setHeightForWidth(comboBox->sizePolicy().hasHeightForWidth());
-        comboBox->setSizePolicy(sizePolicy1);
+        sizePolicy1.setHeightForWidth(presetSelector->sizePolicy().hasHeightForWidth());
+        presetSelector->setSizePolicy(sizePolicy1);
 
-        formLayout_3->setWidget(0, QFormLayout::FieldRole, comboBox);
+        formLayout_3->setWidget(0, QFormLayout::SpanningRole, presetSelector);
+
+        presetDescription = new QLabel(presetSelectorBox);
+        presetDescription->setObjectName(QString::fromUtf8("presetDescription"));
+        presetDescription->setWordWrap(true);
+
+        formLayout_3->setWidget(1, QFormLayout::LabelRole, presetDescription);
+
+        presetReload = new QPushButton(presetSelectorBox);
+        presetReload->setObjectName(QString::fromUtf8("presetReload"));
+
+        formLayout_3->setWidget(4, QFormLayout::SpanningRole, presetReload);
+
+        presetAuthor = new QLabel(presetSelectorBox);
+        presetAuthor->setObjectName(QString::fromUtf8("presetAuthor"));
+        presetAuthor->setWordWrap(true);
+
+        formLayout_3->setWidget(2, QFormLayout::LabelRole, presetAuthor);
+
+        presetCategory = new QLabel(presetSelectorBox);
+        presetCategory->setObjectName(QString::fromUtf8("presetCategory"));
+        presetCategory->setWordWrap(true);
+
+        formLayout_3->setWidget(3, QFormLayout::LabelRole, presetCategory);
 
 
-        verticalLayout_8->addWidget(groupBox_2);
+        verticalLayout_8->addWidget(presetSelectorBox);
 
-        stackedOptions->addWidget(ndviPage);
+        stackedOptions->addWidget(presetPage);
 
         options->addWidget(stackedOptions);
 
@@ -366,9 +386,9 @@ public:
         retranslateUi(MainWindow);
         QObject::connect(imageTabs, SIGNAL(currentChanged(int)), stackedOptions, SLOT(setCurrentIndex(int)));
 
-        stackedOptions->setCurrentIndex(2);
+        stackedOptions->setCurrentIndex(0);
         zoomSelector->setCurrentIndex(2);
-        imageTabs->setCurrentIndex(2);
+        imageTabs->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(MainWindow);
@@ -391,8 +411,11 @@ public:
         redLabel->setText(QCoreApplication::translate("MainWindow", "Red", nullptr));
         greenLabel->setText(QCoreApplication::translate("MainWindow", "Green", nullptr));
         blueLabel->setText(QCoreApplication::translate("MainWindow", "Blue", nullptr));
-        groupBox_2->setTitle(QCoreApplication::translate("MainWindow", "Select Preset", nullptr));
-        lineEdit->setText(QString());
+        presetSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Select Preset", nullptr));
+        presetDescription->setText(QString());
+        presetReload->setText(QCoreApplication::translate("MainWindow", "Reload", nullptr));
+        presetAuthor->setText(QString());
+        presetCategory->setText(QString());
         groupBox->setTitle(QCoreApplication::translate("MainWindow", "Equalisation", nullptr));
         equalisationNone->setText(QCoreApplication::translate("MainWindow", "None", nullptr));
         equalisationStretch->setText(QCoreApplication::translate("MainWindow", "Stretch", nullptr));

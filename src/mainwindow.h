@@ -73,6 +73,7 @@ class MainWindow : public QMainWindow {
         std::map<std::string, Preset> selected_presets;
 
         // unassorted shit
+        PresetManager manager;
         Satellite sat;
         ImageCompositor *compositor;
         QFutureWatcher<void> *decodeWatcher;
@@ -132,7 +133,8 @@ class MainWindow : public QMainWindow {
         void on_equalisationStretch_clicked()   { setEqualization(Equalization::Stretch); };
         void on_equalisationHistogram_clicked() { setEqualization(Equalization::Histogram); };
 
-        void on_comboBox_activated(QString text);
+        void on_presetSelector_activated(QString text);
+        void on_presetReload_clicked() { manager.reload(); };
 };
 
 #endif // MAINWINDOW_H

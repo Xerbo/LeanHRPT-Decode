@@ -37,7 +37,7 @@
        <item>
         <widget class="QStackedWidget" name="stackedOptions">
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="channelPage">
           <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -150,7 +150,7 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="ndviPage">
+         <widget class="QWidget" name="presetPage">
           <layout class="QVBoxLayout" name="verticalLayout_8">
            <property name="leftMargin">
             <number>0</number>
@@ -165,28 +165,55 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QGroupBox" name="groupBox_2">
+            <widget class="QGroupBox" name="presetSelectorBox">
              <property name="title">
               <string>Select Preset</string>
              </property>
              <layout class="QFormLayout" name="formLayout_3">
-              <item row="1" column="1">
-               <widget class="QLineEdit" name="lineEdit">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QComboBox" name="comboBox">
+              <item row="0" column="0" colspan="2">
+               <widget class="QComboBox" name="presetSelector">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="presetDescription">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0" colspan="2">
+               <widget class="QPushButton" name="presetReload">
+                <property name="text">
+                 <string>Reload</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="presetAuthor">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="presetCategory">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
@@ -288,7 +315,7 @@
        <enum>QTabWidget::West</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="channelTab">
        <attribute name="title">

@@ -37,7 +37,7 @@ T clamp(T v, T lo, T hi) {
     return std::max(lo, std::min(hi, v));
 }
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), manager("presets.ini") {
     ui = new Ui::MainWindow;
     ui->setupUi(this);
 
@@ -202,18 +202,17 @@ void MainWindow::decodeFinished() {
     ui->statusbar->showMessage(QString("Decode finished: %1, %2 lines").arg(QString(imagerName)).arg(compositor->height()));
 
     selected_presets.clear();
-    for (auto preset : presets) {
+    for (auto preset : manager.presets) {
         if (preset.second.satellites.count(sat)) {
-            
             selected_presets.insert(preset);
         }
     }
 
-    ui->comboBox->clear();
+    ui->presetSelector->clear();
     for (auto item : selected_presets) {
-        ui->comboBox->addItem(QString::fromStdString(item.first));
+        ui->presetSelector->addItem(QString::fromStdString(item.first));
     }
-    on_comboBox_activated(ui->comboBox->currentText());
+    on_presetSelector_activated(ui->presetSelector->currentText());
 
     setEqualization(selectedEqualization);
 
@@ -248,7 +247,7 @@ void MainWindow::setEqualization(Equalization type) {
     compositor->setEqualization(type);
     compositor->getComposite(&composite, selectedComposite);
     compositor->getChannel(&channel, selectedChannel);
-    compositor->getExpression(&preset, selected_presets.at(ui->comboBox->currentText().toStdString()).expression);
+    compositor->getExpression(&preset, selected_presets.at(ui->presetSelector->currentText().toStdString()).expression);
     reloadImage();
 }
 
@@ -256,7 +255,7 @@ void MainWindow::on_actionFlip_triggered() {
     compositor->flip();
     compositor->getComposite(&composite, selectedComposite);
     compositor->getChannel(&channel, selectedChannel);
-    compositor->getExpression(&preset, selected_presets.at(ui->comboBox->currentText().toStdString()).expression);
+    compositor->getExpression(&preset, selected_presets.at(ui->presetSelector->currentText().toStdString()).expression);
     reloadImage();
 }
 
@@ -279,7 +278,7 @@ void MainWindow::on_imageTabs_currentChanged(int index) {
 }
 
 void MainWindow::saveCurrentImage(bool corrected) {
-    QString types[3] = { QString::number(selectedChannel), "Composite", ui->comboBox->currentText() };
+    QString types[3] = { QString::number(selectedChannel), "Composite", ui->presetSelector->currentText() };
     QString name = QString("%1-%2.png").arg(imagerName).arg(types[ui->imageTabs->currentIndex()]);
     QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", name, "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
 
@@ -324,8 +323,11 @@ void MainWindow::saveAllChannels(QString directory) {
     ui->statusbar->showMessage("Done");
 }
 
-void MainWindow::on_comboBox_activated(QString text) {
-    ui->lineEdit->setText(QString::fromStdString(presets.at(text.toStdString()).expression));
-    compositor->getExpression(&preset, selected_presets.at(ui->comboBox->currentText().toStdString()).expression);
+void MainWindow::on_presetSelector_activated(QString text) {
+    Preset preset2 = selected_presets.at(text.toStdString());
+    ui->presetDescription->setText(QString::fromStdString(preset2.description));
+    ui->presetAuthor->setText(QString::fromStdString(preset2.author));
+    ui->presetCategory->setText(QString::fromStdString(preset2.category));
+    compositor->getExpression(&preset, preset2.expression);
     reloadImage();
 }
