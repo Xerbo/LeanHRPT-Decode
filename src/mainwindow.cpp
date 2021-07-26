@@ -37,7 +37,7 @@ T clamp(T v, T lo, T hi) {
     return std::max(lo, std::min(hi, v));
 }
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), manager("presets.ini") {
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ui = new Ui::MainWindow;
     ui->setupUi(this);
 

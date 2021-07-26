@@ -27,6 +27,12 @@
 
 #include "satinfo.h"
 
+#ifdef _WIN32
+#define CONFIG_DIR "%AppData%/Roaming/LeanHRPT"
+#else
+#define CONFIG_DIR "~/.config/leanhrpt"
+#endif
+
 struct Preset {
     std::string description;
     std::string category;
@@ -37,22 +43,29 @@ struct Preset {
 
 class PresetManager {
     public:
-        PresetManager(std::string filename) : is(filename) {
-            ini.parse(is);
-            parse();
-        }
-        ~PresetManager() {
-            is.close();
+        PresetManager() {
+            reload();
         }
         void reload() {
-            is.seekg(is.beg);
-            ini.parse(is);
-            parse();
+            std::ifstream is(CONFIG_DIR"/presets.ini");
+            if (is.is_open()) {
+                ini.parse(is);
+                parse();
+                is.close();
+                return;
+            }
+            is.open("presets.ini");
+            if (is.is_open()) {
+                ini.parse(is);
+                parse();
+                is.close();
+                return;
+            }
+            std::cout << "Unable to load presets.ini" << std::endl;
         }
 
         std::map<std::string, Preset> presets;
     private:
-        std::ifstream is;
         inipp::Ini<char> ini;
 
         void parse() {
