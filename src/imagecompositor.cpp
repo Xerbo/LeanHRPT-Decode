@@ -109,6 +109,42 @@ void ImageCompositor::equalise(QImage *image) {
         histogram[bits[i]]++;
     }
 
+    size_t max = 0;
+    for (size_t i = 0; i < 65536; i++) {
+        if (histogram[i] > max) {
+            max = histogram[i];
+        }
+    }
+
+    // Adapted from https://github.com/opencv/opencv/blob/master/modules/imgproc/src/clahe.cpp#L188-L214
+    if (m_clipLimit != 1.0f) {
+        int clipLimit = max*m_clipLimit;
+        int histSize = 65536;
+        int clipped = 0;
+
+        for (int i = 0; i < histSize; i++) {
+            if (histogram[i] > clipLimit) {
+                clipped += histogram[i] - clipLimit;
+                histogram[i] = clipLimit;
+            }
+        }
+
+        // Redistribute clipped pixels
+        int redistBatch = clipped / histSize;
+        int residual = clipped - redistBatch * histSize;
+
+        for (int i = 0; i < histSize; i++) {
+            histogram[i] += redistBatch;
+        }
+
+        if (residual != 0) {
+            int residualStep = std::max(histSize / residual, 1);
+            for (int i = 0; i < histSize && residual > 0; i += residualStep, residual--) {
+                histogram[i]++;
+            }
+        }
+    }
+
     // Calculate cumulative frequency
 	size_t sum = 0;
 	for(size_t i = 0; i < 65536; i++){

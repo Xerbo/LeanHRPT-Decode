@@ -42,6 +42,7 @@ class ImageCompositor {
         void setEqualization(Equalization type) { m_equalization = type; };
         void setFlipped(bool state);
         void flip();
+        void setClipLimit(float limit) { m_clipLimit = limit; };
 
         // Return images
         void getChannel(QImage *image, unsigned int channel);
@@ -56,6 +57,7 @@ class ImageCompositor {
         size_t m_width;
         size_t m_height;
         size_t m_channels;
+        float m_clipLimit = 1.0f;
         std::vector<QImage> rawChannels;
 
         Equalization m_equalization;

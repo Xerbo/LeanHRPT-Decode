@@ -76,7 +76,7 @@ class MainWindow : public QMainWindow {
         QString imagerName;
         int previousTabIndex = 0;
         QGraphicsScene *graphicsScene;
-        Decoder *decoder;
+        Decoder *decoder = nullptr;
         QLabel *status;
 
         void incrementZoom(int amount);
@@ -126,6 +126,8 @@ class MainWindow : public QMainWindow {
         void on_equalisationNone_clicked()      { setEqualization(Equalization::None); };
         void on_equalisationStretch_clicked()   { setEqualization(Equalization::Stretch); };
         void on_equalisationHistogram_clicked() { setEqualization(Equalization::Histogram); };
+
+        void on_contrastLimit_valueChanged(int value) { compositor->setClipLimit(value/100.0f); compositor->getComposite(&composite, selectedComposite); compositor->getChannel(&channel, selectedChannel); reloadImage(); };
 };
 
 #endif // MAINWINDOW_H
