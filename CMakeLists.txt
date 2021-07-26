@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.0.0)
-project(LeanHRPT-Decode)
+project(LeanHRPT-Decode CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -7,7 +7,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-file(GLOB_RECURSE CXX_SOURCE_FILES src/*.cpp src/tinyexpr/tinyexpr.c)
+file(GLOB_RECURSE CXX_SOURCE_FILES src/*.cpp)
 add_executable(LeanHRPT-Decode ${CXX_SOURCE_FILES})
 
 set_property(TARGET LeanHRPT-Decode PROPERTY CXX_EXTENSIONS OFF)
@@ -33,3 +33,4 @@ target_link_libraries(LeanHRPT-Decode PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_directories(LeanHRPT-Decode PRIVATE /tmp/build/lib)
 
 target_link_libraries(LeanHRPT-Decode PUBLIC correct)
+target_link_libraries(LeanHRPT-Decode PUBLIC muparser)

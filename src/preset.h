@@ -22,28 +22,80 @@
 #include <map>
 #include <set>
 #include <string>
+#include <fstream>
+#include <inipp.h>
 
 #include "satinfo.h"
 
 struct Preset {
     std::string description;
+    std::string category;
     std::string author;
     std::set<Satellite> satellites;
     std::string expression;
 };
 
-const std::map<std::string, Preset> presets = {
-    // Universal
-    { "NDVI",             { "Normalized Difference Vegetation Index", "Xerbo", { NOAA, Meteor, FengYun, MetOp }, "bw((ch2-ch1)/(ch2+ch1)*0.5 + 0.5)" } },
-    { "RGB221",           { "Direct RGB221 composite",                "Xerbo", { NOAA, Meteor, FengYun, MetOp }, "rgb(ch2, ch2, ch1)" } },
-    // FengYun exclusives
-    { "True Color",       { "Direct RGB197 composite",                "Xerbo", { FengYun },                      "rgb(ch1, ch9, ch7)" } },
-    { "Natural Color",    { "A mix of true color and SWIR",           "Derek", { FengYun },                      "rgb(blend(ch1, max(ch1, ch6), 0.85), blend(ch9, (ch9, ch2), 0.85), blend(ch7, max(ch7, ch1), 0.85))" } },
-    // SWIR
-    { "FY SWIR",          { "Direct RGB621 composite",                "Xerbo", { FengYun },                      "rgb(ch6, ch2, ch1)" } },
-    { "SWIR",             { "Direct RGB321 composite",                "Xerbo", { Meteor, MetOp },                "rgb(ch3, ch2, ch1)" } },
-    { "FY Enhanced SWIR", { "RGB621 without the blue tint",           "Derek", { FengYun },                      "rgb(max(ch6, ch2), ch2, ch1)" } },
-    { "Enhanced SWIR",    { "RGB321 without the blue tint",           "Derek", { Meteor, MetOp },                "rgb(max(ch3, ch2), ch2, ch1)" } },
+class PresetManager {
+    public:
+        PresetManager(std::string filename) : is(filename) {
+            ini.parse(is);
+            parse();
+        }
+        ~PresetManager() {
+            is.close();
+        }
+        void reload() {
+            is.seekg(is.beg);
+            ini.parse(is);
+            parse();
+        }
+
+        std::map<std::string, Preset> presets;
+    private:
+        std::ifstream is;
+        inipp::Ini<char> ini;
+
+        void parse() {
+            presets.clear();
+
+            for (auto &i : ini.sections) {
+                try {
+                    Preset preset = {
+                        i.second["description"],
+                        i.second["category"],
+                        i.second["author"],
+                        parse_satellites(i.second["satellites"]),
+                        i.second["expression"]
+                    };
+                    presets.insert(std::pair<std::string, Preset>(i.first, preset));
+                } catch (std::out_of_range &e) {
+                    std::cerr << "Syntax error in preset \"" << i.first << "\"" << std::endl;
+                }
+            }
+
+            if (presets.size() == 0) {
+                Preset preset = { "", "", "", { MetOp, NOAA, FengYun, Meteor }, "bw(0)" };
+                presets.insert(std::pair<std::string, Preset>("Unable to load presets", preset));
+            }
+        }
+
+        std::set<Satellite> parse_satellites(std::string str) {
+            std::set<Satellite> satellites;
+            std::map<std::string, Satellite> table = {
+                {"MetOp",   Satellite::MetOp  },
+                {"NOAA",    Satellite::NOAA   },
+                {"FengYun", Satellite::FengYun},
+                {"Meteor",  Satellite::Meteor }
+            };
+
+            std::stringstream stream(str);
+            std::string sat;
+            while (std::getline(stream, sat, '|')) {
+                satellites.insert(table[sat]);
+            }
+
+            return satellites;
+        } 
 };
 
 #endif

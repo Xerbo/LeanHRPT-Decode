@@ -22,7 +22,7 @@
 #include <cstring>
 #include <iostream>
 
-#include <tinyexpr/tinyexpr.h>
+#include <muParser.h>
 
 template<typename T>
 T clamp(T v, T lo, T hi) {
@@ -70,8 +70,6 @@ void ImageCompositor::getChannel(QImage *image, unsigned int channel) {
     equalise_bw(image);
 }
 
-// I deserve extreme pain for this
-extern "C" {
 double set_rgb(double r, double g, double b) {
     QRgba64 a;
     a.setRed(clamp(r, 0.0, 1.0) * (double)UINT16_MAX);
@@ -86,70 +84,36 @@ double set_bw(double val) {
     a.setBlue(clamp(val, 0.0, 1.0) * (double)UINT16_MAX);
     return *(double *)&a;
 }
-double max(double a, double b) {
-    return std::max(a, b);
-}
-double min(double a, double b) {
-    return std::min(a, b);
-}
-double blend(double a, double b, double c) {
-    return a*c + b*(1.0-c);
-}
-}
 
 void ImageCompositor::getExpression(QImage *image, std::string experssion) {
-    double x2;
-    double y2;
-    double w = m_width;
-    double h = m_height;
-    double ch[10];
+    std::vector<double> ch(m_channels);
 
-    std::vector<te_variable> vars = {
-        {"rgb", (const char *)set_rgb, TE_FUNCTION3},
-        {"bw", (const char *)set_bw, TE_FUNCTION1},
-        {"min", (const char *)min, TE_FUNCTION2},
-        {"max", (const char *)max, TE_FUNCTION2},
-        {"blend", (const char *)blend, TE_FUNCTION3},
-        {"x", &x2},
-        {"y", &y2},
-        {"w", &w},
-        {"h", &h},
-        {"ch1", &ch[0]},
-        {"ch2", &ch[1]},
-        {"ch3", &ch[2]},
-        {"ch4", &ch[3]},
-        {"ch5", &ch[4]},
-        {"ch6", &ch[5]},
-        {"ch7", &ch[6]},
-        {"ch8", &ch[7]},
-        {"ch9", &ch[8]},
-        {"ch10", &ch[9]}
-    };
-
-    int error;
-    te_expr *n = te_compile(experssion.c_str(), vars.data(), vars.size(), &error);
-    if (n == NULL) {
-        std::cout << "Error around character " << error << " in expression" << std::endl;
-        return;
-    }
-
-    QRgba64 *bits = reinterpret_cast<QRgba64 *>(image->bits());
-    for (size_t y = 0; y < m_height; y++) {
-        for (size_t x = 0; x < m_width; x++) {
-            x2 = x;
-            y2 = y;
-            for (size_t i = 0; i < m_channels; i++) {
-                ch[i] = ((quint16 *)rawChannels[i].bits())[y*m_width + x] / (double)UINT16_MAX;
-            }
-
-            double val = te_eval(n);
-            bits[y*m_width + x] = *(QRgba64 *)&val;
+	try {
+        mu::Parser p;
+        for (size_t i = 0; i < m_channels; i++) {
+            p.DefineVar("ch" + std::to_string(i+1), &ch[i]);
         }
-    }
+        p.DefineFun("rgb", set_rgb);
+        p.DefineFun("bw", set_bw);
+        p.SetExpr(experssion);
+
+        QRgba64 *bits = reinterpret_cast<QRgba64 *>(image->bits());
+        for (size_t y = 0; y < m_height; y++) {
+            for (size_t x = 0; x < m_width; x++) {
+                for (size_t i = 0; i < m_channels; i++) {
+                    ch[i] = ((quint16 *)rawChannels[i].bits())[y*m_width + x] / (double)UINT16_MAX;
+                }
+
+                double val = p.Eval();
+                bits[y*m_width + x] = *(QRgba64 *)&val;
+            }
+        }
+    } catch (mu::Parser::exception_type &e) {
+		std::cout << e.GetMsg() << std::endl;
+	}
 
     equalise_rgb(image);
 }
-
 
 void ImageCompositor::getComposite(QImage *image, int chs[3]) {
     QRgba64 *bits = reinterpret_cast<QRgba64 *>(image->bits());

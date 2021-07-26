@@ -10,7 +10,7 @@ See the [wiki](https://github.com/Xerbo/LeanHRPT-Decode/wiki).
 
 Compiled builds for Linux (and soon Windows) are available from the [releases](https://github.com/Xerbo/LeanHRPT-Decode/releases) page.
 
-For those who wish to compile from source you will need `qtbase5-dev` and [`libcorrect`](https://github.com/quiet/libcorrect) installed. After that you can compile with:
+For those who wish to compile from source you will need `qtbase5-dev`, [`libcorrect`](https://github.com/quiet/libcorrect) and [`muparser`](https://github.com/beltoforion/muparser) installed. After that you can compile with:
 
 ```
 mkdir build && cd build

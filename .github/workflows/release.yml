@@ -17,9 +17,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Checkout submodules
-      run: 'git submodule update --init --recursive'
-    
     - name: Install apt dependencies
       run: 'sudo apt-get update && sudo apt-get install -y cmake make git g++ python3 python3-pip mesa-common-dev libglu1-mesa-dev'
 
@@ -36,6 +33,15 @@ jobs:
     - name: Install libcorrect
       run: 'git clone https://github.com/quiet/libcorrect &&
             cd libcorrect &&
+            mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            make -j4 &&
+            make install'
+
+    - name: Install muparser
+      run: 'git clone https://github.com/beltoforion/muparser &&
+            cd muparser &&
             mkdir build &&
             cd build &&
             cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
@@ -62,6 +68,7 @@ jobs:
             cp $TEMP_PATH/lib/libicui18n.so.56 LeanHRPT-Decode/lib/ &&
             cp $TEMP_PATH/lib/libicudata.so.56 LeanHRPT-Decode/lib/ &&
             cp $TEMP_PATH/lib/libcorrect.so LeanHRPT-Decode/lib/ &&
+            cp $TEMP_PATH/lib/libmuparser.so LeanHRPT-Decode/lib &&
             cp build/LeanHRPT-Decode LeanHRPT-Decode/ &&
             tar -czf LeanHRPT-Decode.linux.amd64.tar.gz --owner=0 --group=0 LeanHRPT-Decode/'
 

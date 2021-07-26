@@ -50,7 +50,8 @@ A high quality, easy to use HRPT decoder\
 <li><code>Ctrl+-</code> Zoom out</li>\
 <li><code>Ctrl+F</code> Flip image</li>\
 </ul>\
-Licensed under GPL-3.0."
+Licensed under GPL-3.0.\
+<p>This program uses <a href=\"https://github.com/mcmtroffaes/inipp\">inipp</a> and <a href=\"https://github.com/beltoforion/muparser\">muParser</a> which are licensed under the MIT and BSD 2-Clause \"Simplified\" license respectively.</p>"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
