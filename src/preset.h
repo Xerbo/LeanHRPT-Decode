@@ -28,9 +28,15 @@
 #include "satinfo.h"
 
 #ifdef _WIN32
-#define CONFIG_DIR "%AppData%/Roaming/LeanHRPT"
+static std::string getConfigPath() {
+    std::string home = std::getenv("USERPROFILE");
+    return home + "\\AppData\\Roaming\\LeanHRPT\\presets.ini";
+}
 #else
-#define CONFIG_DIR "~/.config/leanhrpt"
+static std::string getConfigPath() {
+    std::string home = std::getenv("HOME");
+    return home + "/.config/leanhrpt/presets.ini";
+}
 #endif
 
 struct Preset {
@@ -47,7 +53,7 @@ class PresetManager {
             reload();
         }
         void reload() {
-            std::ifstream is(CONFIG_DIR"/presets.ini");
+            std::ifstream is(getConfigPath());
             if (is.is_open()) {
                 ini.parse(is);
                 parse();
