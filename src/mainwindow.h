@@ -138,7 +138,7 @@ class MainWindow : public QMainWindow {
 
         void on_presetSelector_activated(QString text);
         void on_presetReload_clicked() { manager.reload(); };
-        void on_contrastLimit_valueChanged(int value) { compositor->setClipLimit(value/100.0f); compositor->getComposite(&composite, selectedComposite); compositor->getChannel(&channel, selectedChannel); reloadImage(); };
+        void on_contrastLimit_valueChanged(int value) { compositor->setClipLimit(value/100.0f); setEqualization(selectedEqualization); };
 };
 
 #endif // MAINWINDOW_H
