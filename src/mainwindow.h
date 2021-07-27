@@ -29,6 +29,7 @@
 #include <QShortcut>
 #include <QString>
 
+#include "decoders/decoder.h"
 #include "imagecompositor.h"
 #include "preset.h"
 #include "satinfo.h"
@@ -84,7 +85,8 @@ class MainWindow : public QMainWindow {
         QString imagerName;
         int previousTabIndex = 0;
         QGraphicsScene *graphicsScene;
-        std::string thing = "rgb(ch1, ch9, ch7)";
+        Decoder *decoder = nullptr;
+        QLabel *status;
 
         void incrementZoom(int amount);
         void startDecode(Satellite satellite, std::string filename);
@@ -136,6 +138,7 @@ class MainWindow : public QMainWindow {
 
         void on_presetSelector_activated(QString text);
         void on_presetReload_clicked() { manager.reload(); };
+        void on_contrastLimit_valueChanged(int value) { compositor->setClipLimit(value/100.0f); compositor->getComposite(&composite, selectedComposite); compositor->getChannel(&channel, selectedChannel); reloadImage(); };
 };
 
 #endif // MAINWINDOW_H

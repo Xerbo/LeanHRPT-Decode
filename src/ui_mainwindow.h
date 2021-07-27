@@ -24,6 +24,7 @@
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QRadioButton>
+#include <QtWidgets/QSlider>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QStatusBar>
@@ -80,6 +81,8 @@ public:
     QRadioButton *equalisationNone;
     QRadioButton *equalisationStretch;
     QRadioButton *equalisationHistogram;
+    QLabel *label;
+    QSlider *contrastLimit;
     QGroupBox *zoomSelectorBox;
     QVBoxLayout *verticalLayout_2;
     QComboBox *zoomSelector;
@@ -283,6 +286,21 @@ public:
 
         verticalLayout->addWidget(equalisationHistogram);
 
+        label = new QLabel(groupBox);
+        label->setObjectName(QString::fromUtf8("label"));
+
+        verticalLayout->addWidget(label);
+
+        contrastLimit = new QSlider(groupBox);
+        contrastLimit->setObjectName(QString::fromUtf8("contrastLimit"));
+        contrastLimit->setMaximum(100);
+        contrastLimit->setValue(100);
+        contrastLimit->setTracking(false);
+        contrastLimit->setOrientation(Qt::Horizontal);
+        contrastLimit->setTickPosition(QSlider::TicksAbove);
+
+        verticalLayout->addWidget(contrastLimit);
+
 
         options->addWidget(groupBox);
 
@@ -420,6 +438,7 @@ public:
         equalisationNone->setText(QCoreApplication::translate("MainWindow", "None", nullptr));
         equalisationStretch->setText(QCoreApplication::translate("MainWindow", "Stretch", nullptr));
         equalisationHistogram->setText(QCoreApplication::translate("MainWindow", "Histogram", nullptr));
+        label->setText(QCoreApplication::translate("MainWindow", "Contrast Limit:", nullptr));
         zoomSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Zoom", nullptr));
         zoomSelector->setItemText(0, QCoreApplication::translate("MainWindow", "25%", nullptr));
         zoomSelector->setItemText(1, QCoreApplication::translate("MainWindow", "50%", nullptr));

@@ -84,7 +84,7 @@ class Decoder {
             is_ccsds_frames = (header[0] == 0x1A && header[1] == 0xCF && header[2] && 0xFC && header[3] == 0x1D);
 
             // Get filesize
-            stream.seekg(stream.end);
+            stream.seekg(0, std::ios::end);
             filesize = stream.tellg();
 
             // Reset
