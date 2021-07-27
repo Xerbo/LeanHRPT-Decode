@@ -27,9 +27,11 @@
 #include <QGraphicsView>
 #include <QFutureWatcher>
 #include <QShortcut>
+#include <QString>
 
 #include "decoders/decoder.h"
 #include "imagecompositor.h"
+#include "preset.h"
 #include "satinfo.h"
 
 QT_BEGIN_NAMESPACE
@@ -49,7 +51,8 @@ A high quality, easy to use HRPT decoder\
 <li><code>Ctrl+-</code> Zoom out</li>\
 <li><code>Ctrl+F</code> Flip image</li>\
 </ul>\
-Licensed under GPL-3.0."
+Licensed under GPL-3.0.\
+<p>This program uses <a href=\"https://github.com/mcmtroffaes/inipp\">inipp</a> and <a href=\"https://github.com/beltoforion/muparser\">muParser</a> which are licensed under the MIT and BSD 2-Clause \"Simplified\" license respectively.</p>"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -65,11 +68,17 @@ class MainWindow : public QMainWindow {
         QShortcut *zoomIn;
         QShortcut *zoomOut;
 
+        QImage channel;
+        QImage composite;
+        QImage preset;
+
+        std::map<std::string, Preset> selected_presets;
+
         // unassorted shit
+        PresetManager manager;
         Satellite sat;
         ImageCompositor *compositor;
         QFutureWatcher<void> *decodeWatcher;
-        QImage channel, composite, ndvi;
         int selectedChannel = 1;
         int selectedComposite[3] = { 2, 2, 1 };
         Equalization selectedEqualization = None;
@@ -127,7 +136,9 @@ class MainWindow : public QMainWindow {
         void on_equalisationStretch_clicked()   { setEqualization(Equalization::Stretch); };
         void on_equalisationHistogram_clicked() { setEqualization(Equalization::Histogram); };
 
-        void on_contrastLimit_valueChanged(int value) { compositor->setClipLimit(value/100.0f); compositor->getComposite(&composite, selectedComposite); compositor->getChannel(&channel, selectedChannel); reloadImage(); };
+        void on_presetSelector_activated(QString text);
+        void on_presetReload_clicked() { manager.reload(); };
+        void on_contrastLimit_valueChanged(int value) { compositor->setClipLimit(value/100.0f); setEqualization(selectedEqualization); };
 };
 
 #endif // MAINWINDOW_H

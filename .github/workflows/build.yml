@@ -39,6 +39,15 @@ jobs:
             make -j4 &&
             make install'
 
+    - name: Install muparser
+      run: 'git clone https://github.com/beltoforion/muparser &&
+            cd muparser &&
+            mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            make -j4 &&
+            make install'
+
     - name: Compile LeanHRPT
       run: 'mkdir build &&
             cd build &&

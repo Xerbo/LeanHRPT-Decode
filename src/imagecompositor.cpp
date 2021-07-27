@@ -20,6 +20,14 @@
 
 #include <cmath>
 #include <cstring>
+#include <iostream>
+
+#include <muParser.h>
+
+template<typename T>
+T clamp(T v, T lo, T hi) {
+    return std::max(lo, std::min(hi, v));
+}
 
 // Constructor
 ImageCompositor::ImageCompositor()
@@ -59,21 +67,52 @@ void ImageCompositor::flip() {
 
 void ImageCompositor::getChannel(QImage *image, unsigned int channel) {
     std::memcpy(image->bits(), rawChannels[channel-1].bits(), sizeof(unsigned short) * m_width * m_height);
-    equalise(image);
+    equalise_bw(image);
 }
 
-void ImageCompositor::getNdvi(QImage *image) {
-    quint16 *bits = reinterpret_cast<quint16 *>(image->bits());
-    quint16 *ch1 = reinterpret_cast<quint16 *>(rawChannels[0].bits());
-    quint16 *ch2 = reinterpret_cast<quint16 *>(rawChannels[1].bits());
+double set_rgb(double r, double g, double b) {
+    QRgba64 a;
+    a.setRed(clamp(r, 0.0, 1.0) * (double)UINT16_MAX);
+    a.setGreen(clamp(g, 0.0, 1.0) * (double)UINT16_MAX);
+    a.setBlue(clamp(b, 0.0, 1.0) * (double)UINT16_MAX);
+    return *(double *)&a;
+}
+double set_bw(double val) {
+    QRgba64 a;
+    a.setRed(clamp(val, 0.0, 1.0) * (double)UINT16_MAX);
+    a.setGreen(clamp(val, 0.0, 1.0) * (double)UINT16_MAX);
+    a.setBlue(clamp(val, 0.0, 1.0) * (double)UINT16_MAX);
+    return *(double *)&a;
+}
 
-    for (size_t i = 0; i < m_height*m_width; i++) {
-        float red = ch1[i];
-        float NIR = ch2[i];
-        float NDVI = (NIR - red) / (NIR + red);
+void ImageCompositor::getExpression(QImage *image, std::string experssion) {
+    std::vector<double> ch(m_channels);
 
-        bits[i] = (NDVI + 1) * 32768;
-    }
+	try {
+        mu::Parser p;
+        for (size_t i = 0; i < m_channels; i++) {
+            p.DefineVar("ch" + std::to_string(i+1), &ch[i]);
+        }
+        p.DefineFun("rgb", set_rgb);
+        p.DefineFun("bw", set_bw);
+        p.SetExpr(experssion);
+
+        QRgba64 *bits = reinterpret_cast<QRgba64 *>(image->bits());
+        for (size_t y = 0; y < m_height; y++) {
+            for (size_t x = 0; x < m_width; x++) {
+                for (size_t i = 0; i < m_channels; i++) {
+                    ch[i] = ((quint16 *)rawChannels[i].bits())[y*m_width + x] / (double)UINT16_MAX;
+                }
+
+                double val = p.Eval();
+                bits[y*m_width + x] = *(QRgba64 *)&val;
+            }
+        }
+    } catch (mu::Parser::exception_type &e) {
+		std::cout << e.GetMsg() << std::endl;
+	}
+
+    equalise_rgb(image);
 }
 
 void ImageCompositor::getComposite(QImage *image, int chs[3]) {
@@ -83,7 +122,7 @@ void ImageCompositor::getComposite(QImage *image, int chs[3]) {
     quint16 *equalisedBits[3];
     for (size_t i = 0; i < 3; i++) {
         equalised[i] = QImage(rawChannels[chs[i]-1]);
-        equalise(&equalised[i]);
+        equalise_bw(&equalised[i]);
         equalisedBits[i] = reinterpret_cast<quint16 *>(equalised[i].bits());
     }
 
@@ -92,21 +131,16 @@ void ImageCompositor::getComposite(QImage *image, int chs[3]) {
         bits[i].setGreen(equalisedBits[1][i]);
         bits[i].setBlue(equalisedBits[2][i]);
     }
+
+    //equalise_rgb(image);
 }
 
-template<typename T>
-T clamp(T v, T lo, T hi) {
-    if (v > hi) return hi;
-    if (v < lo) return lo;
-    return v;
-}
-
-void ImageCompositor::equalise(QImage *image) {
+void ImageCompositor::equalise(QImage *image, size_t mul, size_t shift) {
     quint16 *bits = reinterpret_cast<quint16 *>(image->bits());
 
     std::memset(histogram, 0, sizeof(size_t) * 65536);
     for (size_t i = 0; i < m_height*m_width; i++) {
-        histogram[bits[i]]++;
+        histogram[bits[i*mul+shift]]++;
     }
 
     size_t max = 0;
@@ -156,7 +190,7 @@ void ImageCompositor::equalise(QImage *image) {
         case None: break;
         case Histogram: {
             for (size_t i = 0; i < m_height*m_width; i++) {
-                bits[i] = cf[bits[i]];
+                bits[i*mul+shift] = cf[bits[i*mul+shift]];
             }
             break;
         }
@@ -174,8 +208,8 @@ void ImageCompositor::equalise(QImage *image) {
 
             // Rescale [low, high] to [0, 65535]
             for (size_t i = 0; i < m_height*m_width; i++) { 
-                float val = (static_cast<float>(bits[i]) - low) * 65535.0f/(high - low);
-                bits[i] = clamp(val, 0.0f, 65535.0f);
+                float val = (static_cast<float>(bits[i*mul+shift]) - low) * 65535.0f/(high - low);
+                bits[i*mul+shift] = clamp(val, 0.0f, 65535.0f);
             }
             break;
         }

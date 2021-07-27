@@ -22,6 +22,7 @@
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QRadioButton>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QSpacerItem>
@@ -65,7 +66,15 @@ public:
     QComboBox *greenSelector;
     QLabel *blueLabel;
     QComboBox *blueSelector;
-    QWidget *ndviPage;
+    QWidget *presetPage;
+    QVBoxLayout *verticalLayout_8;
+    QGroupBox *presetSelectorBox;
+    QFormLayout *formLayout_3;
+    QComboBox *presetSelector;
+    QLabel *presetDescription;
+    QPushButton *presetReload;
+    QLabel *presetAuthor;
+    QLabel *presetCategory;
     QSpacerItem *verticalSpacer;
     QGroupBox *groupBox;
     QVBoxLayout *verticalLayout;
@@ -84,9 +93,9 @@ public:
     QWidget *compositeTab;
     QVBoxLayout *verticalLayout_6;
     QGraphicsView *compositeView;
-    QWidget *ndviTab;
+    QWidget *presetTab;
     QVBoxLayout *verticalLayout_4;
-    QGraphicsView *ndviView;
+    QGraphicsView *presetView;
     QMenuBar *menubar;
     QMenu *menuFile;
     QMenu *menuOptions;
@@ -204,9 +213,52 @@ public:
         verticalLayout_3->addWidget(compoisteSelectorBox);
 
         stackedOptions->addWidget(compositePage);
-        ndviPage = new QWidget();
-        ndviPage->setObjectName(QString::fromUtf8("ndviPage"));
-        stackedOptions->addWidget(ndviPage);
+        presetPage = new QWidget();
+        presetPage->setObjectName(QString::fromUtf8("presetPage"));
+        verticalLayout_8 = new QVBoxLayout(presetPage);
+        verticalLayout_8->setObjectName(QString::fromUtf8("verticalLayout_8"));
+        verticalLayout_8->setContentsMargins(0, 0, 0, 0);
+        presetSelectorBox = new QGroupBox(presetPage);
+        presetSelectorBox->setObjectName(QString::fromUtf8("presetSelectorBox"));
+        formLayout_3 = new QFormLayout(presetSelectorBox);
+        formLayout_3->setObjectName(QString::fromUtf8("formLayout_3"));
+        presetSelector = new QComboBox(presetSelectorBox);
+        presetSelector->setObjectName(QString::fromUtf8("presetSelector"));
+        QSizePolicy sizePolicy1(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(presetSelector->sizePolicy().hasHeightForWidth());
+        presetSelector->setSizePolicy(sizePolicy1);
+
+        formLayout_3->setWidget(0, QFormLayout::SpanningRole, presetSelector);
+
+        presetDescription = new QLabel(presetSelectorBox);
+        presetDescription->setObjectName(QString::fromUtf8("presetDescription"));
+        presetDescription->setWordWrap(true);
+
+        formLayout_3->setWidget(1, QFormLayout::LabelRole, presetDescription);
+
+        presetReload = new QPushButton(presetSelectorBox);
+        presetReload->setObjectName(QString::fromUtf8("presetReload"));
+
+        formLayout_3->setWidget(4, QFormLayout::SpanningRole, presetReload);
+
+        presetAuthor = new QLabel(presetSelectorBox);
+        presetAuthor->setObjectName(QString::fromUtf8("presetAuthor"));
+        presetAuthor->setWordWrap(true);
+
+        formLayout_3->setWidget(2, QFormLayout::LabelRole, presetAuthor);
+
+        presetCategory = new QLabel(presetSelectorBox);
+        presetCategory->setObjectName(QString::fromUtf8("presetCategory"));
+        presetCategory->setWordWrap(true);
+
+        formLayout_3->setWidget(3, QFormLayout::LabelRole, presetCategory);
+
+
+        verticalLayout_8->addWidget(presetSelectorBox);
+
+        stackedOptions->addWidget(presetPage);
 
         options->addWidget(stackedOptions);
 
@@ -302,20 +354,20 @@ public:
         verticalLayout_6->addWidget(compositeView);
 
         imageTabs->addTab(compositeTab, QString());
-        ndviTab = new QWidget();
-        ndviTab->setObjectName(QString::fromUtf8("ndviTab"));
-        verticalLayout_4 = new QVBoxLayout(ndviTab);
+        presetTab = new QWidget();
+        presetTab->setObjectName(QString::fromUtf8("presetTab"));
+        verticalLayout_4 = new QVBoxLayout(presetTab);
         verticalLayout_4->setObjectName(QString::fromUtf8("verticalLayout_4"));
         verticalLayout_4->setContentsMargins(0, 0, 0, 0);
-        ndviView = new QGraphicsView(ndviTab);
-        ndviView->setObjectName(QString::fromUtf8("ndviView"));
-        ndviView->setFrameShape(QFrame::NoFrame);
-        ndviView->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop);
-        ndviView->setDragMode(QGraphicsView::ScrollHandDrag);
+        presetView = new QGraphicsView(presetTab);
+        presetView->setObjectName(QString::fromUtf8("presetView"));
+        presetView->setFrameShape(QFrame::NoFrame);
+        presetView->setAlignment(Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop);
+        presetView->setDragMode(QGraphicsView::ScrollHandDrag);
 
-        verticalLayout_4->addWidget(ndviView);
+        verticalLayout_4->addWidget(presetView);
 
-        imageTabs->addTab(ndviTab, QString());
+        imageTabs->addTab(presetTab, QString());
 
         horizontalLayout->addWidget(imageTabs);
 
@@ -377,6 +429,11 @@ public:
         redLabel->setText(QCoreApplication::translate("MainWindow", "Red", nullptr));
         greenLabel->setText(QCoreApplication::translate("MainWindow", "Green", nullptr));
         blueLabel->setText(QCoreApplication::translate("MainWindow", "Blue", nullptr));
+        presetSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Select Preset", nullptr));
+        presetDescription->setText(QString());
+        presetReload->setText(QCoreApplication::translate("MainWindow", "Reload", nullptr));
+        presetAuthor->setText(QString());
+        presetCategory->setText(QString());
         groupBox->setTitle(QCoreApplication::translate("MainWindow", "Equalisation", nullptr));
         equalisationNone->setText(QCoreApplication::translate("MainWindow", "None", nullptr));
         equalisationStretch->setText(QCoreApplication::translate("MainWindow", "Stretch", nullptr));
@@ -390,7 +447,7 @@ public:
 
         imageTabs->setTabText(imageTabs->indexOf(channelTab), QCoreApplication::translate("MainWindow", "Single Channel", nullptr));
         imageTabs->setTabText(imageTabs->indexOf(compositeTab), QCoreApplication::translate("MainWindow", "Composite", nullptr));
-        imageTabs->setTabText(imageTabs->indexOf(ndviTab), QCoreApplication::translate("MainWindow", "NDVI", nullptr));
+        imageTabs->setTabText(imageTabs->indexOf(presetTab), QCoreApplication::translate("MainWindow", "Presets", nullptr));
         menuFile->setTitle(QCoreApplication::translate("MainWindow", "File", nullptr));
         menuOptions->setTitle(QCoreApplication::translate("MainWindow", "Options", nullptr));
         menuHelp->setTitle(QCoreApplication::translate("MainWindow", "Help", nullptr));

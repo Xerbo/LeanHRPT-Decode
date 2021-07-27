@@ -33,3 +33,4 @@ target_link_libraries(LeanHRPT-Decode PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_directories(LeanHRPT-Decode PRIVATE /tmp/build/lib)
 
 target_link_libraries(LeanHRPT-Decode PUBLIC correct)
+target_link_libraries(LeanHRPT-Decode PUBLIC muparser)
