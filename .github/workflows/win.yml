@@ -26,7 +26,7 @@ jobs:
 
     - name: Install Qt
       run: 'aqt install 5.14.2 linux desktop &&
-            aqt install 5.14.2 windows desktop mingw73_64 &&
+            aqt install 5.14.2 windows desktop win64_mingw73 || true &&
             cp -r 5.14.2/gcc_64/* $TEMP_PATH &&
             cp -r 5.14.2/mingw73_64/* $WIN_TEMP_PATH'
 
@@ -43,7 +43,7 @@ jobs:
             cd libcorrect &&
             mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH .. &&
             make -j4 &&
             make install'
 
@@ -52,14 +52,14 @@ jobs:
             cd muparser &&
             mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH .. &&
             make -j4 &&
             make install'
 
     - name: Compile LeanHRPT
       run: 'mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH .. &&
             make -j4'
 
     - name: Package
