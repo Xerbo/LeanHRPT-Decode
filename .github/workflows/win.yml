@@ -79,7 +79,7 @@ jobs:
             cp $WIN_TEMP_PATH/bin/libstdc++-6.dll                   LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libwinpthread-1.dll               LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/plugins/styles/qwindowsvistastyle.dll LeanHRPT-Decode/plugins/styles/ &&
-            cp $WIN_TEMP_PATH/platforms/qwindows.dll                LeanHRPT-Decode/platforms/ &&
+            cp $WIN_TEMP_PATH/plugins/platforms/qwindows.dll        LeanHRPT-Decode/platforms/ &&
             zip -r LeanHRPT-Decode.zip LeanHRPT-Decode/'
 
     - uses: actions/upload-artifact@v2
