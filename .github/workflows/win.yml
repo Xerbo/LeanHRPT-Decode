@@ -1,0 +1,88 @@
+name: Windows Build
+
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Release
+  TEMP_PATH: /tmp/build
+  WIN_TEMP_PATH: /tmp/winbuild
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install apt dependencies
+      run: 'sudo apt-get update && sudo apt-get install -y cmake make git python3 python3-pip mingw-w64 zip'
+
+    - name: Install pip dependencies
+      run: 'pip3 install -U pip && pip3 install aqtinstall'
+
+    - name: Create build path
+      run: 'mkdir $TEMP_PATH && mkdir $WIN_TEMP_PATH'
+
+    - name: Install Qt
+      run: 'aqt install 5.14.2 linux desktop &&
+            aqt install 5.14.2 windows desktop mingw73_64 &&
+            cp -r 5.14.2/gcc_64/* $TEMP_PATH &&
+            cp -r 5.14.2/mingw73_64/* $WIN_TEMP_PATH'
+
+    - name: Patch Qt
+      run: 'rm $WIN_TEMP_PATH/bin/moc.exe &&
+            ln -s $TEMP_PATH/bin/moc $WIN_TEMP_PATH/bin/moc.exe &&
+            rm $WIN_TEMP_PATH/bin/rcc.exe &&
+            ln -s $TEMP_PATH/bin/rcc $WIN_TEMP_PATH/bin/rcc.exe &&
+            rm $WIN_TEMP_PATH/bin/uic.exe &&
+            ln -s $TEMP_PATH/bin/uic $WIN_TEMP_PATH/bin/uic.exe'
+    
+    - name: Install libcorrect
+      run: 'git clone https://github.com/quiet/libcorrect &&
+            cd libcorrect &&
+            mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            make -j4 &&
+            make install'
+
+    - name: Install muparser
+      run: 'git clone https://github.com/beltoforion/muparser &&
+            cd muparser &&
+            mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            make -j4 &&
+            make install'
+
+    - name: Compile LeanHRPT
+      run: 'mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            make -j4'
+
+    - name: Package
+      run: 'mkdir LeanHRPT-Decode &&
+            mkdir LeanHRPT-Decode/plugins &&
+            mkdir LeanHRPT-Decode/plugins/styles &&
+            mkdir LeanHRPT-Decode/platforms &&
+            cp logo128.png                                          LeanHRPT-Decode/ &&
+            cp presets.ini                                          LeanHRPT-Decode/ &&
+            cp build/LeanHRPT-Decode.exe                            LeanHRPT-Decode/ &&
+            cp $WIN_TEMP_PATH/lib/Qt5Core.dll                       LeanHRPT-Decode/ &&
+            cp $WIN_TEMP_PATH/lib/Qt5Gui.dll                        LeanHRPT-Decode/ &&
+            cp $WIN_TEMP_PATH/lib/Qt5Widgets.dll                    LeanHRPT-Decode/ &&
+            cp $WIN_TEMP_PATH/lib/libcorrect.dll                    LeanHRPT-Decode/ &&
+            cp $WIN_TEMP_PATH/lib/muparser.dll                      LeanHRPT-Decode/ &&
+            cp $WIN_TEMP_PATH/lib/libgcc_s_seh-1.dll                LeanHRPT-Decode/ &&
+            cp $WIN_TEMP_PATH/lib/libstdc++-6.dll                   LeanHRPT-Decode/ &&
+            cp $WIN_TEMP_PATH/lib/libwinpthread-1.dll               LeanHRPT-Decode/ &&
+            cp $WIN_TEMP_PATH/plugins/styles/qwindowsvistastyle.dll LeanHRPT-Decode/plugins/styles/ &&
+            cp $WIN_TEMP_PATH/platforms/qwindows.dll                LeanHRPT-Decode/platforms/ &&
+            zip -r LeanHRPT-Decode.zip LeanHRPT-Decode/'
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: LeanHRPT-Decode.zip
+        path: LeanHRPT-Decode.zip
