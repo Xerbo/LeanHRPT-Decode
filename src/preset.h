@@ -53,6 +53,7 @@ class PresetManager {
             reload();
         }
         void reload() {
+            ini.clear();
             std::ifstream is(getConfigPath());
             if (is.is_open()) {
                 ini.parse(is);
@@ -67,6 +68,7 @@ class PresetManager {
                 is.close();
                 return;
             }
+            parse();
             std::cout << "Unable to load presets.ini" << std::endl;
         }
 
