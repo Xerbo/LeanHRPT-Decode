@@ -26,8 +26,9 @@ RawImage::RawImage(size_t width, size_t channels, size_t interleaving_size)
       m_channels(channels),
       m_interleavingSize(interleaving_size),
       m_rows(0) {
+    imageBuffer.resize(m_channels);
     for (size_t i = 0; i < channels; i++) {
-        imageBuffer.push_back(new unsigned short[width * MAX_HEIGHT]);
+        imageBuffer[i].resize(width * 5000);
     }
 }
 RawImage::RawImage(size_t width, size_t channels)
@@ -35,9 +36,6 @@ RawImage::RawImage(size_t width, size_t channels)
 
 RawImage::~RawImage() {
     delete[] rowBuffer;
-    for (unsigned short *channel : imageBuffer) {
-        delete[] channel;
-    }
 }
 
 void RawImage::push10Bit(const uint8_t *data, int offset) {
@@ -78,7 +76,9 @@ void RawImage::push16Bit(const uint16_t *data, int offset) {
 
     m_rows++;
 
-    if (m_rows == MAX_HEIGHT) {
-        throw std::runtime_error("Reached limit of lines in allocated memory");
+    if (m_rows == imageBuffer[0].size()/m_width) {
+        for (std::vector<unsigned short> &channel : imageBuffer) {
+            channel.resize(channel.size() + m_width*1000);
+        }
     }
 }

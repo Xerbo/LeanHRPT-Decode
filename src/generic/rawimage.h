@@ -19,9 +19,6 @@
 #ifndef LEANHRPT_GENERIC_RAWIMAGE_H
 #define LEANHRPT_GENERIC_RAWIMAGE_H
 
-// Maybe consider dynamic allocation?
-#define MAX_HEIGHT 7000
-
 #include <vector>
 #include <cstdint>
 #include <stdexcept>
@@ -37,7 +34,7 @@ class RawImage {
 
         unsigned short *getChannel(size_t channel) {
             if (channel < m_channels) {
-                return imageBuffer[channel];
+                return imageBuffer[channel].data();
             }
             throw std::runtime_error("Channel index out of range");
         }
@@ -47,7 +44,7 @@ class RawImage {
         size_t rows() { return m_rows; }
     private:
         unsigned short *rowBuffer;
-        std::vector<unsigned short *> imageBuffer;
+        std::vector<std::vector<unsigned short>> imageBuffer;
 
         size_t m_width;
         size_t m_channels;
