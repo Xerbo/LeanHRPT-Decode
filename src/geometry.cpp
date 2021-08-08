@@ -47,7 +47,7 @@ QImage correct_geometry(QImage image, Satellite satellite) {
     QImage corrected(output_width, image.height(), image.format());
     for (size_t y = 0; y < static_cast<size_t>(image.height()); y++) {
         for (size_t x = 0; x < output_width; x++) {
-            corrected.setPixel(x, y, image.pixel(lut[x], y));
+            corrected.setPixelColor(x, y, image.pixelColor(lut[x], y));
         }
     }
 
