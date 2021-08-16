@@ -35,3 +35,8 @@ target_link_directories(LeanHRPT-Decode PRIVATE /tmp/winbuild/lib)
 
 target_link_libraries(LeanHRPT-Decode PUBLIC correct)
 target_link_libraries(LeanHRPT-Decode PUBLIC muparser)
+
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(LeanHRPT-Decode PRIVATE OpenMP::OpenMP_CXX)
+endif()

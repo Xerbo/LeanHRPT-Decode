@@ -295,7 +295,6 @@ public:
         contrastLimit->setObjectName(QString::fromUtf8("contrastLimit"));
         contrastLimit->setMaximum(100);
         contrastLimit->setValue(100);
-        contrastLimit->setTracking(false);
         contrastLimit->setOrientation(Qt::Horizontal);
         contrastLimit->setTickPosition(QSlider::TicksAbove);
 

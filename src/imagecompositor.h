@@ -20,7 +20,6 @@
 #define LEANHRPT_IMAGECOMPOSITOR_H
 
 #include <vector>
-
 #include <QImage>
 #include "generic/rawimage.h"
 
@@ -30,44 +29,35 @@ enum Equalization {
     Stretch
 };
 
-// Takes in raw data, does stuff to it, and puts out a QImage
 class ImageCompositor {
     public:
-        ImageCompositor();
-        ~ImageCompositor();
-
-        void importFromRaw(RawImage *image);
+        void import(RawImage *image);
 
         // Manipulation functions
-        void setEqualization(Equalization type) { m_equalization = type; };
-        void setFlipped(bool state);
         void flip();
-        void setClipLimit(float limit) { m_clipLimit = limit; };
+        void setFlipped(bool state);
 
-        // Return images
-        void getChannel(QImage *image, unsigned int channel);
-        void getComposite(QImage *image, int chs[3]);
-        void getExpression(QImage *image, std::string experssion);
+        void getChannel(QImage &image, size_t channel);
+        void getComposite(QImage &image, std::array<size_t, 3> chs);
+        void getExpression(QImage &image, std::string expression);
 
-        unsigned int width() { return m_width; };
-        unsigned int height() { return m_height; };
-        unsigned int channels() { return m_channels; };
+        size_t width()    { return m_width; };
+        size_t height()   { return m_height; };
+        size_t channels() { return m_channels; };
+
+        static void equalise(QImage &image, Equalization equalization, float clipLimit);
     private:
-        void equalise(QImage *image, size_t mul, size_t shift);
-        void equalise_rgb(QImage *image) { equalise(image, 4, 0); equalise(image, 4, 1); equalise(image, 4, 2); };
-        void equalise_bw(QImage *image) { equalise(image, 1, 0); };
         size_t m_width;
         size_t m_height;
         size_t m_channels;
-        float m_clipLimit = 1.0f;
+        bool m_isFlipped;
         std::vector<QImage> rawChannels;
 
-        Equalization m_equalization;
-
-        bool isFlipped;
-
-        size_t *histogram;
-        size_t *cf;
+        template<typename T, size_t A, size_t B>
+        static std::vector<size_t> create_histogram(QImage &image);
+        template<typename T, size_t A, size_t B>
+        static void _equalise(QImage &image, Equalization equalization, float clipLimit);
+        static void clip_histogram(std::vector<size_t>& histogram, float clip_limit);
 };
 
 #endif

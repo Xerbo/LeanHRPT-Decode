@@ -42,40 +42,34 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ui = new Ui::MainWindow;
     ui->setupUi(this);
 
-    compositor = new ImageCompositor;
-    graphicsScene = new QGraphicsScene;
-    decodeWatcher = new QFutureWatcher<void>(this);
-    QFutureWatcher<void>::connect(decodeWatcher, &QFutureWatcher<void>::finished, this, &MainWindow::decodeFinished);
+    // Image display
+    scene = new QGraphicsScene;
+    ui->channelView->setScene(scene);
+    ui->compositeView->setScene(scene);
+    ui->presetView->setScene(scene);
 
-    ui->channelView->setScene(graphicsScene);
-    ui->compositeView->setScene(graphicsScene);
-    ui->presetView->setScene(graphicsScene);
-
-    zoomIn = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Plus), this);
+    // Keyboard shortcuts
+    zoomIn  = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Plus),  this);
     zoomOut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus), this);
-    flip = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F), this);
+    flip    = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F),     this);
 
-    QShortcut::connect(zoomIn, &QShortcut::activated, [this]() {
-        incrementZoom(1);
-    });
-    QShortcut::connect(zoomOut, &QShortcut::activated, [this]() {
-        incrementZoom(-1);
-    });
+    QShortcut::connect(zoomIn,  &QShortcut::activated, std::bind(&MainWindow::incrementZoom, this,  1));
+    QShortcut::connect(zoomOut, &QShortcut::activated, std::bind(&MainWindow::incrementZoom, this, -1));
     QShortcut::connect(flip, &QShortcut::activated, [this]() {
         ui->actionFlip->setChecked(!ui->actionFlip->isChecked());
         on_actionFlip_triggered();
     });
 
-    setState(WindowState::Idle);
-
+    // Status bar
     status = new QLabel();
-    ui->statusbar->addPermanentWidget(status, 1);
+    ui->statusbar->addPermanentWidget(status, 2);
     QProgressBar * _progressBar = new QProgressBar();
     _progressBar->setRange(0, 100);
     _progressBar->setValue(0);
     _progressBar->setTextVisible(false);
     ui->statusbar->addPermanentWidget(_progressBar, 1);
 
+    // Progress bar
     QTimer *timer = new QTimer(this);
     QTimer::connect(timer, &QTimer::timeout, this, [this, _progressBar]() {
         if (decoder != nullptr) {
@@ -84,7 +78,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             _progressBar->setValue(0);
         }
     });
-    timer->start(1000.0f/60.0f);
+    timer->start(1000.0f/30.0f);
+
+    // Decoding
+    compositor = new ImageCompositor;
+    decodeWatcher = new QFutureWatcher<void>(this);
+    QFutureWatcher<void>::connect(decodeWatcher, &QFutureWatcher<void>::finished, this, &MainWindow::decodeFinished);
+
+    setState(WindowState::Idle);
 }
 
 MainWindow::~MainWindow() {
@@ -92,7 +93,7 @@ MainWindow::~MainWindow() {
     delete zoomOut;
     delete flip;
     delete compositor;
-    delete graphicsScene;
+    delete scene;
     delete decodeWatcher;
     delete ui;
 }
@@ -104,12 +105,7 @@ void MainWindow::incrementZoom(int amount) {
 }
 
 void MainWindow::setState(WindowState state) {
-    QWidget *items[] = {
-        ui->groupBox,
-        ui->menuOptions,
-        ui->stackedOptions,
-        ui->zoomSelectorBox
-    };
+    QWidget *items[] = { ui->groupBox, ui->menuOptions, ui->stackedOptions, ui->zoomSelectorBox, ui->imageTabs };
 
     for (QWidget *item : items) {
         item->setEnabled(state == WindowState::Finished);
@@ -118,7 +114,9 @@ void MainWindow::setState(WindowState state) {
     ui->actionSave_All_Channels->setEnabled(state == WindowState::Finished);
     ui->actionSave_Current_Image->setEnabled(state == WindowState::Finished);
     ui->actionSave_Current_Image_Corrected->setEnabled(state == WindowState::Finished);
-    ui->actionFlip->setEnabled(state == WindowState::Finished);
+    zoomIn->setEnabled(state == WindowState::Finished);
+    zoomOut->setEnabled(state == WindowState::Finished);
+    flip->setEnabled(state == WindowState::Finished);
 }
 
 void MainWindow::populateChannelSelectors(size_t channels) {
@@ -131,20 +129,7 @@ void MainWindow::populateChannelSelectors(size_t channels) {
         }
     }
 
-    // RGB221
-    ui->redSelector->setCurrentIndex(1);
-    ui->greenSelector->setCurrentIndex(1);
-    ui->blueSelector->setCurrentIndex(0);
-    selectedComposite[0] = 2;
-    selectedComposite[1] = 2;
-    selectedComposite[2] = 1;
-}
-
-// Display a QImage on all QGraphicsView objects
-void MainWindow::displayQImage(QImage *image) {
-    graphicsScene->clear();
-    graphicsScene->setSceneRect(0, 0, image->width(), image->height());
-    graphicsScene->addPixmap(QPixmap::fromImage(*image));
+    setComposite({2, 2, 1});
 }
 
 void MainWindow::on_actionOpen_triggered() {
@@ -198,13 +183,12 @@ void MainWindow::startDecode(Satellite satellite, std::string filename) {
     decoder->decodeFile(filename);
     sat = satellite;
 
-    compositor->importFromRaw(decoder->getImage());
+    compositor->import(decoder->getImage());
 
-    decoder = nullptr;
     delete decoder;
+    decoder = nullptr;
 }
 
-#include <iostream>
 void MainWindow::decodeFinished() {
     if (compositor->height() == 0) {
         status->setText("Decode failed");
@@ -212,14 +196,18 @@ void MainWindow::decodeFinished() {
         return;
     }
 
-    channel   = QImage(compositor->width(), compositor->height(), QImage::Format_Grayscale16);
-    composite = QImage(compositor->width(), compositor->height(), QImage::Format_RGBX64);
-    preset    = QImage(compositor->width(), compositor->height(), QImage::Format_RGBX64);
+    display = QImage(compositor->width(), compositor->height(), QImage::Format_RGBX64);
 
+    // Prepare the UI
     populateChannelSelectors(compositor->channels());
-
     status->setText(QString("Decode finished: %1, %2 lines").arg(QString(imagerName)).arg(compositor->height()));
+    setState(WindowState::Finished);
 
+    // Load satellite specific presets
+    reloadPresets();
+}
+
+void MainWindow::reloadPresets() {
     selected_presets.clear();
     for (auto preset : manager.presets) {
         if (preset.second.satellites.count(sat)) {
@@ -232,11 +220,6 @@ void MainWindow::decodeFinished() {
         ui->presetSelector->addItem(QString::fromStdString(item.first));
     }
     on_presetSelector_activated(ui->presetSelector->currentText());
-
-    setEqualization(selectedEqualization);
-
-    reloadImage();
-    setState(WindowState::Finished);
 }
 
 // Zoom selector combo box
@@ -252,48 +235,61 @@ void MainWindow::on_zoomSelector_activated(int index) {
 
 void MainWindow::setChannel(int sensor_channel) {
     selectedChannel = sensor_channel + 1;
-    compositor->getChannel(&channel, selectedChannel);
-    reloadImage();
+    updateDisplay();
 }
 void MainWindow::setCompositeChannel(int channel, int sensor_channel) {
     selectedComposite[channel] = sensor_channel + 1;
-    compositor->getComposite(&composite, selectedComposite);
-    reloadImage();
+    updateDisplay();
+}
+void MainWindow::setComposite(std::array<size_t, 3> channels) {
+    QComboBox *selectors[] = { ui->redSelector, ui->greenSelector, ui->blueSelector };
+
+    for (size_t i = 0; i < channels.size(); i++) {
+        selectors[i]->setCurrentIndex(channels[i]-1);
+        selectedComposite[i] = channels[i];
+    }
 }
 
 void MainWindow::setEqualization(Equalization type) {
     selectedEqualization = type;
-    compositor->setEqualization(type);
-    compositor->getComposite(&composite, selectedComposite);
-    compositor->getChannel(&channel, selectedChannel);
-    compositor->getExpression(&preset, selected_presets.at(ui->presetSelector->currentText().toStdString()).expression);
-    reloadImage();
+    if (selectedEqualization == None) {
+        displayQImage(scene, display);
+    } else {
+        QImage copy(display);
+        ImageCompositor::equalise(copy, selectedEqualization, clip_limit);
+        displayQImage(scene, copy);
+    }
 }
 
 void MainWindow::on_actionFlip_triggered() {
     compositor->flip();
-    compositor->getComposite(&composite, selectedComposite);
-    compositor->getChannel(&channel, selectedChannel);
-    compositor->getExpression(&preset, selected_presets.at(ui->presetSelector->currentText().toStdString()).expression);
-    reloadImage();
+    updateDisplay();
 }
 
-void MainWindow::reloadImage() {
-    on_imageTabs_currentChanged(ui->imageTabs->currentIndex());
-}
 void MainWindow::on_imageTabs_currentChanged(int index) {
     QGraphicsView *tabs[] = { ui->channelView, ui->compositeView, ui->presetView };
     tabs[index]->horizontalScrollBar()->setValue(tabs[previousTabIndex]->horizontalScrollBar()->value());
     tabs[index]->verticalScrollBar()->setValue(tabs[previousTabIndex]->verticalScrollBar()->value());
+    previousTabIndex = index;
 
-    switch (index) {
-        case 0: displayQImage(&channel); break;
-        case 1: displayQImage(&composite); break;
-        case 2: displayQImage(&preset); break;
+    updateDisplay();
+}
+
+void MainWindow::updateDisplay() {
+    switch (ui->imageTabs->currentIndex()) {
+        case 0: compositor->getChannel(display, selectedChannel); break;
+        case 1: compositor->getComposite(display, selectedComposite); break;
+        case 2: compositor->getExpression(display, selected_presets.at(ui->presetSelector->currentText().toStdString()).expression); break;
         default: throw std::runtime_error("invalid tab index");
     }
 
-    previousTabIndex = index;
+    if (selectedEqualization == None) {
+        displayQImage(scene, display);
+    } else {
+        QImage copy(display);
+        ImageCompositor::equalise(copy, selectedEqualization, clip_limit);
+        displayQImage(scene, copy);
+    }
 }
 
 void MainWindow::saveCurrentImage(bool corrected) {
@@ -301,52 +297,39 @@ void MainWindow::saveCurrentImage(bool corrected) {
     QString name = QString("%1-%2.png").arg(imagerName).arg(types[ui->imageTabs->currentIndex()]);
     QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", name, "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
 
-    QtConcurrent::run(this, &MainWindow::writeCurrentImage, filename, corrected);
+    QtConcurrent::run([this](QString filename, bool corrected) {
+        QImage copy(display);
+        ImageCompositor::equalise(copy, selectedEqualization, clip_limit);
+        if (corrected) {
+            correct_geometry(copy, sat).save(filename);
+        } else {
+            copy.save(filename);
+        }
+    }, filename, corrected);
 }
 
-void MainWindow::writeCurrentImage(QString filename, bool corrected) {
-    if (corrected) {
-        switch (ui->imageTabs->currentIndex()) {
-            case 0: correct_geometry(channel, sat).save(filename); break;
-            case 1: correct_geometry(composite, sat).save(filename); break;
-            case 2: correct_geometry(preset, sat).save(filename); break;
-            default: throw std::runtime_error("invalid tab index");
-        }
-    } else {
-        switch (ui->imageTabs->currentIndex()) {
-            case 0: channel.save(filename); break;
-            case 1: composite.save(filename); break;
-            case 2: preset.save(filename); break;
-            default: throw std::runtime_error("invalid tab index");
-        }
-    }
-}
-
-void MainWindow::on_actionSave_All_Channels_triggered() {
+void MainWindow::saveAllChannels() {
     QString directory = QFileDialog::getExistingDirectory(this, "Save All Channels", "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (directory.isEmpty()) return;
 
-    if (!directory.isEmpty()) {
-        QtConcurrent::run(this, &MainWindow::saveAllChannels, directory);
-    }
-}
+    QtConcurrent::run([this](QString directory) {
+        QImage channel(compositor->width(), compositor->height(), QImage::Format_Grayscale16);
 
-void MainWindow::saveAllChannels(QString directory) {
-    QImage channel(compositor->width(), compositor->height(), QImage::Format_Grayscale16);
+        for(size_t i = 0; i < compositor->channels(); i++) {
+            status->setText(QString("Saving channel %1...").arg(i + 1));
+            compositor->getChannel(channel, i + 1);
+            channel.save(QString("%1/%2-%3.png").arg(directory).arg(imagerName).arg(i + 1), "PNG");
+        }
 
-    for(size_t i = 0; i < compositor->channels(); i++) {
-        status->setText(QString("Saving channel %1...").arg(i + 1));
-        compositor->getChannel(&channel, i + 1);
-        channel.save(QString("%1/%2-%3.png").arg(directory).arg(imagerName).arg(i + 1), "PNG");
-    }
-
-    status->setText("Done");
+        status->setText("Done");
+    }, directory);
 }
 
 void MainWindow::on_presetSelector_activated(QString text) {
-    Preset preset2 = selected_presets.at(text.toStdString());
-    ui->presetDescription->setText(QString::fromStdString(preset2.description));
-    ui->presetAuthor->setText(QString::fromStdString(preset2.author));
-    ui->presetCategory->setText(QString::fromStdString(preset2.category));
-    compositor->getExpression(&preset, preset2.expression);
-    reloadImage();
+    Preset preset = selected_presets.at(text.toStdString());
+    ui->presetDescription->setText(QString::fromStdString(preset.description));
+    ui->presetAuthor->setText(QString::fromStdString(preset.author));
+    ui->presetCategory->setText(QString::fromStdString(preset.category));
+
+    updateDisplay();
 }
