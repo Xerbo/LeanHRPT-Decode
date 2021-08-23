@@ -18,7 +18,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Install apt dependencies
-      run: 'sudo apt-get update && sudo apt-get install -y cmake make git g++ python3 python3-pip mesa-common-dev libglu1-mesa-dev'
+      run: 'sudo apt-get update && sudo apt-get install -y cmake make git g++ python3 python3-pip mesa-common-dev libglu1-mesa-dev zip'
 
     - name: Install pip dependencies
       run: 'pip3 install -U pip && pip3 install aqtinstall'
@@ -58,7 +58,6 @@ jobs:
             make -j4'
 
     - name: Package
-
       run: 'mkdir LeanHRPT-Decode.AppDir &&
             mkdir LeanHRPT-Decode.AppDir/usr &&
             mkdir LeanHRPT-Decode.AppDir/usr/bin &&
@@ -81,6 +80,9 @@ jobs:
             cp build/LeanHRPT-Decode             LeanHRPT-Decode.AppDir/usr/bin/ &&
             ./appimagetool-x86_64.AppImage LeanHRPT-Decode.AppDir'
 
+    - name: Package Flowgraphs
+      run: 'zip -r Flowgraphs.zip Flowgraphs/'
+
     - name: Create Release
       uses: actions/create-release@v1
       id: create_release
@@ -100,5 +102,15 @@ jobs:
         asset_path: ./LeanHRPT_Decode-x86_64.AppImage
         asset_name: LeanHRPT_Decode-x86_64.AppImage
         asset_content_type: application/x-executable
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Upload Flowgraphs
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./Flowgraphs.zip
+        asset_name: Flowgraphs.zip
+        asset_content_type: application/zip
       env:
         GITHUB_TOKEN: ${{ github.token }}
