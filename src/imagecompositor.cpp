@@ -26,12 +26,14 @@
 #include <omp.h>
 #include <muParser.h>
 
+#include "config.h"
+
 template<typename T>
 T clamp(T v, T lo, T hi) {
     return std::max(lo, std::min(hi, v));
 }
 
-void ImageCompositor::import(RawImage *image) {
+void ImageCompositor::import(RawImage *image, SatID satellite) {
     m_width = image->width();
     m_height = image->rows();
     m_channels = image->channels();
@@ -42,6 +44,53 @@ void ImageCompositor::import(RawImage *image) {
     for(size_t i = 0; i < m_channels; i++) {
         rawChannels[i] = QImage(m_width, m_height, QImage::Format_Grayscale16);
         std::memcpy(rawChannels[i].bits(), image->getChannel(i), m_width * m_height * sizeof(uint16_t));
+    }
+
+    Config ini("calibration.ini");
+
+    for (size_t i = 0; i < m_channels; i++) {
+        std::string name = satellite_info.at(satellite).name + "/" + std::to_string(i+1);
+
+        if (ini.sections.count(name)) {
+            std::map<std::string, std::string> coefficients = ini.sections.at(name);
+
+            if (coefficients.count("a1")) {
+                double a1 = std::stod(coefficients.at("a1"));
+                double b1 = std::stod(coefficients.at("b1"));
+                double a2 = std::stod(coefficients.at("a2"));
+                double b2 = std::stod(coefficients.at("b2"));
+                double c  = std::stod(coefficients.at("c"));
+                calibrate_avhrr(rawChannels[i], a1, b1, a2, b2, c);
+            } else if (coefficients.count("a")) {
+                double a = std::stod(coefficients.at("a"));
+                double b = std::stod(coefficients.at("b"));
+                calibrate_linear(rawChannels[i], a, b);
+            }
+        }
+    }
+}
+
+void ImageCompositor::calibrate_avhrr(QImage &image, double a1, double b1, double a2, double b2, double c) {
+    quint16 *bits = reinterpret_cast<quint16 *>(image.bits());
+
+    for (size_t i = 0; i < image.height()*image.width(); i++) {
+        double count = bits[i]/64;
+        if (count < c) {
+            count = a1*count + b1;
+        } else {
+            count = a2*count + b2;
+        }
+        bits[i] = clamp(count/100.0, 0.0, 1.0) * UINT16_MAX;
+    }
+}
+
+void ImageCompositor::calibrate_linear(QImage &image, double a, double b) {
+    quint16 *bits = reinterpret_cast<quint16 *>(image.bits());
+
+    for (size_t i = 0; i < image.height()*image.width(); i++) {
+        double count = bits[i]/64;
+        count = a*count + b;
+        bits[i] = clamp(count/100.0, 0.0, 1.0) * UINT16_MAX;
     }
 }
 

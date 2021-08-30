@@ -41,12 +41,9 @@ class NOAADecoder : public Decoder {
                 image->push10Bit(frame, 750);
             }
         }
-        std::string imagerName() {
-            return "AVHRR";
-        }
     private:
         uint8_t *frame;
-        ArbitraryDeframer<uint64_t, 0xA116FD719D8CC950, 64, 11090 * 10> deframer;
+        ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer;
 };
 
 #endif

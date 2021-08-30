@@ -22,28 +22,15 @@
 #include <map>
 #include <set>
 #include <string>
-#include <fstream>
-#include <inipp.h>
 
+#include "config.h"
 #include "satinfo.h"
-
-#ifdef _WIN32
-static std::string getConfigPath() {
-    std::string home = std::getenv("USERPROFILE");
-    return home + "\\AppData\\Roaming\\LeanHRPT\\presets.ini";
-}
-#else
-static std::string getConfigPath() {
-    std::string home = std::getenv("HOME");
-    return home + "/.config/leanhrpt/presets.ini";
-}
-#endif
 
 struct Preset {
     std::string description;
     std::string category;
     std::string author;
-    std::set<Satellite> satellites;
+    std::set<Mission> satellites;
     std::string expression;
 };
 
@@ -53,42 +40,18 @@ class PresetManager {
             reload();
         }
         void reload() {
-            ini.clear();
-            std::ifstream is(getConfigPath());
-            if (is.is_open()) {
-                ini.parse(is);
-                parse();
-                is.close();
-                return;
-            }
-            is.open("presets.ini");
-            if (is.is_open()) {
-                ini.parse(is);
-                parse();
-                is.close();
-                return;
-            }
-            parse();
-            std::cout << "Unable to load presets.ini" << std::endl;
-        }
-
-        std::map<std::string, Preset> presets;
-    private:
-        inipp::Ini<char> ini;
-
-        void parse() {
+            Config ini("presets.ini");
             presets.clear();
 
             for (auto &i : ini.sections) {
                 try {
-                    Preset preset = {
+                    presets.insert(std::pair<std::string, Preset>(i.first, Preset {
                         i.second["description"],
                         i.second["category"],
                         i.second["author"],
                         parse_satellites(i.second["satellites"]),
                         i.second["expression"]
-                    };
-                    presets.insert(std::pair<std::string, Preset>(i.first, preset));
+                    }));
                 } catch (std::out_of_range &e) {
                     std::cerr << "Syntax error in preset \"" << i.first << "\"" << std::endl;
                 }
@@ -100,13 +63,15 @@ class PresetManager {
             }
         }
 
-        std::set<Satellite> parse_satellites(std::string str) {
-            std::set<Satellite> satellites;
-            std::map<std::string, Satellite> table = {
-                {"MetOp",   Satellite::MetOp  },
-                {"NOAA",    Satellite::NOAA   },
-                {"FengYun", Satellite::FengYun},
-                {"Meteor",  Satellite::Meteor }
+        std::map<std::string, Preset> presets;
+    private:
+        std::set<Mission> parse_satellites(std::string str) {
+            std::set<Mission> satellites;
+            std::map<std::string, Mission> table = {
+                {"MetOp",   Mission::MetOp  },
+                {"NOAA",    Mission::NOAA   },
+                {"FengYun", Mission::FengYun},
+                {"Meteor",  Mission::Meteor }
             };
 
             std::stringstream stream(str);

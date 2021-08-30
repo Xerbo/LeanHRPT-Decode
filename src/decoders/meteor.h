@@ -41,9 +41,6 @@ class MeteorDecoder : public Decoder {
             delete[] msumrBuffer;
             delete[] msumrFrame;
         }
-        std::string imagerName() {
-            return "MSU-MR";
-        }
     private:
         uint8_t *frame, *msumrBuffer, *msumrFrame;
         ccsds::Deframer deframer;

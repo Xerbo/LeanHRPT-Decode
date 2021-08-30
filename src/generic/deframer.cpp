@@ -28,7 +28,7 @@ ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::ArbitraryDeframer(unsigned 
     : frameBuffer(new uint8_t[FRAME_SIZE / 8]),
       checkInverted(checkInverted),
       incorrectBitThreshold(incorrectBitThreshold) {
-    if (sizeof(ASM_T)*8 > ASM_SIZE) {
+    if (ASM_SIZE > sizeof(ASM_T)*8) {
         throw std::runtime_error("ArbitraryDeframer: ASM size larger than what ASM_T allows");
     }
 }
@@ -126,9 +126,7 @@ bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::work(const uint8_t *da
 template class ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8>;
 
 // NOAA HRPT
-//template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 11090 * 10>;
-template class ArbitraryDeframer<uint64_t, 0xA116FD719D8CC950, 64, 11090 * 10>;
+template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900>;
 
 // Fengyun VIRR
-//template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 208400>;
-template class ArbitraryDeframer<uint64_t, 0xA116FD719D8CC950, 64, 208400>;
+template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 208400>;

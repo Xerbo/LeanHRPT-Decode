@@ -59,9 +59,6 @@ class Decoder {
             is_running = false;
         }
 
-        virtual std::string imagerName() {
-            return "Unknown";
-        };
         RawImage *getImage() {
             return image;
         };

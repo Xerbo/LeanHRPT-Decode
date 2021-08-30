@@ -136,54 +136,31 @@ void MainWindow::on_actionOpen_triggered() {
     QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Binary files (*.bin *.cadu)");
 
     if (!filename.isEmpty()) {
-        Satellite satellite = fingerprint(filename.toStdString());
-
-        // If the fingerprint can't detect the satellite then ask manually
-        if (satellite == Unknown) {
-            QMessageBox satelliteSelection;
-            satelliteSelection.setWindowTitle("Select Satellite");
-            satelliteSelection.setText("Which satellite did this file come from?");
-            QPushButton *meteorButton = satelliteSelection.addButton("Meteor", QMessageBox::AcceptRole);
-            QPushButton *noaaButton = satelliteSelection.addButton("NOAA", QMessageBox::AcceptRole);
-            QPushButton *metopButton = satelliteSelection.addButton("MetOp", QMessageBox::AcceptRole);
-            QPushButton *fengyunButton = satelliteSelection.addButton("FengYun", QMessageBox::AcceptRole);
-            QPushButton *abortButton = satelliteSelection.addButton(QMessageBox::Abort);
-            satelliteSelection.exec();
-
-            if (satelliteSelection.clickedButton() == meteorButton) {
-                satellite = Satellite::Meteor;
-            } else if (satelliteSelection.clickedButton() == noaaButton) {
-                satellite = Satellite::NOAA;
-            } else if (satelliteSelection.clickedButton() == fengyunButton) {
-                satellite = Satellite::FengYun;
-            } else if (satelliteSelection.clickedButton() == metopButton) {
-                satellite = Satellite::MetOp;
-            } else if (satelliteSelection.clickedButton() == abortButton) {
-                return;
-            } else {
-                throw std::runtime_error("invalid button pressed in satellite selector message box");
-            }
+        status->setText("Fingerprinting");
+        sat = Fingerprint::file(filename.toStdString());
+        if (sat == SatID::Unknown) {
+            status->setText("Fingerprinting failed");
+            return;
         }
+        Mission mission = satellite_info.at(sat).mission;
 
         setState(WindowState::Decoding);
         status->setText(QString("Decoding %1...").arg(filename));
-        decodeWatcher->setFuture(QtConcurrent::run(this, &MainWindow::startDecode, satellite, filename.toStdString()));
+        decodeWatcher->setFuture(QtConcurrent::run(this, &MainWindow::startDecode, mission, filename.toStdString()));
     }
 }
 
-void MainWindow::startDecode(Satellite satellite, std::string filename) {
-    switch (satellite) {
-        case Satellite::FengYun: decoder = new FengyunDecoder; break;
-        case Satellite::Meteor: decoder = new MeteorDecoder; break;
-        case Satellite::MetOp: decoder = new MetOpDecoder; break;
-        case Satellite::NOAA: decoder = new NOAADecoder; break;
-        default: throw std::runtime_error("invalid value in enum `Satellite`");
+void MainWindow::startDecode(Mission mission, std::string filename) {
+    switch (mission) {
+        case Mission::FengYun: decoder = new FengyunDecoder; break;
+        case Mission::Meteor:  decoder = new MeteorDecoder; break;
+        case Mission::MetOp:   decoder = new MetOpDecoder; break;
+        case Mission::NOAA:    decoder = new NOAADecoder; break;
+        default: throw std::runtime_error("invalid value in enum `Mission`");
     }
-    imagerName = QString::fromStdString(decoder->imagerName());
     decoder->decodeFile(filename);
-    sat = satellite;
 
-    compositor->import(decoder->getImage());
+    compositor->import(decoder->getImage(), sat);
 
     delete decoder;
     decoder = nullptr;
@@ -200,7 +177,7 @@ void MainWindow::decodeFinished() {
 
     // Prepare the UI
     populateChannelSelectors(compositor->channels());
-    status->setText(QString("Decode finished: %1, %2 lines").arg(QString(imagerName)).arg(compositor->height()));
+    status->setText(QString("Decode finished - %1: %2, %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(satellite_info.at(sat).imager)).arg(compositor->height()));
     setState(WindowState::Finished);
 
     // Load satellite specific presets
@@ -210,7 +187,7 @@ void MainWindow::decodeFinished() {
 void MainWindow::reloadPresets() {
     selected_presets.clear();
     for (auto preset : manager.presets) {
-        if (preset.second.satellites.count(sat)) {
+        if (preset.second.satellites.count(satellite_info.at(sat).mission)) {
             selected_presets.insert(preset);
         }
     }
@@ -294,7 +271,7 @@ void MainWindow::updateDisplay() {
 
 void MainWindow::saveCurrentImage(bool corrected) {
     QString types[3] = { QString::number(selectedChannel), "Composite", ui->presetSelector->currentText() };
-    QString name = QString("%1-%2.png").arg(imagerName).arg(types[ui->imageTabs->currentIndex()]);
+    QString name = QString("%1_%2_%3.png").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(satellite_info.at(sat).imager)).arg(types[ui->imageTabs->currentIndex()]);
     QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", name, "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
 
     QtConcurrent::run([this](QString filename, bool corrected) {
@@ -318,7 +295,7 @@ void MainWindow::saveAllChannels() {
         for(size_t i = 0; i < compositor->channels(); i++) {
             status->setText(QString("Saving channel %1...").arg(i + 1));
             compositor->getChannel(channel, i + 1);
-            channel.save(QString("%1/%2-%3.png").arg(directory).arg(imagerName).arg(i + 1), "PNG");
+            channel.save(QString("%1/%2_%3_%4.png").arg(directory).arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(satellite_info.at(sat).imager)).arg(i + 1), "PNG");
         }
 
         status->setText("Done");
