@@ -20,9 +20,9 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream) {
             // https://sanaregistry.org/r/spacecraftid/
             uint8_t SCID = ((uint16_t)frame[4] << 8 | frame[5]) >> 6;
             switch (SCID) {
-                case 0x0B: SCIDs[SatID::MetOpA]++;    break;
-                case 0x0C: SCIDs[SatID::MetOpB]++;    break;
-                case 0x0D: SCIDs[SatID::MetOpC]++;    break;
+                case 0x0B: SCIDs[SatID::MetOpB]++;    break; // MetOp 1
+                case 0x0C: SCIDs[SatID::MetOpA]++;    break; // MetOp 2
+                case 0x0D: SCIDs[SatID::MetOpC]++;    break; // MetOp 3
                 case 0x31: SCIDs[SatID::FengYun3C]++; break;
                 case 0x32: SCIDs[SatID::FengYun3B]++; break;
                 case 0x33: SCIDs[SatID::FengYun3C]++; break;
@@ -57,10 +57,9 @@ SatID Fingerprint::fingerprint_ccsds_raw(std::istream &stream) {
                 // https://sanaregistry.org/r/spacecraftid/
                 uint8_t SCID = ((uint16_t)frame[4] << 8 | frame[5]) >> 6;
                 switch (SCID) {
-                    case 0x0B: SCIDs[SatID::MetOpA]++;    break;
-                    case 0x0C: SCIDs[SatID::MetOpB]++;    break;
-                    case 0x0D: SCIDs[SatID::MetOpC]++;    break;
-
+                    case 0x0B: SCIDs[SatID::MetOpB]++;    break; // MetOp 1
+                    case 0x0C: SCIDs[SatID::MetOpA]++;    break; // MetOp 2
+                    case 0x0D: SCIDs[SatID::MetOpC]++;    break; // MetOp 3
                     case 0x31: SCIDs[SatID::FengYun3C]++; break;
                     case 0x32: SCIDs[SatID::FengYun3B]++; break;
                     case 0x33: SCIDs[SatID::FengYun3C]++; break;
@@ -69,7 +68,7 @@ SatID Fingerprint::fingerprint_ccsds_raw(std::istream &stream) {
             }
 
             size_t *max = std::max_element(SCIDs.begin(), SCIDs.end());
-            if (*max > 100) {
+            if (*max > 1000) {
                 return (SatID)(max - SCIDs.begin());
             }
         }
