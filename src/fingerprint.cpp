@@ -1,6 +1,7 @@
 #include "fingerprint.h"
 
 #include <algorithm>
+#include <bitset>
 
 #include "ccsds/deframer.h"
 #include "ccsds/derand.h"
@@ -13,8 +14,8 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream) {
         uint8_t frame[1024];
         stream.read(reinterpret_cast<char *>(frame), 1024);
 
-        if (frame[10] == 0x00 && frame[11] == 0x00 && frame[12] == 0x00 && frame[13] == 0x00) {
-            SCIDs[SatID::MeteorM22]++;
+        if (std::bitset<32>(*(uint32_t *)&frame[10]).count() < 8) {
+            SCIDs[SatID::MeteorM22] += 4;
         } else {
             // https://sanaregistry.org/r/spacecraftid/
             uint8_t SCID = ((uint16_t)frame[4] << 8 | frame[5]) >> 6;
@@ -49,8 +50,8 @@ SatID Fingerprint::fingerprint_ccsds_raw(std::istream &stream) {
         stream.read(reinterpret_cast<char *>(buffer), 1024);
 
         if (deframer.work(buffer, frame, 1024)) {
-            if (frame[10] == 0x00 && frame[11] == 0x00 && frame[12] == 0x00 && frame[13] == 0x00) {
-                SCIDs[SatID::MeteorM22]++;
+            if (std::bitset<32>(*(uint32_t *)&frame[10]).count() < 8) {
+                SCIDs[SatID::MeteorM22] += 4;
             } else {
                 derand.work(frame, 1024);
                 // https://sanaregistry.org/r/spacecraftid/
@@ -59,6 +60,7 @@ SatID Fingerprint::fingerprint_ccsds_raw(std::istream &stream) {
                     case 0x0B: SCIDs[SatID::MetOpA]++;    break;
                     case 0x0C: SCIDs[SatID::MetOpB]++;    break;
                     case 0x0D: SCIDs[SatID::MetOpC]++;    break;
+
                     case 0x31: SCIDs[SatID::FengYun3C]++; break;
                     case 0x32: SCIDs[SatID::FengYun3B]++; break;
                     case 0x33: SCIDs[SatID::FengYun3C]++; break;

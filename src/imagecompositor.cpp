@@ -25,6 +25,7 @@
 #include <limits>
 #include <omp.h>
 #include <muParser.h>
+#include <QLocale>
 
 #include "config.h"
 
@@ -54,16 +55,17 @@ void ImageCompositor::import(RawImage *image, SatID satellite) {
         if (ini.sections.count(name)) {
             std::map<std::string, std::string> coefficients = ini.sections.at(name);
 
+            QLocale l(QLocale::C);
             if (coefficients.count("a1")) {
-                double a1 = std::stod(coefficients.at("a1"));
-                double b1 = std::stod(coefficients.at("b1"));
-                double a2 = std::stod(coefficients.at("a2"));
-                double b2 = std::stod(coefficients.at("b2"));
-                double c  = std::stod(coefficients.at("c"));
+                double a1 = l.toDouble(QString::fromStdString(coefficients.at("a1")));
+                double b1 = l.toDouble(QString::fromStdString(coefficients.at("b1")));
+                double a2 = l.toDouble(QString::fromStdString(coefficients.at("a2")));
+                double b2 = l.toDouble(QString::fromStdString(coefficients.at("b2")));
+                double c  = l.toDouble(QString::fromStdString(coefficients.at("c")));
                 calibrate_avhrr(rawChannels[i], a1, b1, a2, b2, c);
             } else if (coefficients.count("a")) {
-                double a = std::stod(coefficients.at("a"));
-                double b = std::stod(coefficients.at("b"));
+                double a = l.toDouble(QString::fromStdString(coefficients.at("a")));
+                double b = l.toDouble(QString::fromStdString(coefficients.at("b")));
                 calibrate_linear(rawChannels[i], a, b);
             }
         }
