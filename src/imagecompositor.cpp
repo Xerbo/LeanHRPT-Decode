@@ -75,7 +75,7 @@ void ImageCompositor::import(RawImage *image, SatID satellite) {
 void ImageCompositor::calibrate_avhrr(QImage &image, double a1, double b1, double a2, double b2, double c) {
     quint16 *bits = reinterpret_cast<quint16 *>(image.bits());
 
-    for (size_t i = 0; i < image.height()*image.width(); i++) {
+    for (size_t i = 0; i < (size_t)image.height()*(size_t)image.width(); i++) {
         double count = bits[i]/64;
         if (count < c) {
             count = a1*count + b1;
@@ -89,7 +89,7 @@ void ImageCompositor::calibrate_avhrr(QImage &image, double a1, double b1, doubl
 void ImageCompositor::calibrate_linear(QImage &image, double a, double b) {
     quint16 *bits = reinterpret_cast<quint16 *>(image.bits());
 
-    for (size_t i = 0; i < image.height()*image.width(); i++) {
+    for (size_t i = 0; i < (size_t)image.height()*(size_t)image.width(); i++) {
         double count = bits[i]/64;
         count = a*count + b;
         bits[i] = clamp(count/100.0, 0.0, 1.0) * UINT16_MAX;
@@ -131,14 +131,9 @@ double set_rgb(double r, double g, double b) {
     return *(double *)&a;
 }
 double set_bw(double val) {
-    QRgba64 a = QRgba64::fromRgba64(
-        clamp(val, 0.0, 1.0) * (double)UINT16_MAX,
-        clamp(val, 0.0, 1.0) * (double)UINT16_MAX,
-        clamp(val, 0.0, 1.0) * (double)UINT16_MAX,
-        UINT16_MAX
-    );
-    return *(double *)&a;
+    return set_rgb(val, val, val);
 }
+
 // Evaluate `expression` and store the results in `image`
 void ImageCompositor::getExpression(QImage &image, std::string experssion) {
     if (image.format() != QImage::Format_RGBX64) {
@@ -159,6 +154,15 @@ void ImageCompositor::getExpression(QImage &image, std::string experssion) {
             for (size_t i = 0; i < m_channels; i++) {
                 p.DefineVar("ch" + std::to_string(i+1), &ch[i]);
             }
+
+            if (m_channels == 10) {
+                p.DefineVar("SWIR", &ch[5]);
+            } else {
+                p.DefineVar("SWIR", &ch[2]);
+            }
+            p.DefineVar("NIR", &ch[1]);
+            p.DefineVar("RED", &ch[0]);
+
             p.DefineFun("rgb", set_rgb);
             p.DefineFun("bw", set_bw);
             p.SetExpr(experssion);

@@ -29,7 +29,7 @@
 
 class FengyunDecoder : public Decoder {
     public:
-        FengyunDecoder() : virrDeframer(10, false) {
+        FengyunDecoder() : virrDeframer(0, false) {
             frame = new uint8_t[1024];
             line = new uint8_t[208400 / 8];
             image = new RawImage(2048, 10);

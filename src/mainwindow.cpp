@@ -152,10 +152,10 @@ void MainWindow::on_actionOpen_triggered() {
 
 void MainWindow::startDecode(Mission mission, std::string filename) {
     switch (mission) {
-        case Mission::FengYun: decoder = new FengyunDecoder; break;
-        case Mission::Meteor:  decoder = new MeteorDecoder; break;
-        case Mission::MetOp:   decoder = new MetOpDecoder; break;
-        case Mission::NOAA:    decoder = new NOAADecoder; break;
+        case Mission::FengYun3: decoder = new FengyunDecoder; break;
+        case Mission::MeteorM:  decoder = new MeteorDecoder; break;
+        case Mission::MetOp:    decoder = new MetOpDecoder; break;
+        case Mission::POES:     decoder = new NOAADecoder; break;
         default: throw std::runtime_error("invalid value in enum `Mission`");
     }
     decoder->decodeFile(filename);

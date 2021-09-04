@@ -58,7 +58,7 @@ class PresetManager {
             }
 
             if (presets.size() == 0) {
-                Preset preset = { "", "", "", { MetOp, NOAA, FengYun, Meteor }, "bw(0)" };
+                Preset preset = { "", "", "", { MetOp, POES, FengYun3, POES }, "bw(0)" };
                 presets.insert(std::pair<std::string, Preset>("Unable to load presets", preset));
             }
         }
@@ -68,10 +68,10 @@ class PresetManager {
         std::set<Mission> parse_satellites(std::string str) {
             std::set<Mission> satellites;
             std::map<std::string, Mission> table = {
-                {"MetOp",   Mission::MetOp  },
-                {"NOAA",    Mission::NOAA   },
-                {"FengYun", Mission::FengYun},
-                {"Meteor",  Mission::Meteor }
+                {"MetOp",   Mission::MetOp },
+                {"NOAA",    Mission::POES },
+                {"FengYun", Mission::FengYun3 },
+                {"Meteor",  Mission::MeteorM }
             };
 
             std::stringstream stream(str);
