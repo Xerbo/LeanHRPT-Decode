@@ -68,7 +68,7 @@ SatID Fingerprint::fingerprint_ccsds_raw(std::istream &stream) {
             }
 
             size_t *max = std::max_element(SCIDs.begin(), SCIDs.end());
-            if (*max > 100) {
+            if (*max > 1000) {
                 return (SatID)(max - SCIDs.begin());
             }
         }
