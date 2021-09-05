@@ -192,9 +192,13 @@ void MainWindow::reloadPresets() {
         }
     }
 
+    int index = ui->presetSelector->currentIndex();
     ui->presetSelector->clear();
     for (auto item : selected_presets) {
         ui->presetSelector->addItem(QString::fromStdString(item.first));
+    }
+    if (index != -1) {
+        ui->presetSelector->setCurrentIndex(index);
     }
     on_presetSelector_activated(ui->presetSelector->currentText());
 }
