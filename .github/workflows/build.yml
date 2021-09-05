@@ -44,14 +44,14 @@ jobs:
             cd muparser &&
             mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH -DENABLE_OPENMP=OFF .. &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH -DENABLE_OPENMP=OFF -DENABLE_SAMPLES=OFF .. &&
             make -j4 &&
             make install'
 
     - name: Compile LeanHRPT
       run: 'mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH -DWAR_CRIMES=1 .. &&
             make -j4'
 
     - uses: actions/upload-artifact@v2

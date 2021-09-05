@@ -29,7 +29,7 @@
 
 class FengyunDecoder : public Decoder {
     public:
-        FengyunDecoder() : virrDeframer(10, false) {
+        FengyunDecoder() : virrDeframer(0, false) {
             frame = new uint8_t[1024];
             line = new uint8_t[208400 / 8];
             image = new RawImage(2048, 10);
@@ -38,12 +38,9 @@ class FengyunDecoder : public Decoder {
             delete[] frame;
             delete[] line;
         }
-        std::string imagerName() {
-            return "VIRR";
-        }
     private:
         uint8_t *frame, *line;
-        ArbitraryDeframer<uint64_t, 0xA116FD719D8CC950, 64, 208400> virrDeframer;
+        ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 208400> virrDeframer;
         ccsds::Deframer deframer;
         ccsds::Derand derand;
         SatHelper::ReedSolomon reedSolomon;

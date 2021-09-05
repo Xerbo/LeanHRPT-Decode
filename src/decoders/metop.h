@@ -36,9 +36,6 @@ class MetOpDecoder : public Decoder {
         ~MetOpDecoder() {
             delete[] frame;
         }
-        std::string imagerName() {
-            return "MetOp-AVHRR";
-        }
     private:
         uint8_t *frame;
         SatHelper::ReedSolomon reedSolomon;

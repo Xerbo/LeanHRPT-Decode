@@ -20,13 +20,15 @@
 
 #include <cmath>
 
+const float EARTH_RADIUS = 6371.0f;
+
 // Convert from a internal angle of a circle to the viewing angle of a point above the circle.
 float earth2sat_angle(float radius, float height, float angle) {
     return -std::atan(std::sin(angle)*radius / (std::cos(angle)*radius - (radius+height)));
 }
 
 // Based off https://github.com/Xerbo/meteor_corrector
-QImage correct_geometry(QImage image, Satellite satellite) {
+QImage correct_geometry(QImage image, SatID satellite) {
     const SatelliteInfo info = satellite_info.at(satellite);
     const size_t output_width = info.swath/info.resolution;
 

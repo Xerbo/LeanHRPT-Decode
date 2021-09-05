@@ -1,6 +1,15 @@
 #!/bin/sh
 HERE="$(dirname "$(readlink -f "${0}")")"
 
+# Install config files (if they don't already exist)
+mkdir -p ~/.config/leanhrpt/
+if [ ! -e "~/.config/leanhrpt/presets.ini" ]; then
+    cp "${HERE}/presets.ini" "~/.config/leanhrpt/"
+fi
+if [ ! -e "~/.config/leanhrpt/calibration.ini" ]; then
+    cp "${HERE}/calibration.ini" "~/.config/leanhrpt/"
+fi
+
 export PATH="${HERE}/usr/bin/:${PATH}"
 export LD_LIBRARY_PATH="${HERE}/usr/lib/"
 

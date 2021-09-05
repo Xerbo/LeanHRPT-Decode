@@ -52,14 +52,14 @@ jobs:
             cd muparser &&
             mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH -DENABLE_OPENMP=OFF .. &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH -DENABLE_OPENMP=OFF -DENABLE_SAMPLES=OFF .. &&
             make -j4 &&
             make install'
 
     - name: Compile LeanHRPT
       run: 'mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH .. &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH -DWAR_CRIMES=1 .. &&
             make -j4'
 
     - name: Package
@@ -69,6 +69,7 @@ jobs:
             mkdir LeanHRPT-Decode/platforms &&
             cp logo128.png                                          LeanHRPT-Decode/ &&
             cp presets.ini                                          LeanHRPT-Decode/ &&
+            cp calibration.ini                                      LeanHRPT-Decode/ &&
             cp build/LeanHRPT-Decode.exe                            LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Core.dll                       LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Gui.dll                        LeanHRPT-Decode/ &&

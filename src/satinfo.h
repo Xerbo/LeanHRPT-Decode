@@ -20,29 +20,63 @@
 #define LEANHRPT_SATINFO_H
 
 #include <map>
+#include <string>
 
-enum Satellite {
-    Unknown,
-    NOAA,
-    Meteor,
-    FengYun,
+enum Mission {
+    POES,
+    MeteorM,
+    FengYun3,
     MetOp
 };
 
+enum SatID {
+    MetOpA,
+    MetOpB,
+    MetOpC,
+    FengYun3A,
+    FengYun3B,
+    FengYun3C,
+    NOAA15,
+    NOAA18,
+    NOAA19,
+    MeteorM2, // Not used
+    MeteorM22,
+    Unknown
+};
+
+enum Imager {
+    AVHRR,
+    VIRR,
+    MSUMR
+};
+
+const std::map<Imager, std::string> imager_names = {
+    { Imager::AVHRR, "AVHRR" },
+    { Imager::VIRR,  "VIRR" },
+    { Imager::MSUMR, "MSU-MR" }
+};
+
 struct SatelliteInfo {
-    float orbit_height;
-    float resolution;
-    float swath;
+    float orbit_height; // in km
+    float resolution; // in km/px
+    float swath; // in km
+    Mission mission;
+    std::string name;
+    Imager imager;
 };
 
-// Derek Approved™
-const std::map<Satellite, SatelliteInfo> satellite_info {
-    {Satellite::NOAA,    SatelliteInfo { 862.0f, 1.1f, 2900.0f }},
-    {Satellite::MetOp,   SatelliteInfo { 822.0f, 1.1f, 2900.0f }},
-    {Satellite::FengYun, SatelliteInfo { 836.0f, 1.1f, 2800.0f }},
-    {Satellite::Meteor,  SatelliteInfo { 820.0f, 1.0f, 2800.0f }}
+const std::map<SatID, SatelliteInfo> satellite_info {
+    { SatID::MetOpA,    SatelliteInfo { 827.0f, 1.1f, 2900.0f, Mission::MetOp,    "MetOp-A",    Imager::AVHRR } },
+    { SatID::MetOpB,    SatelliteInfo { 827.0f, 1.1f, 2900.0f, Mission::MetOp,    "MetOp-B",    Imager::AVHRR } },
+    { SatID::MetOpC,    SatelliteInfo { 817.0f, 1.1f, 2900.0f, Mission::MetOp,    "MetOp-C",    Imager::AVHRR } },
+    { SatID::FengYun3A, SatelliteInfo { 834.0f, 1.1f, 2800.0f, Mission::FengYun3, "FengYun-3A", Imager::VIRR } },
+    { SatID::FengYun3B, SatelliteInfo { 836.0f, 1.1f, 2800.0f, Mission::FengYun3, "FengYun-3B", Imager::VIRR } },
+    { SatID::FengYun3C, SatelliteInfo { 836.0f, 1.1f, 2800.0f, Mission::FengYun3, "FengYun-3C", Imager::VIRR } },
+    { SatID::NOAA15,    SatelliteInfo { 813.0f, 1.1f, 2900.0f, Mission::POES,     "NOAA-15",    Imager::AVHRR } },
+    { SatID::NOAA18,    SatelliteInfo { 854.0f, 1.1f, 2900.0f, Mission::POES,     "NOAA-18",    Imager::AVHRR } },
+    { SatID::NOAA19,    SatelliteInfo { 870.0f, 1.1f, 2900.0f, Mission::POES,     "NOAA-19",    Imager::AVHRR } },
+    { SatID::MeteorM2,  SatelliteInfo { 820.0f, 1.0f, 2800.0f, Mission::MeteorM,  "Meteor-M2",  Imager::MSUMR } },
+    { SatID::MeteorM22, SatelliteInfo { 821.0f, 1.0f, 2800.0f, Mission::MeteorM,  "Meteor-M22", Imager::MSUMR } },
 };
-
-const float EARTH_RADIUS = 6371.0f;
 
 #endif

@@ -1,117 +1,178 @@
 #include "fingerprint.h"
 
-#include <fstream>
+#include <algorithm>
+#include <vector>
 #include <cstring>
 
 #include "ccsds/deframer.h"
 #include "ccsds/derand.h"
 #include "generic/deframer.h"
 
-Satellite fingerprint_ccsds_frames(std::istream &stream) {
-    uint8_t frame[1024];
-    size_t virtual_channels[64] = { 0 };
+class CCSDSFingerprint {
+    public:
+        CCSDSFingerprint(bool raw) : _raw(raw), telemetry_deframer(10, false) { };
+        SatID processFrame(uint8_t *frame) {
+            uint8_t telemetry_buffer[8];
+            uint8_t telemetry_frame[74];
+            std::memcpy(&telemetry_buffer[0], &frame[  5-1], 2);
+            std::memcpy(&telemetry_buffer[2], &frame[261-1], 2);
+            std::memcpy(&telemetry_buffer[4], &frame[517-1], 2);
+            std::memcpy(&telemetry_buffer[6], &frame[773-1], 2);
 
-    // Check if the file is CCSDS frames
-    for (size_t i = 0; i < 50; i++) {
-        stream.read(reinterpret_cast<char *>(frame), 1024);
-        if (frame[0] != 0x1A || frame[1] != 0xCF || frame[2] != 0xFC || frame[3] != 0x1D) {
-            return Satellite::Unknown;
-        }
-        uint8_t VCID = frame[5] & 0x3f; // 0b111111
-        virtual_channels[VCID]++;
-    }
+            if (telemetry_deframer.work(telemetry_buffer, telemetry_frame, 8)) {
+                sats[SatID::MeteorM22]++;
+            } else {
+                if (_raw) derand.work(frame, 1024);
 
-    // Perform virtual channel analysis
-    if (virtual_channels[5] > 12) {
-        return Satellite::FengYun;
-    } else if (virtual_channels[9] > 8) {
-        return Satellite::MetOp;
-    } else {
-        return Satellite::Meteor;
-    }
-}
-
-Satellite fingerprint_ccsds_data(std::istream &stream) {
-    size_t frames = 0;
-    size_t virtual_channels[64] = { 0 };
-
-    uint8_t buffer[1024];
-    uint8_t frame[1024];
-
-    ccsds::Deframer deframer;
-    ccsds::Derand derand;
-    for (size_t i = 0; i < 5000; i++) {
-        stream.read(reinterpret_cast<char *>(buffer), 1024);
-        if (deframer.work(buffer, frame, 1024)) {
-            if (frame[10] == 0 && frame[11] == 0 && frame[12] == 0 && frame[13] == 0) {
-                return Satellite::Meteor;
+                // List of SCIDs here (excluding FY) https://sanaregistry.org/r/spacecraftid/
+                uint8_t SCID = ((uint16_t)frame[4] << 8 | frame[5]) >> 6;
+                switch (SCID) {
+                    case 0x0B: sats[SatID::MetOpB]++;    break; // MetOp 1
+                    case 0x0C: sats[SatID::MetOpA]++;    break; // MetOp 2
+                    case 0x0D: sats[SatID::MetOpC]++;    break; // MetOp 3
+                    case 0x31: sats[SatID::FengYun3C]++; break;
+                    case 0x32: sats[SatID::FengYun3B]++; break;
+                    case 0x33: sats[SatID::FengYun3C]++; break;
+                    default:                             break;
+                }
             }
 
-            frames++;
-            derand.work(frame, 1024);
-            uint8_t VCID = frame[5] & 0x3f; // 0b111111
-            virtual_channels[VCID]++;
+            auto pair = std::max_element(sats.begin(), sats.end());
+            if (pair->second > 100 && sats.size() != 0) {
+                return pair->first;
+            }
+
+            return SatID::Unknown;
+        }
+    private:
+        const bool _raw;
+        ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 74 * 8> telemetry_deframer;
+
+        ccsds::Derand derand;
+        std::map<SatID, size_t> sats;
+};
+
+SatID Fingerprint::fingerprint_ccsds(std::istream &stream) {
+    CCSDSFingerprint fingerprint(false);
+    uint8_t frame[1024];
+
+    while (!stream.eof()) {
+        stream.read(reinterpret_cast<char *>(frame), 1024);
+
+        SatID id = fingerprint.processFrame(frame);
+        if (id != SatID::Unknown) {
+            return id;
         }
     }
 
-    if (frames > 50) {
-        if (virtual_channels[5] > frames/10) {
-            return Satellite::FengYun;
-        } else if (virtual_channels[9] > frames/10) {
-            return Satellite::MetOp;
-        }
-    }
-
-    return Satellite::Unknown;
+    return SatID::Unknown;
 }
 
-bool is_noaa(std::istream &stream) {
-    ArbitraryDeframer<uint64_t, 0xA116FD719D8CC950, 64, 11090 * 10> deframer2;
-    uint8_t *line = new uint8_t[110900 / 8];
+SatID Fingerprint::fingerprint_ccsds_raw(std::istream &stream) {
+    ccsds::Deframer deframer;
+    CCSDSFingerprint fingerprint(true);
+    uint8_t frame[1024];
     uint8_t buffer[1024];
-    size_t frames = 0;
 
-    for (size_t i = 0; i < 5000; i++) {
+    while (!stream.eof()) {
         stream.read(reinterpret_cast<char *>(buffer), 1024);
-        if (deframer2.work(buffer, line, 1024)) {
-            frames++;
-            if (frames > 30) {
-                delete[] line;
+
+        if (deframer.work(buffer, frame, 1024)) {
+            SatID id = fingerprint.processFrame(frame);
+            if (id != SatID::Unknown) {
+                return id;
+            }
+        }
+    }
+
+    return SatID::Unknown;
+}
+
+bool Fingerprint::is_noaa(std::istream &stream) {
+    uint8_t buffer[1024];
+    ccsds::Deframer deframer;
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer2(10, true);
+    std::vector<uint8_t> ccsds_frame(1024);
+    std::vector<uint8_t> noaa_frame((11090*10) / 8);
+
+    size_t noaa_frames = 0;
+    size_t ccsds_frames = 0;
+
+    while (!stream.eof()) {
+        stream.read(reinterpret_cast<char *>(buffer), 1024);
+        if (deframer.work(buffer, ccsds_frame.data(), 1024)) {
+            if (ccsds_frames++ > 200) {
+                return false;
+            }
+        }
+        if (deframer2.work(buffer, noaa_frame.data(), 1024)) {
+            if (noaa_frames++ > 10) {
                 return true;
             }
         }
     }
 
-    delete[] line;
     return false;
 }
 
-Satellite fingerprint(std::string filename) {
-    std::filebuf file = std::filebuf();
+SatID Fingerprint::id_noaa(std::istream &stream) {
+    uint8_t buffer[1024];
+    std::vector<uint8_t> frame((11090*10) / 8);
+    std::vector<uint16_t> repacked(11090);
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer(10, true);
+
+    std::map<SatID, size_t> sats;
+
+    while (!stream.eof()) {
+        stream.read(reinterpret_cast<char *>(buffer), 1024);
+        if (deframer.work(buffer, frame.data(), 1024)) {
+            size_t j = 0;
+            for (size_t i = 0; i < 11090; i += 4) {
+                repacked[i + 0] =  (frame[j + 0] << 2)       | (frame[j + 1] >> 6);
+                repacked[i + 1] = ((frame[j + 1] % 64) << 4) | (frame[j + 2] >> 4);
+                repacked[i + 2] = ((frame[j + 2] % 16) << 6) | (frame[j + 3] >> 2);
+                repacked[i + 3] = ((frame[j + 3] % 4 ) << 8) |  frame[j + 4];
+                j += 5;
+            }
+
+            uint8_t address = ((repacked[6] & 0x078) >> 3) & 0x000F;
+            switch (address) {
+                case 7:  sats[SatID::NOAA15]++; break;
+                case 13: sats[SatID::NOAA18]++; break;
+                case 15: sats[SatID::NOAA19]++; break;
+                default:                        break;
+            }
+
+            auto pair = std::max_element(sats.begin(), sats.end());
+            if (pair->second > 100) {
+                return pair->first;
+            }
+        }
+    }
+
+    return SatID::Unknown;
+}
+
+SatID Fingerprint::file(std::string filename) {
+    std::filebuf file;
     if (!file.open(filename, std::ios::in | std::ios::binary)) {
-        return Satellite::Unknown;
+        return SatID::Unknown;
     }
     std::istream stream(&file);
 
-    Satellite satellite = fingerprint_ccsds_frames(stream);
-    if (satellite != Satellite::Unknown) {
+    if (is_ccsds(stream)) {
+        SatID id = fingerprint_ccsds(stream);
         file.close();
-        return satellite;
+        return id;
     }
 
-    stream.seekg(stream.beg);
-    satellite = fingerprint_ccsds_data(stream);
-    if (satellite != Satellite::Unknown) {
-        file.close();
-        return satellite;
-    }
-
-    stream.seekg(stream.beg);
     if (is_noaa(stream)) {
+        SatID id = id_noaa(stream);
         file.close();
-        return Satellite::NOAA;
+        return id;
     }
 
+    SatID id = fingerprint_ccsds_raw(stream);
     file.close();
-    return Satellite::Unknown;
+    return id;
 }

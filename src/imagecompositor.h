@@ -22,6 +22,7 @@
 #include <vector>
 #include <QImage>
 #include "generic/rawimage.h"
+#include "satinfo.h"
 
 enum Equalization {
     None,
@@ -31,7 +32,7 @@ enum Equalization {
 
 class ImageCompositor {
     public:
-        void import(RawImage *image);
+        void import(RawImage *image, SatID satellite);
 
         // Manipulation functions
         void flip();
@@ -52,6 +53,9 @@ class ImageCompositor {
         size_t m_channels;
         bool m_isFlipped;
         std::vector<QImage> rawChannels;
+
+        void calibrate_avhrr(QImage &image, double a1, double b1, double a2, double b2, double c);
+        void calibrate_linear(QImage &image, double a, double b);
 
         template<typename T, size_t A, size_t B>
         static std::vector<size_t> create_histogram(QImage &image);

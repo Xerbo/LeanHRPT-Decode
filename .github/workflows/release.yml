@@ -47,14 +47,14 @@ jobs:
             cd muparser &&
             mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH -DENABLE_OPENMP=OFF .. &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH -DENABLE_OPENMP=OFF -DENABLE_SAMPLES=OFF .. &&
             make -j4 &&
             make install'
 
     - name: Compile LeanHRPT
       run: 'mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH -DWAR_CRIMES=1 .. &&
             make -j4'
 
     - name: Package
@@ -66,6 +66,8 @@ jobs:
             cp AppRun                            LeanHRPT-Decode.AppDir/ &&
             cp LeanHRPT-Decode.desktop           LeanHRPT-Decode.AppDir/ &&
             cp logo128.png                       LeanHRPT-Decode.AppDir/ &&
+            cp presets.ini                       LeanHRPT-Decode.AppDir/ &&
+            cp calibration.ini                   LeanHRPT-Decode.AppDir/ &&
             cp -r $TEMP_PATH/plugins/platforms/  LeanHRPT-Decode.AppDir/usr/plugins/ &&
             cp $TEMP_PATH/lib/libQt5Gui.so.5     LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libQt5Widgets.so.5 LeanHRPT-Decode.AppDir/usr/lib/ &&

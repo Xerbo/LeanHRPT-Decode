@@ -86,8 +86,7 @@ class MainWindow : public QMainWindow {
         Equalization selectedEqualization = None;
 
         // Satellite meta information
-        Satellite sat;
-        QString imagerName;
+        SatID sat;
         int previousTabIndex = 0;
 
         // Decoding
@@ -97,7 +96,7 @@ class MainWindow : public QMainWindow {
 
         // Internal
         void incrementZoom(int amount);
-        void startDecode(Satellite satellite, std::string filename);
+        void startDecode(Mission mission, std::string filename);
         void decodeFinished();
         void updateDisplay();
         void populateChannelSelectors(size_t channels);

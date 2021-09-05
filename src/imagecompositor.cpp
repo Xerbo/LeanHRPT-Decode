@@ -25,13 +25,16 @@
 #include <limits>
 #include <omp.h>
 #include <muParser.h>
+#include <QLocale>
+
+#include "config.h"
 
 template<typename T>
 T clamp(T v, T lo, T hi) {
     return std::max(lo, std::min(hi, v));
 }
 
-void ImageCompositor::import(RawImage *image) {
+void ImageCompositor::import(RawImage *image, SatID satellite) {
     m_width = image->width();
     m_height = image->rows();
     m_channels = image->channels();
@@ -42,6 +45,54 @@ void ImageCompositor::import(RawImage *image) {
     for(size_t i = 0; i < m_channels; i++) {
         rawChannels[i] = QImage(m_width, m_height, QImage::Format_Grayscale16);
         std::memcpy(rawChannels[i].bits(), image->getChannel(i), m_width * m_height * sizeof(uint16_t));
+    }
+
+    Config ini("calibration.ini");
+
+    for (size_t i = 0; i < m_channels; i++) {
+        std::string name = satellite_info.at(satellite).name + "/" + std::to_string(i+1);
+
+        if (ini.sections.count(name)) {
+            std::map<std::string, std::string> coefficients = ini.sections.at(name);
+
+            QLocale l(QLocale::C);
+            if (coefficients.count("a1")) {
+                double a1 = l.toDouble(QString::fromStdString(coefficients.at("a1")));
+                double b1 = l.toDouble(QString::fromStdString(coefficients.at("b1")));
+                double a2 = l.toDouble(QString::fromStdString(coefficients.at("a2")));
+                double b2 = l.toDouble(QString::fromStdString(coefficients.at("b2")));
+                double c  = l.toDouble(QString::fromStdString(coefficients.at("c")));
+                calibrate_avhrr(rawChannels[i], a1, b1, a2, b2, c);
+            } else if (coefficients.count("a")) {
+                double a = l.toDouble(QString::fromStdString(coefficients.at("a")));
+                double b = l.toDouble(QString::fromStdString(coefficients.at("b")));
+                calibrate_linear(rawChannels[i], a, b);
+            }
+        }
+    }
+}
+
+void ImageCompositor::calibrate_avhrr(QImage &image, double a1, double b1, double a2, double b2, double c) {
+    quint16 *bits = reinterpret_cast<quint16 *>(image.bits());
+
+    for (size_t i = 0; i < (size_t)image.height()*(size_t)image.width(); i++) {
+        double count = bits[i]/64;
+        if (count < c) {
+            count = a1*count + b1;
+        } else {
+            count = a2*count + b2;
+        }
+        bits[i] = clamp(count/100.0, 0.0, 1.0) * UINT16_MAX;
+    }
+}
+
+void ImageCompositor::calibrate_linear(QImage &image, double a, double b) {
+    quint16 *bits = reinterpret_cast<quint16 *>(image.bits());
+
+    for (size_t i = 0; i < (size_t)image.height()*(size_t)image.width(); i++) {
+        double count = bits[i]/64;
+        count = a*count + b;
+        bits[i] = clamp(count/100.0, 0.0, 1.0) * UINT16_MAX;
     }
 }
 
@@ -80,14 +131,9 @@ double set_rgb(double r, double g, double b) {
     return *(double *)&a;
 }
 double set_bw(double val) {
-    QRgba64 a = QRgba64::fromRgba64(
-        clamp(val, 0.0, 1.0) * (double)UINT16_MAX,
-        clamp(val, 0.0, 1.0) * (double)UINT16_MAX,
-        clamp(val, 0.0, 1.0) * (double)UINT16_MAX,
-        UINT16_MAX
-    );
-    return *(double *)&a;
+    return set_rgb(val, val, val);
 }
+
 // Evaluate `expression` and store the results in `image`
 void ImageCompositor::getExpression(QImage &image, std::string experssion) {
     if (image.format() != QImage::Format_RGBX64) {
@@ -108,6 +154,15 @@ void ImageCompositor::getExpression(QImage &image, std::string experssion) {
             for (size_t i = 0; i < m_channels; i++) {
                 p.DefineVar("ch" + std::to_string(i+1), &ch[i]);
             }
+
+            if (m_channels == 10) {
+                p.DefineVar("SWIR", &ch[5]);
+            } else {
+                p.DefineVar("SWIR", &ch[2]);
+            }
+            p.DefineVar("NIR", &ch[1]);
+            p.DefineVar("RED", &ch[0]);
+
             p.DefineFun("rgb", set_rgb);
             p.DefineFun("bw", set_bw);
             p.SetExpr(experssion);
