@@ -30,7 +30,7 @@ struct Preset {
     std::string description;
     std::string category;
     std::string author;
-    std::set<Mission> satellites;
+    std::set<Imager> imagers;
     std::string expression;
 };
 
@@ -49,7 +49,7 @@ class PresetManager {
                         i.second["description"],
                         i.second["category"],
                         i.second["author"],
-                        parse_satellites(i.second["satellites"]),
+                        parse_imagers(i.second["imagers"]),
                         i.second["expression"]
                     }));
                 } catch (std::out_of_range &e) {
@@ -58,29 +58,28 @@ class PresetManager {
             }
 
             if (presets.size() == 0) {
-                Preset preset = { "", "", "", { MetOp, POES, FengYun3, POES }, "bw(0)" };
+                Preset preset = { "", "", "", { AVHRR, VIRR, MSUMR }, "bw(0)" };
                 presets.insert(std::pair<std::string, Preset>("Unable to load presets", preset));
             }
         }
 
         std::map<std::string, Preset> presets;
     private:
-        std::set<Mission> parse_satellites(std::string str) {
-            std::set<Mission> satellites;
-            std::map<std::string, Mission> table = {
-                {"MetOp",   Mission::MetOp },
-                {"NOAA",    Mission::POES },
-                {"FengYun", Mission::FengYun3 },
-                {"Meteor",  Mission::MeteorM }
+        std::set<Imager> parse_imagers(std::string str) {
+            std::set<Imager> imagers;
+            std::map<std::string, Imager> table = {
+                {"AVHRR",  Imager::AVHRR },
+                {"VIRR",   Imager::VIRR },
+                {"MSU-MR", Imager::MSUMR },
             };
 
             std::stringstream stream(str);
-            std::string sat;
-            while (std::getline(stream, sat, '|')) {
-                satellites.insert(table[sat]);
+            std::string imager;
+            while (std::getline(stream, imager, '|')) {
+                imagers.insert(table[imager]);
             }
 
-            return satellites;
+            return imagers;
         } 
 };
 

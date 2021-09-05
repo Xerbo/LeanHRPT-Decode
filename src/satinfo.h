@@ -45,9 +45,15 @@ enum SatID {
 };
 
 enum Imager {
-    AVHRR3,
+    AVHRR,
     VIRR,
     MSUMR
+};
+
+const std::map<Imager, std::string> imager_names = {
+    { Imager::AVHRR, "AVHRR" },
+    { Imager::VIRR,  "VIRR" },
+    { Imager::MSUMR, "MSU-MR" }
 };
 
 struct SatelliteInfo {
@@ -56,21 +62,21 @@ struct SatelliteInfo {
     float swath; // in km
     Mission mission;
     std::string name;
-    std::string imager;
+    Imager imager;
 };
 
 const std::map<SatID, SatelliteInfo> satellite_info {
-    { SatID::MetOpA,    SatelliteInfo { 827.0f, 1.1f, 2900.0f, Mission::MetOp,    "MetOp-A",    "AVHRR" } },
-    { SatID::MetOpB,    SatelliteInfo { 827.0f, 1.1f, 2900.0f, Mission::MetOp,    "MetOp-B",    "AVHRR" } },
-    { SatID::MetOpC,    SatelliteInfo { 817.0f, 1.1f, 2900.0f, Mission::MetOp,    "MetOp-C",    "AVHRR" } },
-    { SatID::FengYun3A, SatelliteInfo { 834.0f, 1.1f, 2800.0f, Mission::FengYun3, "FengYun-3A", "VIRR" } },
-    { SatID::FengYun3B, SatelliteInfo { 836.0f, 1.1f, 2800.0f, Mission::FengYun3, "FengYun-3B", "VIRR" } },
-    { SatID::FengYun3C, SatelliteInfo { 836.0f, 1.1f, 2800.0f, Mission::FengYun3, "FengYun-3C", "VIRR" } },
-    { SatID::NOAA15,    SatelliteInfo { 813.0f, 1.1f, 2900.0f, Mission::POES,     "NOAA-15",    "AVHRR" } },
-    { SatID::NOAA18,    SatelliteInfo { 854.0f, 1.1f, 2900.0f, Mission::POES,     "NOAA-18",    "AVHRR" } },
-    { SatID::NOAA19,    SatelliteInfo { 870.0f, 1.1f, 2900.0f, Mission::POES,     "NOAA-19",    "AVHRR" } },
-    { SatID::MeteorM2,  SatelliteInfo { 820.0f, 1.0f, 2800.0f, Mission::MeteorM,  "Meteor-M2",  "MSU-MR" } },
-    { SatID::MeteorM22, SatelliteInfo { 821.0f, 1.0f, 2800.0f, Mission::MeteorM,  "Meteor-M22", "MSU-MR" } },
+    { SatID::MetOpA,    SatelliteInfo { 827.0f, 1.1f, 2900.0f, Mission::MetOp,    "MetOp-A",    Imager::AVHRR } },
+    { SatID::MetOpB,    SatelliteInfo { 827.0f, 1.1f, 2900.0f, Mission::MetOp,    "MetOp-B",    Imager::AVHRR } },
+    { SatID::MetOpC,    SatelliteInfo { 817.0f, 1.1f, 2900.0f, Mission::MetOp,    "MetOp-C",    Imager::AVHRR } },
+    { SatID::FengYun3A, SatelliteInfo { 834.0f, 1.1f, 2800.0f, Mission::FengYun3, "FengYun-3A", Imager::VIRR } },
+    { SatID::FengYun3B, SatelliteInfo { 836.0f, 1.1f, 2800.0f, Mission::FengYun3, "FengYun-3B", Imager::VIRR } },
+    { SatID::FengYun3C, SatelliteInfo { 836.0f, 1.1f, 2800.0f, Mission::FengYun3, "FengYun-3C", Imager::VIRR } },
+    { SatID::NOAA15,    SatelliteInfo { 813.0f, 1.1f, 2900.0f, Mission::POES,     "NOAA-15",    Imager::AVHRR } },
+    { SatID::NOAA18,    SatelliteInfo { 854.0f, 1.1f, 2900.0f, Mission::POES,     "NOAA-18",    Imager::AVHRR } },
+    { SatID::NOAA19,    SatelliteInfo { 870.0f, 1.1f, 2900.0f, Mission::POES,     "NOAA-19",    Imager::AVHRR } },
+    { SatID::MeteorM2,  SatelliteInfo { 820.0f, 1.0f, 2800.0f, Mission::MeteorM,  "Meteor-M2",  Imager::MSUMR } },
+    { SatID::MeteorM22, SatelliteInfo { 821.0f, 1.0f, 2800.0f, Mission::MeteorM,  "Meteor-M22", Imager::MSUMR } },
 };
 
 #endif

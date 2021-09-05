@@ -177,7 +177,7 @@ void MainWindow::decodeFinished() {
 
     // Prepare the UI
     populateChannelSelectors(compositor->channels());
-    status->setText(QString("Decode finished - %1: %2, %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(satellite_info.at(sat).imager)).arg(compositor->height()));
+    status->setText(QString("Decode finished - %1: %2, %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(imager_names.at(satellite_info.at(sat).imager))).arg(compositor->height()));
     setState(WindowState::Finished);
 
     // Load satellite specific presets
@@ -187,7 +187,7 @@ void MainWindow::decodeFinished() {
 void MainWindow::reloadPresets() {
     selected_presets.clear();
     for (auto preset : manager.presets) {
-        if (preset.second.satellites.count(satellite_info.at(sat).mission)) {
+        if (preset.second.imagers.count(satellite_info.at(sat).imager)) {
             selected_presets.insert(preset);
         }
     }
@@ -271,7 +271,7 @@ void MainWindow::updateDisplay() {
 
 void MainWindow::saveCurrentImage(bool corrected) {
     QString types[3] = { QString::number(selectedChannel), "Composite", ui->presetSelector->currentText() };
-    QString name = QString("%1_%2_%3.png").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(satellite_info.at(sat).imager)).arg(types[ui->imageTabs->currentIndex()]);
+    QString name = QString("%1_%2_%3.png").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(imager_names.at(satellite_info.at(sat).imager))).arg(types[ui->imageTabs->currentIndex()]);
     QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", name, "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
 
     QtConcurrent::run([this](QString filename, bool corrected) {
@@ -295,7 +295,7 @@ void MainWindow::saveAllChannels() {
         for(size_t i = 0; i < compositor->channels(); i++) {
             status->setText(QString("Saving channel %1...").arg(i + 1));
             compositor->getChannel(channel, i + 1);
-            channel.save(QString("%1/%2_%3_%4.png").arg(directory).arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(satellite_info.at(sat).imager)).arg(i + 1), "PNG");
+            channel.save(QString("%1/%2_%3_%4.png").arg(directory).arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(imager_names.at(satellite_info.at(sat).imager))).arg(i + 1), "PNG");
         }
 
         status->setText("Done");
