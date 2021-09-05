@@ -14,10 +14,18 @@ Compiled builds for Linux (and soon Windows) are available from the [releases](h
 
 For those who wish to compile from source you will need `qtbase5-dev`, [`libcorrect`](https://github.com/quiet/libcorrect) and [`muparser`](https://github.com/beltoforion/muparser) installed. After that you can compile with:
 
-```
+```sh
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make
+```
+
+You may also wish to symlink the configuration files into the build directory when developing:
+
+```sh
+# Assuming you are in LeanHRPT-Decode/build
+ln -s ../presets.ini ..
+ln -s ../calibration.ini ..
 ```
 
 And then run the resulting binary.
