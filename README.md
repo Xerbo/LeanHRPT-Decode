@@ -20,7 +20,7 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ```
 
-You may also wish to symlink the configuration files into the build directory when developing:
+You may also wish to symlink the configuration files into the build directory:
 
 ```sh
 # Assuming you are in LeanHRPT-Decode/build
@@ -45,8 +45,8 @@ Input files should be:
 
  - NOAA - raw data, bi-phase/manchester/PM decoded and not raw16
  - Meteor - raw data, bi-phase/manchester/PM decoded *or* CADUs (deframed)
- - MetOp - output from viterbi *or* CADUs (deframed, derandomized and with RS applied)
- - FengYun - output from viterbi *or* CADUs (deframed, derandomized and with RS applied)
+ - MetOp - output from viterbi *or* CADUs (deframed, derandomized with RS applied)
+ - FengYun - output from viterbi *or* CADUs (deframed, derandomized with RS applied)
 
 ## Credits
 
@@ -54,13 +54,13 @@ Input files should be:
 
 ## Flowcharts
 
-Included in this repository are GNURadio flowcharts for demodulating NOAA, Meteor, FengYun and MetOp. These flow graphs have been created from the ground up using only standard GNURadio blocks, not requiring any OOP modules such as gr-hrpt.
+Included in this repository are GNURadio flowcharts for demodulating NOAA, Meteor, FengYun and MetOp. These flowcharts have been created from the ground up using only standard GNURadio blocks, not requiring any OOP modules such as `gr-hrpt`.
 
-All flowgraphs have file sources for both 32 bit float (gqrx) and 16 bit short (SDR#), by default 16 bit short is enabled.
+All flowcharts have file sources for both 32-bit float (gqrx) and WAV, by default WAV is selected (requires GNURadio >3.9 in order to read RF64 files).
 
-The `NOAA Meteor HRPT Demodulator` flowchart contains a proper bi-phase/manchester/PM demodulator which gives an effective +3db signal increase.
+The `NOAA Meteor HRPT Demodulator` flowchart contains a proper PM/bi-phase demodulator which gives a +3db signal increase.
 
- - For NOAA use the `NOAA Meteor HRPT Demodulator` flow graph, it **does not** output a framed raw16 file and is incompatible with other software as of now
- - For Meteor use the `NOAA Meteor HRPT Demodulator` flow graph, it outputs manchester decoded data, to use the resulting file in MetFy3x simply uncheck "Manchester Decode"
- - For FengYun use the `Fengyun Demodulator` flow graph, it outputs 8 bit signed soft symbols
- - For MetOp use the `MetOp Demodulator` flow graph, it outputs 8 bit signed soft symbols
+ - For NOAA, use the `NOAA Meteor HRPT Demodulator` flowchart, it **does not** output a framed raw16 file and is incompatible with other software as of now.
+ - For Meteor, use the `NOAA Meteor HRPT Demodulator` flowchart, it outputs manchester decoded data, to use the resulting file in MetFy3x simply uncheck "Manchester Decode".
+ - For FengYun, use the `Fengyun Demodulator` flowchart, it outputs 8 bit (little endian) signed soft symbols.
+ - For MetOp, use the `MetOp Demodulator` flowchart, it outputs 8 bit (little endian) signed soft symbols.
