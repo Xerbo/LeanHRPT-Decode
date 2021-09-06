@@ -1,6 +1,10 @@
 name: Build
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 env:
   BUILD_TYPE: Release
@@ -22,6 +26,9 @@ jobs:
 
     - name: Install pip dependencies
       run: 'pip3 install -U pip && pip3 install aqtinstall'
+
+    - name: Download AppImageKit
+      run: 'wget https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage && chmod +x appimagetool-x86_64.AppImage'
 
     - name: Create build path
       run: 'mkdir $TEMP_PATH'
@@ -54,7 +61,32 @@ jobs:
             cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH -DWAR_CRIMES=1 .. &&
             make -j4'
 
+    - name: Package
+      run: 'mkdir LeanHRPT-Decode.AppDir &&
+            mkdir LeanHRPT-Decode.AppDir/usr &&
+            mkdir LeanHRPT-Decode.AppDir/usr/bin &&
+            mkdir LeanHRPT-Decode.AppDir/usr/lib &&
+            mkdir LeanHRPT-Decode.AppDir/usr/plugins &&
+            cp AppRun                            LeanHRPT-Decode.AppDir/ &&
+            cp LeanHRPT-Decode.desktop           LeanHRPT-Decode.AppDir/ &&
+            cp logo128.png                       LeanHRPT-Decode.AppDir/ &&
+            cp presets.ini                       LeanHRPT-Decode.AppDir/ &&
+            cp calibration.ini                   LeanHRPT-Decode.AppDir/ &&
+            cp -r $TEMP_PATH/plugins/platforms/  LeanHRPT-Decode.AppDir/usr/plugins/ &&
+            cp $TEMP_PATH/lib/libQt5Gui.so.5     LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp $TEMP_PATH/lib/libQt5Widgets.so.5 LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp $TEMP_PATH/lib/libQt5Core.so.5    LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp $TEMP_PATH/lib/libQt5XcbQpa.so.5  LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp $TEMP_PATH/lib/libQt5DBus.so.5    LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp $TEMP_PATH/lib/libicuuc.so.56     LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp $TEMP_PATH/lib/libicui18n.so.56   LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp $TEMP_PATH/lib/libicudata.so.56   LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp $TEMP_PATH/lib/libcorrect.so      LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp $TEMP_PATH/lib/libmuparser.so     LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp build/LeanHRPT-Decode             LeanHRPT-Decode.AppDir/usr/bin/ &&
+            ./appimagetool-x86_64.AppImage LeanHRPT-Decode.AppDir'
+
     - uses: actions/upload-artifact@v2
       with:
-        name: LeanHRPT-Decode
-        path: build/LeanHRPT-Decode
+        name: LeanHRPT_Decode-x86_64.AppImage
+        path: ./LeanHRPT_Decode-x86_64.AppImage
