@@ -2,12 +2,12 @@
 HERE="$(dirname "$(readlink -f "${0}")")"
 
 # Install config files (if they don't already exist)
-mkdir -p ~/.config/leanhrpt/
-if [ ! -e "~/.config/leanhrpt/presets.ini" ]; then
-    cp "${HERE}/presets.ini" "~/.config/leanhrpt/"
+mkdir -p $HOME/.config/leanhrpt/
+if [ ! -e "$HOME/.config/leanhrpt/presets.ini" ]; then
+    cp "${HERE}/presets.ini" "$HOME/.config/leanhrpt/presets.ini"
 fi
-if [ ! -e "~/.config/leanhrpt/calibration.ini" ]; then
-    cp "${HERE}/calibration.ini" "~/.config/leanhrpt/"
+if [ ! -e "$HOME/.config/leanhrpt/calibration.ini" ]; then
+    cp "${HERE}/calibration.ini" "$HOME/.config/leanhrpt/calibration.ini"
 fi
 
 export PATH="${HERE}/usr/bin/:${PATH}"
