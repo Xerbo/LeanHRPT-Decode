@@ -27,19 +27,19 @@
 class Config : public inipp::Ini<char> {
     public:
         Config(std::string filename) {
-            std::ifstream is;
+            std::filebuf file;
 
-            is.open(filename);
-            if (is.is_open()) {
-                parse(is);
-                is.close();
+            if (file.open(filename, std::ios::in)) {
+                std::istream stream(&file);
+                parse(stream);
+                file.close();
                 return;
             }
 
-            is.open(get_config_prefix() + filename);
-            if (is.is_open()) {
-                parse(is);
-                is.close();
+            if (file.open(get_config_prefix() + filename, std::ios::in)) {
+                std::istream stream(&file);
+                parse(stream);
+                file.close();
                 return;
             }
 

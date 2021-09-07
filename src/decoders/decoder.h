@@ -37,7 +37,7 @@ class Decoder {
         }
 
         bool decodeFile(std::string filename) {
-            std::filebuf file = std::filebuf();
+            std::filebuf file;
             if (!file.open(filename, std::ios::in | std::ios::binary)) {
                 return false;
             }
