@@ -132,7 +132,7 @@ class MainWindow : public QMainWindow {
         // menuHelp
         void on_actionDocumentation_triggered()  { QDesktopServices::openUrl(QUrl("https://github.com/Xerbo/LeanHRPT-Decode/wiki")); };
         void on_actionIssue_Tracker_triggered()  { QDesktopServices::openUrl(QUrl("https://github.com/Xerbo/LeanHRPT-Decode/issues")); };
-        void on_actionAbout_LeanHRPT_triggered() { QMessageBox::about(this, "About LeanHRPT", ABOUT_TEXT); };
+        void on_actionAbout_LeanHRPT_triggered() { QMessageBox::about(this, "About LeanHRPT", QString("%1\nVersion: %2").arg(ABOUT_TEXT).arg(VERSION)); };
         void on_actionAbout_Qt_triggered()       { QMessageBox::aboutQt(this, "About Qt"); };
 
         // Channel selectors
