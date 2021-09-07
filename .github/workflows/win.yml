@@ -20,7 +20,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Install apt dependencies
-      run: 'sudo apt-get update && sudo apt-get install -y cmake make git python3 python3-pip mingw-w64 gcc-mingw-w64-x86-64-win32-runtime zip'
+      run: 'sudo apt-get update && sudo apt-get install -y cmake make git python3 python3-pip mingw-w64 zip'
 
     - name: Install pip dependencies
       run: 'pip3 install -U pip && pip3 install aqtinstall'
@@ -83,7 +83,7 @@ jobs:
             cp $WIN_TEMP_PATH/bin/libgcc_s_seh-1.dll                LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libstdc++-6.dll                   LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libwinpthread-1.dll               LeanHRPT-Decode/ &&
-            cp /usr/lib/gcc/x86_64-w64-mingw32/10-win32/libgomp-1.dll LeanHRPT-Decode/ &&
+            cp /usr/lib/gcc/x86_64-w64-mingw32/9.3-win32/libgomp-1.dll LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/plugins/styles/qwindowsvistastyle.dll LeanHRPT-Decode/plugins/styles/ &&
             cp $WIN_TEMP_PATH/plugins/platforms/qwindows.dll        LeanHRPT-Decode/platforms/ &&
             zip -r LeanHRPT-Decode.zip LeanHRPT-Decode/'
