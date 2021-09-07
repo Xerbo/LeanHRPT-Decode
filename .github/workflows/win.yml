@@ -20,7 +20,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Install apt dependencies
-      run: 'sudo apt-get update && sudo apt-get install -y cmake make git python3 python3-pip mingw-w64 zip'
+      run: 'sudo apt-get update && sudo apt-get install -y cmake make git python3 python3-pip mingw-w64 gcc-mingw-w64-x86-64-win32-runtime zip'
 
     - name: Install pip dependencies
       run: 'pip3 install -U pip && pip3 install aqtinstall'
