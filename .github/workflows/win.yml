@@ -47,7 +47,7 @@ jobs:
             cd libcorrect &&
             mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH .. &&
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH .. &&
             make -j4 &&
             make install'
 
@@ -56,7 +56,7 @@ jobs:
             cd muparser &&
             mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH -DENABLE_OPENMP=OFF -DENABLE_SAMPLES=OFF .. &&
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH -DENABLE_OPENMP=OFF -DENABLE_SAMPLES=OFF -DCMAKE_SHARED_LINKER_FLAGS="-static-libstdc++" .. &&
             make -j4 &&
             make install'
 
@@ -83,6 +83,7 @@ jobs:
             cp $WIN_TEMP_PATH/bin/libgcc_s_seh-1.dll                LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libstdc++-6.dll                   LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libwinpthread-1.dll               LeanHRPT-Decode/ &&
+            cp /usr/lib/gcc/x86_64-w64-mingw32/10-win32/libgomp-1.dll LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/plugins/styles/qwindowsvistastyle.dll LeanHRPT-Decode/plugins/styles/ &&
             cp $WIN_TEMP_PATH/plugins/platforms/qwindows.dll        LeanHRPT-Decode/platforms/ &&
             zip -r LeanHRPT-Decode.zip LeanHRPT-Decode/'
