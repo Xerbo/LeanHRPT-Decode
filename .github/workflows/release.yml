@@ -1,4 +1,4 @@
-name: Create release
+name: Release
 
 on:
   push:
@@ -13,6 +13,8 @@ env:
 jobs:
   prepare_release:
     runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
 
     steps:
     - name: Create Release
@@ -44,7 +46,7 @@ jobs:
     - name: Upload flowcharts
       uses: actions/upload-release-asset@v1
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ needs.prepare_release.outputs.upload_url }}
         asset_path: ./Flowcharts.zip
         asset_name: Flowcharts.zip
         asset_content_type: application/zip
@@ -129,7 +131,7 @@ jobs:
     - name: Upload AppImage
       uses: actions/upload-release-asset@v1
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ needs.prepare_release.outputs.upload_url }}
         asset_path: ./LeanHRPT_Decode-x86_64.AppImage
         asset_name: LeanHRPT_Decode-x86_64.AppImage
         asset_content_type: application/x-executable
@@ -215,7 +217,12 @@ jobs:
             cp $WIN_TEMP_PATH/plugins/platforms/qwindows.dll           LeanHRPT-Decode/platforms/ &&
             zip -r LeanHRPT-Decode.zip LeanHRPT-Decode/'
 
-    - uses: actions/upload-artifact@v2
+    - name: Upload zip
+      uses: actions/upload-release-asset@v1
       with:
-        name: LeanHRPT_Decode-x86_64-w64
-        path: ./LeanHRPT-Decode.zip
+        upload_url: ${{ needs.prepare_release.outputs.upload_url }}
+        asset_path: ./LeanHRPT-Decode.zip
+        asset_name: LeanHRPT_Decode-x86_64-w64.zip
+        asset_content_type: application/zip
+      env:
+        GITHUB_TOKEN: ${{ github.token }}

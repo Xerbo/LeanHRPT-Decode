@@ -11,7 +11,7 @@ options:
     gen_linking: dynamic
     generate_options: qt_gui
     hier_block_src_path: '.:'
-    id: metopdemod
+    id: fengyundemod
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -22,7 +22,7 @@ options:
     run_options: prompt
     sizing_mode: fixed
     thread_safe_setters: ''
-    title: MetOp Demod
+    title: FengYun Demod
   states:
     bus_sink: false
     bus_source: false
@@ -53,14 +53,14 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [344, 8.0]
+    coordinate: [328, 8.0]
     rotation: 0
     state: enabled
 - name: sym_rate
   id: variable
   parameters:
     comment: ''
-    value: 2.3333e6
+    value: 2.8e6
   states:
     bus_sink: false
     bus_source: false
@@ -241,7 +241,7 @@ blocks:
     minoutbuf: '0'
     order: '4'
     use_snr: 'False'
-    w: '0.002'
+    w: '0.005'
   states:
     bus_sink: false
     bus_source: false
@@ -454,7 +454,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    alpha: '0.6'
+    alpha: '0.8'
     comment: ''
     decim: '1'
     gain: '1'

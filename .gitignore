@@ -80,5 +80,5 @@ build/
 # VSCode
 .vscode/
 
-# Compiler flowcharts
-Flowgraphs/*.py
+# Compiled flowcharts
+Flowcharts/*.py
