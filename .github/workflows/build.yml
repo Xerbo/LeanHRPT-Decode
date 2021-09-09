@@ -18,12 +18,11 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Checkout submodules
-      run: 'git submodule update --init --recursive'
+      with:
+        fetch-depth: 0
     
     - name: Install apt dependencies
-      run: 'sudo apt-get update && sudo apt install -y mingw-w64 && ls  && sudo apt-get install -y cmake make git g++ python3 python3-pip mesa-common-dev libglu1-mesa-dev'
+      run: 'sudo apt-get update && sudo apt-get install -y cmake make git g++ python3 python3-pip mesa-common-dev libglu1-mesa-dev'
 
     - name: Install pip dependencies
       run: 'pip3 install -U pip && pip3 install aqtinstall'
@@ -98,6 +97,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
     - name: Install apt dependencies
       run: 'sudo apt-get update && sudo apt-get install -y cmake make git python3 python3-pip mingw-w64 zip'
@@ -171,4 +172,4 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: LeanHRPT_Decode-x86_64-w64
-        path: ./LeanHRPT-Decode/
+        path: ./LeanHRPT-Decode.zip
