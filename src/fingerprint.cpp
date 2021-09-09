@@ -37,7 +37,9 @@ class CCSDSFingerprint {
                 }
             }
 
-            auto pair = std::max_element(sats.begin(), sats.end());
+            auto pair = std::max_element(sats.begin(), sats.end(), [](const std::pair<SatID, size_t>& p1, const std::pair<SatID, size_t>& p2) {
+                return p1.second < p2.second;
+            });
             if (pair->second > 100 && sats.size() != 0) {
                 return pair->first;
             }
@@ -143,7 +145,9 @@ SatID Fingerprint::id_noaa(std::istream &stream) {
                 default:                        break;
             }
 
-            auto pair = std::max_element(sats.begin(), sats.end());
+            auto pair = std::max_element(sats.begin(), sats.end(), [](const std::pair<SatID, size_t>& p1, const std::pair<SatID, size_t>& p2) {
+                return p1.second < p2.second;
+            });
             if (pair->second > 100) {
                 return pair->first;
             }
