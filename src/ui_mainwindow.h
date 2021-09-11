@@ -13,6 +13,7 @@
 #include <QtGui/QIcon>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QFormLayout>
 #include <QtWidgets/QGraphicsView>
@@ -83,6 +84,7 @@ public:
     QRadioButton *equalisationHistogram;
     QLabel *label;
     QSlider *contrastLimit;
+    QCheckBox *brightnessOnly;
     QGroupBox *zoomSelectorBox;
     QVBoxLayout *verticalLayout_2;
     QComboBox *zoomSelector;
@@ -300,6 +302,11 @@ public:
 
         verticalLayout->addWidget(contrastLimit);
 
+        brightnessOnly = new QCheckBox(groupBox);
+        brightnessOnly->setObjectName(QString::fromUtf8("brightnessOnly"));
+
+        verticalLayout->addWidget(brightnessOnly);
+
 
         options->addWidget(groupBox);
 
@@ -373,7 +380,7 @@ public:
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 1200, 34));
+        menubar->setGeometry(QRect(0, 0, 1200, 30));
         menuFile = new QMenu(menubar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
         menuOptions = new QMenu(menubar);
@@ -438,6 +445,7 @@ public:
         equalisationStretch->setText(QCoreApplication::translate("MainWindow", "Stretch", nullptr));
         equalisationHistogram->setText(QCoreApplication::translate("MainWindow", "Histogram", nullptr));
         label->setText(QCoreApplication::translate("MainWindow", "Contrast Limit:", nullptr));
+        brightnessOnly->setText(QCoreApplication::translate("MainWindow", "Brightness Only", nullptr));
         zoomSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Zoom", nullptr));
         zoomSelector->setItemText(0, QCoreApplication::translate("MainWindow", "25%", nullptr));
         zoomSelector->setItemText(1, QCoreApplication::translate("MainWindow", "50%", nullptr));

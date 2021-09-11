@@ -156,6 +156,9 @@ class MainWindow : public QMainWindow {
             clip_limit = std::log10(value/100.0f*0.9 + 0.1)+1.0f;
             setEqualization(selectedEqualization);
         };
+        void on_brightnessOnly_stateChanged() {
+            setEqualization(selectedEqualization);
+        }
 };
 
 #endif // MAINWINDOW_H

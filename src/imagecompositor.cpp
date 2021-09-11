@@ -199,7 +199,7 @@ void ImageCompositor::flip() {
 }
 
 template<typename T, size_t A, size_t B>
-std::vector<size_t> ImageCompositor::create_histogram(QImage &image) {
+std::vector<size_t> ImageCompositor::create_histogram(QImage &image, float clip_limit) {
     std::vector<size_t> histogram(std::numeric_limits<T>::max()+1);
     T *bits = (T *)image.bits();
 
@@ -208,15 +208,28 @@ std::vector<size_t> ImageCompositor::create_histogram(QImage &image) {
         histogram[bits[i*A + B]] += 2;
     }
 
+    clip_histogram(histogram, clip_limit);
+    return histogram;
+}
+
+template<typename T>
+std::vector<size_t> ImageCompositor::create_rgb_histogram(QImage &image, float clip_limit) {
+    std::vector<size_t> histogram(std::numeric_limits<T>::max()+1);
+    T *bits = (T *)image.bits();
+
+    for (size_t i = 0; i < (size_t)image.width() * (size_t)image.height(); i += 3) {
+        histogram[bits[i*4+0]]++;
+        histogram[bits[i*4+1]]++;
+        histogram[bits[i*4+2]]++;
+    }
+
+    clip_histogram(histogram, clip_limit);
     return histogram;
 }
 
 template<typename T, size_t A, size_t B>
-void ImageCompositor::_equalise(QImage &image, Equalization equalization, float clipLimit) {
+void ImageCompositor::_equalise(QImage &image, Equalization equalization, std::vector<size_t> histogram) {
     if (equalization == Equalization::None) return;
-
-    std::vector<size_t> histogram = create_histogram<T, A, B>(image);
-    clip_histogram(histogram, clipLimit);
 
     size_t max = std::numeric_limits<T>::max();
 
@@ -268,7 +281,6 @@ void ImageCompositor::clip_histogram(std::vector<size_t>& histogram, float clip_
     size_t clipLimit = *std::max_element(histogram.begin(), histogram.end()) * clip_limit;
     size_t clipped = 0;
 
-    // Potential race condition
     for (size_t i = 0; i < histogram.size(); i++) {
         if (histogram[i] > clipLimit) {
             clipped += histogram[i] - clipLimit;
@@ -293,26 +305,23 @@ void ImageCompositor::clip_histogram(std::vector<size_t>& histogram, float clip_
     }
 }
 
-void ImageCompositor::equalise(QImage &image, Equalization equalization, float clipLimit) {
+void ImageCompositor::equalise(QImage &image, Equalization equalization, float clipLimit, bool brightness_only) {
     switch (image.format()) {
         case QImage::Format_RGBX64:
-            _equalise<uint16_t, 4, 0>(image, equalization, clipLimit);
-            _equalise<uint16_t, 4, 1>(image, equalization, clipLimit);
-            _equalise<uint16_t, 4, 2>(image, equalization, clipLimit);
+            if (brightness_only) {
+                std::vector<size_t> histogram = create_rgb_histogram<uint16_t>(image, clipLimit);
+                _equalise<uint16_t, 4, 0>(image, equalization, histogram);
+                _equalise<uint16_t, 4, 1>(image, equalization, histogram);
+                _equalise<uint16_t, 4, 2>(image, equalization, histogram);
+            } else {
+                _equalise<uint16_t, 4, 0>(image, equalization, create_histogram<uint16_t, 4, 0>(image, clipLimit));
+                _equalise<uint16_t, 4, 1>(image, equalization, create_histogram<uint16_t, 4, 1>(image, clipLimit));
+                _equalise<uint16_t, 4, 2>(image, equalization, create_histogram<uint16_t, 4, 2>(image, clipLimit));
+            }
             break;
         case QImage::Format_Grayscale16:
-            _equalise<uint16_t, 1, 0>(image, equalization, clipLimit);
+            _equalise<uint16_t, 1, 0>(image, equalization, create_histogram<uint16_t, 1, 0>(image, clipLimit));
             break;
-#if 0
-        case QImage::Format_RGB32:
-            _equalise<uint8_t, 4, 0>(image, equalization, clipLimit);
-            _equalise<uint8_t, 4, 1>(image, equalization, clipLimit);
-            _equalise<uint8_t, 4, 2>(image, equalization, clipLimit);
-            break;
-        case QImage::Format_Grayscale8:
-            _equalise<uint8_t, 1, 0>(image, equalization, clipLimit);
-            break;
-#endif
         default:
             throw new std::runtime_error("Unimplemented");
     }

@@ -46,7 +46,7 @@ class ImageCompositor {
         size_t height()   { return m_height; };
         size_t channels() { return m_channels; };
 
-        static void equalise(QImage &image, Equalization equalization, float clipLimit);
+        static void equalise(QImage &image, Equalization equalization, float clipLimit, bool brightness_only);
     private:
         size_t m_width;
         size_t m_height;
@@ -58,9 +58,12 @@ class ImageCompositor {
         void calibrate_linear(QImage &image, double a, double b);
 
         template<typename T, size_t A, size_t B>
-        static std::vector<size_t> create_histogram(QImage &image);
+        static std::vector<size_t> create_histogram(QImage &image, float clip_limit = 1.0f);
+        template<typename T>
+        static std::vector<size_t> create_rgb_histogram(QImage &image, float clip_limit = 1.0f);
+
         template<typename T, size_t A, size_t B>
-        static void _equalise(QImage &image, Equalization equalization, float clipLimit);
+        static void _equalise(QImage &image, Equalization equalization, std::vector<size_t> histogram);
         static void clip_histogram(std::vector<size_t>& histogram, float clip_limit);
 };
 

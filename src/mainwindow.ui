@@ -290,6 +290,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="brightnessOnly">
+            <property name="text">
+             <string>Brightness Only</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -446,7 +453,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>34</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

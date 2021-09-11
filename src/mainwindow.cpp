@@ -237,7 +237,7 @@ void MainWindow::setEqualization(Equalization type) {
         displayQImage(scene, display);
     } else {
         QImage copy(display);
-        ImageCompositor::equalise(copy, selectedEqualization, clip_limit);
+        ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
         displayQImage(scene, copy);
     }
 }
@@ -268,7 +268,7 @@ void MainWindow::updateDisplay() {
         displayQImage(scene, display);
     } else {
         QImage copy(display);
-        ImageCompositor::equalise(copy, selectedEqualization, clip_limit);
+        ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
         displayQImage(scene, copy);
     }
 }
@@ -293,7 +293,7 @@ void MainWindow::saveCurrentImage(bool corrected) {
 
     QtConcurrent::run([this](QString filename, bool corrected) {
         QImage copy(display);
-        ImageCompositor::equalise(copy, selectedEqualization, clip_limit);
+        ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
         if (corrected) {
             correct_geometry(copy, sat).save(filename);
         } else {
