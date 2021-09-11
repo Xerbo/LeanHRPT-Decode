@@ -158,21 +158,24 @@ void MainWindow::on_actionOpen_triggered() {
     QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Binary files (*.bin *.cadu)");
 
     if (!filename.isEmpty()) {
-        status->setText("Fingerprinting");
-        sat = Fingerprint::file(filename.toStdString());
-        if (sat == SatID::Unknown) {
-            status->setText("Fingerprinting failed");
-            return;
-        }
-        Mission mission = satellite_info.at(sat).mission;
-
-        setState(WindowState::Decoding);
-        status->setText(QString("Decoding %1...").arg(filename));
-        decodeWatcher->setFuture(QtConcurrent::run(this, &MainWindow::startDecode, mission, filename.toStdString()));
+        decodeWatcher->setFuture(QtConcurrent::run(this, &MainWindow::startDecode, filename.toStdString()));
     }
 }
 
-void MainWindow::startDecode(Mission mission, std::string filename) {
+void MainWindow::startDecode(std::string filename) {
+    // Fingerprint
+    setState(WindowState::Decoding);
+    status->setText("Fingerprinting");
+
+    sat = Fingerprint::file(filename);
+    if (sat == SatID::Unknown) {
+        status->setText("Fingerprinting failed");
+        return;
+    }
+    Mission mission = satellite_info.at(sat).mission;
+
+    // Decode
+    status->setText(QString("Decoding %1...").arg(QString::fromStdString(filename)));
     switch (mission) {
         case Mission::FengYun3: decoder = new FengyunDecoder; break;
         case Mission::MeteorM:  decoder = new MeteorDecoder; break;
@@ -181,7 +184,6 @@ void MainWindow::startDecode(Mission mission, std::string filename) {
         default: throw std::runtime_error("invalid value in enum `Mission`");
     }
     decoder->decodeFile(filename);
-
     compositor->import(decoder->getImage(), sat);
 
     delete decoder;

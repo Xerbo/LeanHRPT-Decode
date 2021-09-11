@@ -98,7 +98,7 @@ class MainWindow : public QMainWindow {
 
         // Internal
         void incrementZoom(int amount);
-        void startDecode(Mission mission, std::string filename);
+        void startDecode(std::string filename);
         void decodeFinished();
         void updateDisplay();
         void populateChannelSelectors(size_t channels);
