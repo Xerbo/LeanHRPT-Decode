@@ -274,9 +274,22 @@ void MainWindow::updateDisplay() {
 }
 
 void MainWindow::saveCurrentImage(bool corrected) {
-    QString types[3] = { QString::number(selectedChannel), "Composite", ui->presetSelector->currentText() };
+    QString composite;
+    for (auto channel : selectedComposite) {
+        if (channel < 10) {
+            composite.push_back(QString::number(channel));
+        } else {
+            composite.push_back("[" + QString::number(channel) + "]");
+        }
+    }
+
+    QString types[3] = { QString::number(selectedChannel), composite, ui->presetSelector->currentText() };
     QString name = QString("%1_%2_%3.png").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(imager_names.at(satellite_info.at(sat).imager))).arg(types[ui->imageTabs->currentIndex()]);
     QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", name, "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
+
+    if (filename.isEmpty()) {
+        return;
+    }
 
     QtConcurrent::run([this](QString filename, bool corrected) {
         QImage copy(display);
