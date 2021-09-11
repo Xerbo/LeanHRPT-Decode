@@ -24,6 +24,7 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QScrollBar>
 #include <QProgressBar>
+#include <QCloseEvent>
 
 #include "fingerprint.h"
 #include "geometry.h"
@@ -96,6 +97,27 @@ MainWindow::~MainWindow() {
     delete scene;
     delete decodeWatcher;
     delete ui;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    if (savingImage) {
+        QMessageBox confirm;
+        confirm.setText("Are you sure you want to quit? There are images currently being saved.");
+        confirm.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
+        confirm.setDefaultButton(QMessageBox::Cancel);
+        confirm.setIcon(QMessageBox::Warning);
+
+        if (confirm.exec() == QMessageBox::Cancel) {
+            event->ignore();
+            return;
+        }
+    }
+
+    if (decoder != nullptr) {
+        decoder->stop();
+    }
+
+    event->accept();
 }
 
 void MainWindow::incrementZoom(int amount) {
@@ -291,6 +313,7 @@ void MainWindow::saveCurrentImage(bool corrected) {
         return;
     }
 
+    savingImage = true;
     QtConcurrent::run([this](QString filename, bool corrected) {
         QImage copy(display);
         ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
@@ -299,6 +322,7 @@ void MainWindow::saveCurrentImage(bool corrected) {
         } else {
             copy.save(filename);
         }
+        savingImage = false;
     }, filename, corrected);
 }
 
@@ -306,6 +330,7 @@ void MainWindow::saveAllChannels() {
     QString directory = QFileDialog::getExistingDirectory(this, "Save All Channels", "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (directory.isEmpty()) return;
 
+    savingImage = true;
     QtConcurrent::run([this](QString directory) {
         QImage channel(compositor->width(), compositor->height(), QImage::Format_Grayscale16);
 
@@ -316,6 +341,7 @@ void MainWindow::saveAllChannels() {
         }
 
         status->setText("Done");
+        savingImage = false;
     }, directory);
 }
 

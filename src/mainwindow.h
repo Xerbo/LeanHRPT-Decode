@@ -62,6 +62,8 @@ class MainWindow : public QMainWindow {
         MainWindow(QWidget *parent = nullptr);
         ~MainWindow();
     private:
+        void closeEvent(QCloseEvent *event);
+
         Ui::MainWindow *ui;
         void setState(WindowState state);
 
@@ -119,6 +121,7 @@ class MainWindow : public QMainWindow {
         void setEqualization(Equalization type);
 
         // Image saving
+        bool savingImage = false;
         void saveAllChannels();
         void saveCurrentImage(bool corrected);
     private slots:
