@@ -29,8 +29,9 @@
 
 class MetOpDecoder : public Decoder {
     public:
-        MetOpDecoder() : demux(882) {
-            image = new RawImage(2048, 5);
+        MetOpDecoder() : demux(882), mhs_demux(882) {
+            images[Imager::AVHRR] = new RawImage(2048, 5);
+            images[Imager::MHS] = new RawImage(90, 6);
             frame = new uint8_t[1024];
         }
         ~MetOpDecoder() {
@@ -41,7 +42,7 @@ class MetOpDecoder : public Decoder {
         SatHelper::ReedSolomon reedSolomon;
         ccsds::Deframer deframer;
         ccsds::Derand derand;
-        ccsds::Demuxer demux;
+        ccsds::Demuxer demux, mhs_demux;
 
         void work(std::istream &stream) {
             if (is_ccsds_frames) {
@@ -64,7 +65,13 @@ class MetOpDecoder : public Decoder {
 
                 // The only thing that VCID 9 will ever contain is AVHRR data so no need for APID filtering
                 if(line.size() == 12966) {
-                    image->push10Bit(&line[20], 11*5);
+                    images[Imager::AVHRR]->push10Bit(&line[20], 11*5);
+                }
+            } else if (VCID == 12) {
+                std::vector<uint8_t> line = mhs_demux.work(ptr);
+
+                if (line.size() == 1308) {
+                    images[Imager::MHS]->push16Bit((uint16_t *)&line[70], 0);
                 }
             }
         }

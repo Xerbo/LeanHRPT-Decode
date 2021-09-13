@@ -22,9 +22,15 @@
 #include <istream>
 #include <fstream>
 
+#include "satinfo.h"
 #include "generic/rawimage.h"
 
 #define BUFFER_SIZE 1024
+
+struct Data {
+    std::map<Imager, RawImage *> imagers;
+    std::map<std::string, double> coeffs;
+};
 
 class Decoder {
     public:
@@ -32,7 +38,9 @@ class Decoder {
             buffer = new uint8_t[BUFFER_SIZE];
         }
         virtual ~Decoder() {
-            delete image;
+            for (auto image : images) {
+                delete image.second;
+            }
             delete[] buffer;
         }
 
@@ -59,13 +67,14 @@ class Decoder {
             is_running = false;
         }
 
-        RawImage *getImage() {
-            return image;
-        };
+        Data get() {
+            return { images, coeffs };
+        }
 
     protected:
         uint8_t *buffer;
-        RawImage *image;
+        std::map<Imager, RawImage *> images;
+        std::map<std::string, double> coeffs;
         virtual void work(std::istream &stream)=0;
         bool is_ccsds_frames = false;
 

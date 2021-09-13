@@ -29,7 +29,7 @@ class NOAADecoder : public Decoder {
     public:
         NOAADecoder() : deframer(10, true) {
             frame = new uint8_t[(11090*10) / 8];
-            image = new RawImage(2048, 5);
+            images[Imager::AVHRR] = new RawImage(2048, 5);
         }
         ~NOAADecoder() {
             delete[] frame;
@@ -38,7 +38,7 @@ class NOAADecoder : public Decoder {
             stream.read(reinterpret_cast<char *>(buffer), BUFFER_SIZE);
 
             if(deframer.work(buffer, frame, BUFFER_SIZE)) {
-                image->push10Bit(frame, 750);
+                images[Imager::AVHRR]->push10Bit(frame, 750);
             }
         }
     private:

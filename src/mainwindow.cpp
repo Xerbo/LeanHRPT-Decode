@@ -172,11 +172,11 @@ void MainWindow::startDecode(std::string filename) {
         status->setText("Fingerprinting failed");
         return;
     }
-    Mission mission = satellite_info.at(sat).mission;
+    SatelliteInfo satellite = satellite_info.at(sat);
 
     // Decode
     status->setText(QString("Decoding %1...").arg(QString::fromStdString(filename)));
-    switch (mission) {
+    switch (satellite.mission) {
         case Mission::FengYun3: decoder = new FengyunDecoder; break;
         case Mission::MeteorM:  decoder = new MeteorDecoder; break;
         case Mission::MetOp:    decoder = new MetOpDecoder; break;
@@ -184,7 +184,9 @@ void MainWindow::startDecode(std::string filename) {
         default: throw std::runtime_error("invalid value in enum `Mission`");
     }
     decoder->decodeFile(filename);
-    compositor->import(decoder->getImage(), sat);
+
+    Data data = decoder->get();
+    compositor->import(data.imagers.at(satellite.default_imager), sat);
 
     delete decoder;
     decoder = nullptr;
@@ -201,7 +203,7 @@ void MainWindow::decodeFinished() {
 
     // Prepare the UI
     populateChannelSelectors(compositor->channels());
-    status->setText(QString("Decode finished - %1: %2, %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(imager_names.at(satellite_info.at(sat).imager))).arg(compositor->height()));
+    status->setText(QString("Decode finished - %1: %2 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(compositor->height()));
     setState(WindowState::Finished);
 
     // Load satellite specific presets
@@ -211,7 +213,7 @@ void MainWindow::decodeFinished() {
 void MainWindow::reloadPresets() {
     selected_presets.clear();
     for (auto preset : manager.presets) {
-        if (preset.second.imagers.count(satellite_info.at(sat).imager)) {
+        if (preset.second.imagers.count(satellite_info.at(sat).default_imager)) {
             selected_presets.insert(preset);
         }
     }
@@ -308,7 +310,7 @@ void MainWindow::saveCurrentImage(bool corrected) {
     }
 
     QString types[3] = { QString::number(selectedChannel), composite, ui->presetSelector->currentText() };
-    QString name = QString("%1_%2_%3.png").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(imager_names.at(satellite_info.at(sat).imager))).arg(types[ui->imageTabs->currentIndex()]);
+    QString name = QString("%1_%2_%3.png").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(satellite_info.at(sat).default_imager).name)).arg(types[ui->imageTabs->currentIndex()]);
     QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", name, "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
 
     if (filename.isEmpty()) {
@@ -339,7 +341,7 @@ void MainWindow::saveAllChannels() {
         for(size_t i = 0; i < compositor->channels(); i++) {
             status->setText(QString("Saving channel %1...").arg(i + 1));
             compositor->getChannel(channel, i + 1);
-            channel.save(QString("%1/%2_%3_%4.png").arg(directory).arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(imager_names.at(satellite_info.at(sat).imager))).arg(i + 1), "PNG");
+            channel.save(QString("%1/%2_%3_%4.png").arg(directory).arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(satellite_info.at(sat).default_imager).name)).arg(i + 1), "PNG");
         }
 
         status->setText("Done");

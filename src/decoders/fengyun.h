@@ -32,7 +32,7 @@ class FengyunDecoder : public Decoder {
         FengyunDecoder() : virrDeframer(0, false) {
             frame = new uint8_t[1024];
             line = new uint8_t[208400 / 8];
-            image = new RawImage(2048, 10);
+            images[Imager::VIRR] = new RawImage(2048, 10);
         }
         ~FengyunDecoder() {
             delete[] frame;
@@ -63,7 +63,7 @@ class FengyunDecoder : public Decoder {
             uint8_t VCID = ptr[5] & 0x3f; // 0b111111
             if (VCID == 5) {
                 if (virrDeframer.work(&ptr[14], line, 882)) {
-                    image->push10Bit(line, 349);
+                    images[Imager::VIRR]->push10Bit(line, 349);
                 }
             }
         }

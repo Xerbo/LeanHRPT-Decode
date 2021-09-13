@@ -29,18 +29,19 @@ float earth2sat_angle(float radius, float height, float angle) {
 
 // Based off https://github.com/Xerbo/meteor_corrector
 QImage correct_geometry(QImage image, SatID satellite) {
-    const SatelliteInfo info = satellite_info.at(satellite);
-    const size_t output_width = info.swath/info.resolution;
+    const SatelliteInfo satinfo = satellite_info.at(satellite);
+    const SensorInfo imagerinfo = sensor_info.at(satinfo.default_imager);
 
-    size_t *lut = new size_t[output_width];
+    const size_t output_width = imagerinfo.swath/imagerinfo.resolution;
+    std::vector<size_t> lut(output_width);
 
-    float view_angle = info.swath / EARTH_RADIUS;
-    float sat_edge = earth2sat_angle(EARTH_RADIUS, info.orbit_height, view_angle/2);
+    float view_angle = imagerinfo.swath / EARTH_RADIUS;
+    float sat_edge = earth2sat_angle(EARTH_RADIUS, satinfo.orbit_height, view_angle/2);
 
     // Compute a look up table of pixel positions
     for (size_t x = 0; x < output_width; x++) {
         float angle = (static_cast<float>(x)/static_cast<float>(output_width) - 0.5f) * view_angle;
-        angle = earth2sat_angle(EARTH_RADIUS, info.orbit_height, angle);
+        angle = earth2sat_angle(EARTH_RADIUS, satinfo.orbit_height, angle);
 
         lut[x] = (angle/sat_edge + 1.0f)/2.0f * static_cast<float>(image.width());
     }
@@ -53,6 +54,5 @@ QImage correct_geometry(QImage image, SatID satellite) {
         }
     }
 
-    delete[] lut;
     return corrected;
 }

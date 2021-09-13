@@ -28,13 +28,14 @@
 
 #include <iostream>
 
+// http://planet.iitp.ru/index.php?lang=en&page_type=spacecraft&page=meteor_m_n2_structure_1
 class MeteorDecoder : public Decoder {
     public:
         MeteorDecoder() : MSUMRDeframer(10, false) {
             frame = new uint8_t[1024];
             msumrBuffer = new uint8_t[948];
             msumrFrame = new uint8_t[11850];
-            image = new RawImage(1572, 6, 4);
+            images[Imager::MSUMR] = new RawImage(1572, 6, 4);
         }
         ~MeteorDecoder() {
             delete[] frame;
@@ -66,7 +67,7 @@ class MeteorDecoder : public Decoder {
             std::memcpy(&msumrBuffer[238*3], &ptr[791-1], 234);
 
             if (MSUMRDeframer.work(msumrBuffer, msumrFrame, 948)) {
-                image->push10Bit(&msumrFrame[50], 0);
+                images[Imager::MSUMR]->push10Bit(&msumrFrame[50], 0);
             }
         }
 };
