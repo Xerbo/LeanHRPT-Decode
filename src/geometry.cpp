@@ -28,14 +28,14 @@ float earth2sat_angle(float radius, float height, float angle) {
 }
 
 // Based off https://github.com/Xerbo/meteor_corrector
-QImage correct_geometry(QImage image, SatID satellite) {
+QImage correct_geometry(QImage image, SatID satellite, Imager sensor) {
     const SatelliteInfo satinfo = satellite_info.at(satellite);
-    const SensorInfo imagerinfo = sensor_info.at(satinfo.default_imager);
+    const SensorInfo sensorinfo = sensor_info.at(sensor);
 
-    const size_t output_width = imagerinfo.swath/imagerinfo.resolution;
+    const size_t output_width = sensorinfo.swath/sensorinfo.resolution;
     std::vector<size_t> lut(output_width);
 
-    float view_angle = imagerinfo.swath / EARTH_RADIUS;
+    float view_angle = sensorinfo.swath / EARTH_RADIUS;
     float sat_edge = earth2sat_angle(EARTH_RADIUS, satinfo.orbit_height, view_angle/2);
 
     // Compute a look up table of pixel positions

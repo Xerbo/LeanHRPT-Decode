@@ -102,6 +102,7 @@ public:
     QMenu *menuFile;
     QMenu *menuOptions;
     QMenu *menuHelp;
+    QMenu *menuSensor;
     QStatusBar *statusbar;
 
     void setupUi(QMainWindow *MainWindow)
@@ -387,6 +388,8 @@ public:
         menuOptions->setObjectName(QString::fromUtf8("menuOptions"));
         menuHelp = new QMenu(menubar);
         menuHelp->setObjectName(QString::fromUtf8("menuHelp"));
+        menuSensor = new QMenu(menubar);
+        menuSensor->setObjectName(QString::fromUtf8("menuSensor"));
         MainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
@@ -394,6 +397,7 @@ public:
 
         menubar->addAction(menuFile->menuAction());
         menubar->addAction(menuOptions->menuAction());
+        menubar->addAction(menuSensor->menuAction());
         menubar->addAction(menuHelp->menuAction());
         menuFile->addAction(actionOpen);
         menuFile->addSeparator();
@@ -458,6 +462,7 @@ public:
         menuFile->setTitle(QCoreApplication::translate("MainWindow", "File", nullptr));
         menuOptions->setTitle(QCoreApplication::translate("MainWindow", "Options", nullptr));
         menuHelp->setTitle(QCoreApplication::translate("MainWindow", "Help", nullptr));
+        menuSensor->setTitle(QCoreApplication::translate("MainWindow", "Sensor", nullptr));
     } // retranslateUi
 
 };

@@ -56,27 +56,17 @@ class PresetManager {
                     std::cerr << "Syntax error in preset \"" << i.first << "\"" << std::endl;
                 }
             }
-
-            if (presets.size() == 0) {
-                Preset preset = { "", "", "", { AVHRR, VIRR, MSUMR }, "bw(0)" };
-                presets.insert(std::pair<std::string, Preset>("Unable to load presets", preset));
-            }
         }
 
         std::map<std::string, Preset> presets;
     private:
         std::set<Imager> parse_imagers(std::string str) {
             std::set<Imager> imagers;
-            std::map<std::string, Imager> table = {
-                {"AVHRR",  Imager::AVHRR },
-                {"VIRR",   Imager::VIRR },
-                {"MSU-MR", Imager::MSUMR },
-            };
 
             std::stringstream stream(str);
             std::string imager;
             while (std::getline(stream, imager, '|')) {
-                imagers.insert(table[imager]);
+                imagers.insert(sensors.at(imager));
             }
 
             return imagers;

@@ -25,11 +25,11 @@
 #include <QUrl>
 #include <QMessageBox>
 #include <QDesktopServices>
-
 #include <QGraphicsView>
 #include <QFutureWatcher>
 #include <QShortcut>
 #include <QString>
+#include <QActionGroup>
 
 #include "decoders/decoder.h"
 #include "imagecompositor.h"
@@ -72,7 +72,7 @@ class MainWindow : public QMainWindow {
         QShortcut *zoomIn;
         QShortcut *zoomOut;
 
-        ImageCompositor *compositor;
+        std::map<Imager, ImageCompositor *> compositors;
         QImage display;
         QGraphicsScene *scene;
 
@@ -90,6 +90,11 @@ class MainWindow : public QMainWindow {
         // Satellite meta information
         SatID sat;
         int previousTabIndex = 0;
+
+        // Sensor selection
+        Imager sensor;
+        QActionGroup *sensor_select;
+        std::map<std::string, QAction *> sensor_actions;
 
         // Decoding
         QFutureWatcher<void> *decodeWatcher;

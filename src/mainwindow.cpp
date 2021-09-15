@@ -82,18 +82,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     timer->start(1000.0f/30.0f);
 
     // Decoding
-    compositor = new ImageCompositor;
     decodeWatcher = new QFutureWatcher<void>(this);
     QFutureWatcher<void>::connect(decodeWatcher, &QFutureWatcher<void>::finished, this, &MainWindow::decodeFinished);
 
     setState(WindowState::Idle);
+
+    sensor_select = new QActionGroup(this);
+    QActionGroup::connect(sensor_select, &QActionGroup::triggered, [this](QAction *action) {
+        sensor = sensors.at(action->text().toStdString());
+        decodeFinished();
+    });
 }
 
 MainWindow::~MainWindow() {
     delete zoomIn;
     delete zoomOut;
     delete flip;
-    delete compositor;
     delete scene;
     delete decodeWatcher;
     delete ui;
@@ -127,7 +131,7 @@ void MainWindow::incrementZoom(int amount) {
 }
 
 void MainWindow::setState(WindowState state) {
-    QWidget *items[] = { ui->groupBox, ui->menuOptions, ui->stackedOptions, ui->zoomSelectorBox, ui->imageTabs };
+    QWidget *items[] = { ui->groupBox, ui->menuOptions, ui->menuSensor, ui->stackedOptions, ui->zoomSelectorBox, ui->imageTabs };
 
     for (QWidget *item : items) {
         item->setEnabled(state == WindowState::Finished);
@@ -186,24 +190,44 @@ void MainWindow::startDecode(std::string filename) {
     decoder->decodeFile(filename);
 
     Data data = decoder->get();
-    compositor->import(data.imagers.at(satellite.default_imager), sat);
+
+    for (auto action : sensor_actions) {
+        sensor_select->removeAction(action.second);
+        ui->menuSensor->removeAction(action.second);
+        delete action.second;
+    }
+
+    sensor_actions.clear();
+    for (auto sensor2 : data.imagers) {
+        SensorInfo info = sensor_info.at(sensor2.first);
+        QAction *action = new QAction(QString::fromStdString(info.name));
+        action->setCheckable(true);
+        sensor_actions.insert({info.name, action});
+        sensor_select->addAction(action);
+        ui->menuSensor->addAction(action);
+
+        compositors[sensor2.first] = new ImageCompositor;
+        compositors[sensor2.first]->import(sensor2.second, sat);
+    }
+
+    sensor = satellite.default_imager;
+    sensor_actions.at(sensor_info.at(satellite.default_imager).name)->setChecked(true);
 
     delete decoder;
     decoder = nullptr;
 }
 
 void MainWindow::decodeFinished() {
-    if (compositor->height() == 0) {
+    if (compositors.at(sensor)->height() == 0) {
         status->setText("Decode failed");
         setState(WindowState::Idle);
         return;
     }
-
-    display = QImage(compositor->width(), compositor->height(), QImage::Format_RGBX64);
+    display = QImage(compositors.at(sensor)->width(), compositors.at(sensor)->height(), QImage::Format_RGBX64);
 
     // Prepare the UI
-    populateChannelSelectors(compositor->channels());
-    status->setText(QString("Decode finished - %1: %2 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(compositor->height()));
+    populateChannelSelectors(compositors.at(sensor)->channels());
+    status->setText(QString("%1 - %2 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(compositors.at(sensor)->height()));
     setState(WindowState::Finished);
 
     // Load satellite specific presets
@@ -213,9 +237,14 @@ void MainWindow::decodeFinished() {
 void MainWindow::reloadPresets() {
     selected_presets.clear();
     for (auto preset : manager.presets) {
-        if (preset.second.imagers.count(satellite_info.at(sat).default_imager)) {
+        if (preset.second.imagers.count(sensor)) {
             selected_presets.insert(preset);
         }
+    }
+
+    if (selected_presets.size() == 0) {
+        Preset preset = { "", "", "", { AVHRR, VIRR, MSUMR, MHS }, "bw(0)" };
+        selected_presets.insert({"Unable to load presets", preset});
     }
 
     int index = ui->presetSelector->currentIndex();
@@ -269,7 +298,7 @@ void MainWindow::setEqualization(Equalization type) {
 }
 
 void MainWindow::on_actionFlip_triggered() {
-    compositor->flip();
+    compositors.at(sensor)->flip();
     updateDisplay();
 }
 
@@ -284,9 +313,9 @@ void MainWindow::on_imageTabs_currentChanged(int index) {
 
 void MainWindow::updateDisplay() {
     switch (ui->imageTabs->currentIndex()) {
-        case 0: compositor->getChannel(display, selectedChannel); break;
-        case 1: compositor->getComposite(display, selectedComposite); break;
-        case 2: compositor->getExpression(display, selected_presets.at(ui->presetSelector->currentText().toStdString()).expression); break;
+        case 0: compositors.at(sensor)->getChannel(display, selectedChannel); break;
+        case 1: compositors.at(sensor)->getComposite(display, selectedComposite); break;
+        case 2: compositors.at(sensor)->getExpression(display, selected_presets.at(ui->presetSelector->currentText().toStdString()).expression); break;
         default: throw std::runtime_error("invalid tab index");
     }
 
@@ -310,7 +339,7 @@ void MainWindow::saveCurrentImage(bool corrected) {
     }
 
     QString types[3] = { QString::number(selectedChannel), composite, ui->presetSelector->currentText() };
-    QString name = QString("%1_%2_%3.png").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(satellite_info.at(sat).default_imager).name)).arg(types[ui->imageTabs->currentIndex()]);
+    QString name = QString("%1_%2_%3.png").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(types[ui->imageTabs->currentIndex()]);
     QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", name, "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
 
     if (filename.isEmpty()) {
@@ -322,7 +351,7 @@ void MainWindow::saveCurrentImage(bool corrected) {
         QImage copy(display);
         ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
         if (corrected) {
-            correct_geometry(copy, sat).save(filename);
+            correct_geometry(copy, sat, sensor).save(filename);
         } else {
             copy.save(filename);
         }
@@ -336,12 +365,12 @@ void MainWindow::saveAllChannels() {
 
     savingImage = true;
     QtConcurrent::run([this](QString directory) {
-        QImage channel(compositor->width(), compositor->height(), QImage::Format_Grayscale16);
+        QImage channel(compositors.at(sensor)->width(), compositors.at(sensor)->height(), QImage::Format_Grayscale16);
 
-        for(size_t i = 0; i < compositor->channels(); i++) {
+        for(size_t i = 0; i < compositors.at(sensor)->channels(); i++) {
             status->setText(QString("Saving channel %1...").arg(i + 1));
-            compositor->getChannel(channel, i + 1);
-            channel.save(QString("%1/%2_%3_%4.png").arg(directory).arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(satellite_info.at(sat).default_imager).name)).arg(i + 1), "PNG");
+            compositors.at(sensor)->getChannel(channel, i + 1);
+            channel.save(QString("%1/%2_%3_%4.png").arg(directory).arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(i + 1), "PNG");
         }
 
         status->setText("Done");

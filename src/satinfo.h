@@ -64,6 +64,13 @@ const std::map<Imager, SensorInfo> sensor_info = {
     { Imager::MHS,   SensorInfo {"MHS",    2180.0f, 16.0f } }
 };
 
+const std::map<std::string, Imager> sensors = {
+    { "AVHRR",  Imager::AVHRR },
+    { "VIRR",   Imager::VIRR },
+    { "MSU-MR", Imager::MSUMR },
+    { "MHS",    Imager::MHS },
+};
+
 struct SatelliteInfo {
     float orbit_height; // in km
     Mission mission;
