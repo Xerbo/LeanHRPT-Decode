@@ -31,7 +31,7 @@
 // http://planet.iitp.ru/index.php?lang=en&page_type=spacecraft&page=meteor_m_n2_structure_1
 class MeteorDecoder : public Decoder {
     public:
-        MeteorDecoder() : MSUMRDeframer(10, false) {
+        MeteorDecoder() : MSUMRDeframer(9, false) {
             frame = new uint8_t[1024];
             msumrBuffer = new uint8_t[948];
             msumrFrame = new uint8_t[11850];

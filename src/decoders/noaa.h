@@ -21,28 +21,77 @@
 
 #include <string>
 #include <cstdint>
+#include <bitset>
 
 #include "decoder.h"
 #include "generic/deframer.h"
 
 class NOAADecoder : public Decoder {
     public:
-        NOAADecoder() : deframer(10, true) {
+        NOAADecoder() : deframer(8, true) {
             frame = new uint8_t[(11090*10) / 8];
+            repacked = new uint16_t[11090];
             images[Imager::AVHRR] = new RawImage(2048, 5);
+            images[Imager::MHS] = new RawImage(90, 6);
         }
         ~NOAADecoder() {
             delete[] frame;
+            delete[] repacked;
         }
         void work(std::istream &stream) {
             stream.read(reinterpret_cast<char *>(buffer), BUFFER_SIZE);
 
             if(deframer.work(buffer, frame, BUFFER_SIZE)) {
                 images[Imager::AVHRR]->push10Bit(frame, 750);
+
+                size_t j = 0;
+                for (size_t i = 0; i < 11090; i += 4) {
+                    repacked[i + 0] =  (frame[j + 0] << 2)       | (frame[j + 1] >> 6);
+                    repacked[i + 1] = ((frame[j + 1] % 64) << 4) | (frame[j + 2] >> 4);
+                    repacked[i + 2] = ((frame[j + 2] % 16) << 6) | (frame[j + 3] >> 2);
+                    repacked[i + 3] = ((frame[j + 3] % 4 ) << 8) |  frame[j + 4];
+                    j += 5;
+                }
+
+                uint16_t *data_words = &repacked[103];
+                uint8_t mhsline[80*50];
+
+                uint8_t frame_type = (repacked[6] >> 7) & 0b11;                
+                if (frame_type == 3) { // AIS Frame
+                    for (size_t i = 0; i < 5; i++) {
+                        uint8_t ais_frame[104];
+                        bool parity_ok = true;
+
+                        for (size_t j = 0; j < 104; j++) {
+                            uint16_t word = data_words[104*i + j];
+                            ais_frame[j] = word >> 2;
+
+                            // Parity check
+                            bool parity = std::bitset<16>(ais_frame[j]).count() % 2;
+                            if (parity != std::bitset<16>(word).test(1)) {
+                                parity_ok = false;
+                                break;
+                            }
+                        }
+
+                        if (parity_ok) {
+                            uint8_t mhs_status = ais_frame[7];
+
+                            std::memcpy(&mhsline[mhs_status*50], &ais_frame[48], 50);
+                            if (mhs_status == 79) {
+                                images[Imager::MHS]->push16Bit((const uint16_t *)&mhsline[  98], 0);
+                                images[Imager::MHS]->push16Bit((const uint16_t *)&mhsline[1432], 0);
+                                images[Imager::MHS]->push16Bit((const uint16_t *)&mhsline[2764], 0);
+                                std::memset(mhsline, 0, 80*50);
+                            }
+                        }
+                    }
+                }
             }
         }
     private:
         uint8_t *frame;
+        uint16_t *repacked;
         ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer;
 };
 

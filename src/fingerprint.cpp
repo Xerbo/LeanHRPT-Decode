@@ -121,7 +121,7 @@ SatID Fingerprint::id_noaa(std::istream &stream) {
     uint8_t buffer[1024];
     std::vector<uint8_t> frame((11090*10) / 8);
     std::vector<uint16_t> repacked(11090);
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer(10, true);
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer(8, true);
 
     std::map<SatID, size_t> sats;
 
