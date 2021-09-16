@@ -32,7 +32,7 @@ enum Equalization {
 
 class ImageCompositor {
     public:
-        void import(RawImage *image, SatID satellite);
+        void import(RawImage *image, SatID satellite, Imager sensor);
 
         // Manipulation functions
         void flip();

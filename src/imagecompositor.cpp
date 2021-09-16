@@ -34,7 +34,7 @@ T clamp(T v, T lo, T hi) {
     return std::max(lo, std::min(hi, v));
 }
 
-void ImageCompositor::import(RawImage *image, SatID satellite) {
+void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor) {
     m_width = image->width();
     m_height = image->rows();
     m_channels = image->channels();
@@ -50,7 +50,7 @@ void ImageCompositor::import(RawImage *image, SatID satellite) {
     Config ini("calibration.ini");
 
     for (size_t i = 0; i < m_channels; i++) {
-        std::string name = satellite_info.at(satellite).name + "/" + std::to_string(i+1);
+        std::string name = satellite_info.at(satellite).name + "_" + sensor_info.at(sensor).name + "/" + std::to_string(i+1);
 
         if (ini.sections.count(name)) {
             std::map<std::string, std::string> coefficients = ini.sections.at(name);
@@ -68,6 +68,12 @@ void ImageCompositor::import(RawImage *image, SatID satellite) {
                 double b = l.toDouble(QString::fromStdString(coefficients.at("b")));
                 calibrate_linear(rawChannels[i], a, b);
             }
+        }
+    }
+
+    if (sensor == Imager::MHS) {
+        for(size_t i = 0; i < m_channels; i++) {
+            rawChannels[i] = rawChannels[i].mirrored(true, false);
         }
     }
 }

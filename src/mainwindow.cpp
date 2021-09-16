@@ -207,7 +207,7 @@ void MainWindow::startDecode(std::string filename) {
         ui->menuSensor->addAction(action);
 
         compositors[sensor2.first] = new ImageCompositor;
-        compositors[sensor2.first]->import(sensor2.second, sat);
+        compositors[sensor2.first]->import(sensor2.second, sat, sensor2.first);
     }
 
     sensor = satellite.default_imager;
