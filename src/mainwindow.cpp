@@ -218,7 +218,7 @@ void MainWindow::startDecode(std::string filename) {
 }
 
 void MainWindow::decodeFinished() {
-    if (compositors.at(sensor)->height() == 0) {
+    if (compositors.at(satellite_info.at(sat).default_imager)->height() == 0) {
         status->setText("Decode failed");
         setState(WindowState::Idle);
         return;
@@ -227,7 +227,7 @@ void MainWindow::decodeFinished() {
 
     // Prepare the UI
     populateChannelSelectors(compositors.at(sensor)->channels());
-    status->setText(QString("%1 - %2 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(compositors.at(sensor)->height()));
+    status->setText(QString("%1 - %2: %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(compositors.at(sensor)->height()));
     setState(WindowState::Finished);
 
     // Load satellite specific presets
