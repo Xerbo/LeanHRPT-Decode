@@ -77,6 +77,7 @@ class Decoder {
         std::map<std::string, double> coeffs;
         virtual void work(std::istream &stream)=0;
         bool is_ccsds_frames = false;
+        bool is_raw16 = false;
 
     private:
         bool is_running = true;
@@ -88,6 +89,7 @@ class Decoder {
             uint8_t header[4];
             stream.read(reinterpret_cast<char *>(header), 4);
             is_ccsds_frames = (header[0] == 0x1A && header[1] == 0xCF && header[2] && 0xFC && header[3] == 0x1D);
+            is_raw16        = (header[0] == 0x84 && header[1] == 0x02 && header[2] && 0x6F && header[3] == 0x01);
 
             // Get filesize
             stream.seekg(0, std::ios::end);

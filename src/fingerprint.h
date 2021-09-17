@@ -17,8 +17,16 @@ class Fingerprint {
             stream.seekg(stream.beg);
             return (header[0] == 0x1A && header[1] == 0xCF && header[2] == 0xFC && header[3] == 0x1D);  
         };
+        static bool is_raw16(std::istream &stream) {
+            uint8_t header[4];
+            stream.read((char *)&header, 4);
+            stream.seekg(stream.beg);
+            return (header[0] == 0x84 && header[1] == 0x02 && header[2] && 0x6F && header[3] == 0x01);  
+        };
+
 
         static bool is_noaa(std::istream &stream);
+        static SatID id_noaa_raw(std::istream &stream);
         static SatID id_noaa(std::istream &stream);
 };
 

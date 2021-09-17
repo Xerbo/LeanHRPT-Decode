@@ -159,7 +159,7 @@ void MainWindow::populateChannelSelectors(size_t channels) {
 }
 
 void MainWindow::on_actionOpen_triggered() {
-    QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Binary files (*.bin *.cadu)");
+    QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Binary files (*.bin *.cadu *.raw16)");
 
     if (!filename.isEmpty()) {
         decodeWatcher->setFuture(QtConcurrent::run(this, &MainWindow::startDecode, filename.toStdString()));

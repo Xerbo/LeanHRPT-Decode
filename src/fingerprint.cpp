@@ -118,6 +118,32 @@ bool Fingerprint::is_noaa(std::istream &stream) {
 }
 
 SatID Fingerprint::id_noaa(std::istream &stream) {
+    std::vector<uint16_t> repacked(11090);
+    std::map<SatID, size_t> sats;
+    
+    while (!stream.eof()) {
+        stream.read(reinterpret_cast<char *>(repacked.data()), 11090*2);
+
+        uint8_t address = ((repacked[6] & 0x078) >> 3) & 0x000F;
+        switch (address) {
+            case 7:  sats[SatID::NOAA15]++; break;
+            case 13: sats[SatID::NOAA18]++; break;
+            case 15: sats[SatID::NOAA19]++; break;
+            default:                        break;
+        }
+
+        auto pair = std::max_element(sats.begin(), sats.end(), [](const std::pair<SatID, size_t>& p1, const std::pair<SatID, size_t>& p2) {
+            return p1.second < p2.second;
+        });
+        if (pair->second > 20) {
+            return pair->first;
+        }
+    }
+
+    return SatID::Unknown;
+}
+
+SatID Fingerprint::id_noaa_raw(std::istream &stream) {
     uint8_t buffer[1024];
     std::vector<uint8_t> frame((11090*10) / 8);
     std::vector<uint16_t> repacked(11090);
@@ -148,7 +174,7 @@ SatID Fingerprint::id_noaa(std::istream &stream) {
             auto pair = std::max_element(sats.begin(), sats.end(), [](const std::pair<SatID, size_t>& p1, const std::pair<SatID, size_t>& p2) {
                 return p1.second < p2.second;
             });
-            if (pair->second > 100) {
+            if (pair->second > 20) {
                 return pair->first;
             }
         }
@@ -170,8 +196,14 @@ SatID Fingerprint::file(std::string filename) {
         return id;
     }
 
-    if (is_noaa(stream)) {
+    if (is_raw16(stream)) {
         SatID id = id_noaa(stream);
+        file.close();
+        return id;
+    }
+
+    if (is_noaa(stream)) {
+        SatID id = id_noaa_raw(stream);
         file.close();
         return id;
     }
