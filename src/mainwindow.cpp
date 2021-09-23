@@ -173,7 +173,6 @@ void MainWindow::startDecode(std::string filename) {
 
     sat = Fingerprint::file(filename);
     if (sat == SatID::Unknown) {
-        status->setText("Fingerprinting failed");
         return;
     }
     SatelliteInfo satellite = satellite_info.at(sat);
@@ -218,6 +217,11 @@ void MainWindow::startDecode(std::string filename) {
 }
 
 void MainWindow::decodeFinished() {
+    if (sat == SatID::Unknown) {
+        status->setText("Fingerprinting failed");
+        return;
+    }
+
     if (compositors.at(satellite_info.at(sat).default_imager)->height() == 0) {
         status->setText("Decode failed");
         setState(WindowState::Idle);
