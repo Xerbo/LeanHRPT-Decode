@@ -16,13 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "commandline.h"
 #include "mainwindow.h"
-
 #include <QApplication>
 
 int main(int argc, char *argv[]) {
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
-    return a.exec();
+    QApplication app(argc, argv);
+    QApplication::setApplicationName("LeanHRPT Decode");
+    QApplication::setApplicationVersion(VERSION);
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription("LeanHRPT Decode - A high quality, easy to use HRPT decoder.");
+    parser.addHelpOption();
+    parser.addVersionOption();
+
+    parser.process(app);
+    parser.addPositionalArgument("file", "filename");
+
+    if (parser.positionalArguments().isEmpty()) {
+        MainWindow window;
+        window.show();
+        return app.exec();
+    } else {
+        return parseCommandLine(parser);
+    }
 }
