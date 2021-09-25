@@ -155,7 +155,7 @@ SatID Fingerprint::id_noaa_raw(std::istream &stream) {
         stream.read(reinterpret_cast<char *>(buffer), 1024);
         if (deframer.work(buffer, frame.data(), 1024)) {
             size_t j = 0;
-            for (size_t i = 0; i < 11090; i += 4) {
+            for (size_t i = 0; i < 11090-3; i += 4) {
                 repacked[i + 0] =  (frame[j + 0] << 2)       | (frame[j + 1] >> 6);
                 repacked[i + 1] = ((frame[j + 1] % 64) << 4) | (frame[j + 2] >> 4);
                 repacked[i + 2] = ((frame[j + 2] % 16) << 6) | (frame[j + 3] >> 2);
