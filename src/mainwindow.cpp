@@ -75,11 +75,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     QPushButton::connect(cancel_button, &QPushButton::pressed, [this]() {
         if (decoder != nullptr) {
             decoder->stop();
-            while (decoder != nullptr);
+            while (decoder != nullptr) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
         }
         if (fingerprinter != nullptr) {
             fingerprinter->stop();
-            while (fingerprinter != nullptr);
+            while (fingerprinter != nullptr) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
         }
     });
 
@@ -145,11 +149,15 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     clean_up = true;
     if (decoder != nullptr) {
         decoder->stop();
-        while (decoder != nullptr);
+        while (decoder != nullptr) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
     }
     if (fingerprinter != nullptr) {
         fingerprinter->stop();
-        while (fingerprinter != nullptr);
+        while (fingerprinter != nullptr) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
     }
 
     event->accept();
@@ -263,6 +271,7 @@ void MainWindow::startDecode(std::string filename) {
 void MainWindow::decodeFinished() {
     if (sat == SatID::Unknown) {
         status->setText("Fingerprinting failed");
+        setState(WindowState::Idle);
         return;
     }
 
