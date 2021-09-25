@@ -16,7 +16,7 @@ For those who wish to compile from source you will need `qtbase5-dev`, [`libcorr
 
 ```sh
 mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake ..
 make
 ```
 
