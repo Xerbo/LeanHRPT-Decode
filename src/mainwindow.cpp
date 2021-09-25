@@ -26,7 +26,6 @@
 #include <QProgressBar>
 #include <QCloseEvent>
 
-#include "fingerprint.h"
 #include "geometry.h"
 
 #include "decoders/meteor.h"
@@ -63,12 +62,26 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     // Status bar
     status = new QLabel();
-    ui->statusbar->addPermanentWidget(status, 2);
+    ui->statusbar->addPermanentWidget(status, 1);
     QProgressBar * _progressBar = new QProgressBar();
     _progressBar->setRange(0, 100);
     _progressBar->setValue(0);
     _progressBar->setTextVisible(false);
     ui->statusbar->addPermanentWidget(_progressBar, 1);
+    cancel_button = new QPushButton("Cancel");
+    ui->statusbar->addPermanentWidget(cancel_button);
+
+    // Cancel button
+    QPushButton::connect(cancel_button, &QPushButton::pressed, [this]() {
+        if (decoder != nullptr) {
+            decoder->stop();
+            while (decoder != nullptr);
+        }
+        if (fingerprinter != nullptr) {
+            fingerprinter->stop();
+            while (fingerprinter != nullptr);
+        }
+    });
 
     // Progress bar
     QTimer *timer = new QTimer(this);
@@ -85,13 +98,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     decodeWatcher = new QFutureWatcher<void>(this);
     QFutureWatcher<void>::connect(decodeWatcher, &QFutureWatcher<void>::finished, this, &MainWindow::decodeFinished);
 
-    setState(WindowState::Idle);
-
     sensor_select = new QActionGroup(this);
     QActionGroup::connect(sensor_select, &QActionGroup::triggered, [this](QAction *action) {
         sensor = sensors.at(action->text().toStdString());
         decodeFinished();
     });
+
+    setState(WindowState::Idle);
 }
 
 MainWindow::~MainWindow() {
@@ -106,7 +119,19 @@ MainWindow::~MainWindow() {
 void MainWindow::closeEvent(QCloseEvent *event) {
     if (savingImage) {
         QMessageBox confirm;
-        confirm.setText("Are you sure you want to quit? There are images currently being saved.");
+        confirm.setText("Are you sure you want to quit? There are image(s) currently being saved.");
+        confirm.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
+        confirm.setDefaultButton(QMessageBox::Cancel);
+        confirm.setIcon(QMessageBox::Warning);
+
+        if (confirm.exec() == QMessageBox::Cancel) {
+            event->ignore();
+            return;
+        }
+    }
+    if (decoder != nullptr) {
+        QMessageBox confirm;
+        confirm.setText("Are you sure you want to quit? There is currently a decode running.");
         confirm.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
         confirm.setDefaultButton(QMessageBox::Cancel);
         confirm.setIcon(QMessageBox::Warning);
@@ -117,8 +142,14 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         }
     }
 
+    clean_up = true;
     if (decoder != nullptr) {
         decoder->stop();
+        while (decoder != nullptr);
+    }
+    if (fingerprinter != nullptr) {
+        fingerprinter->stop();
+        while (fingerprinter != nullptr);
     }
 
     event->accept();
@@ -137,6 +168,8 @@ void MainWindow::setState(WindowState state) {
         item->setEnabled(state == WindowState::Finished);
     }
 
+    cancel_button->setEnabled(state == WindowState::Decoding);
+    ui->actionOpen->setEnabled(state != WindowState::Decoding);
     ui->actionSave_All_Channels->setEnabled(state == WindowState::Finished);
     ui->actionSave_Current_Image->setEnabled(state == WindowState::Finished);
     ui->actionSave_Current_Image_Corrected->setEnabled(state == WindowState::Finished);
@@ -171,10 +204,15 @@ void MainWindow::startDecode(std::string filename) {
     setState(WindowState::Decoding);
     status->setText("Fingerprinting");
 
-    sat = Fingerprint::file(filename);
+    fingerprinter = new Fingerprint;
+    sat = fingerprinter->file(filename);
     if (sat == SatID::Unknown) {
+        delete fingerprinter;
+        fingerprinter = nullptr;
         return;
     }
+    delete fingerprinter;
+    fingerprinter = nullptr;
     SatelliteInfo satellite = satellite_info.at(sat);
 
     // Decode
@@ -187,6 +225,12 @@ void MainWindow::startDecode(std::string filename) {
         default: throw std::runtime_error("invalid value in enum `Mission`");
     }
     decoder->decodeFile(filename);
+    if (clean_up) {
+        sat = SatID::Unknown;
+        delete decoder;
+        decoder = nullptr;
+        return;
+    }
 
     Data data = decoder->get();
 

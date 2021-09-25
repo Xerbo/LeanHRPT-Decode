@@ -21,6 +21,7 @@
 
 #include <istream>
 #include <fstream>
+#include <atomic>
 
 #include "satinfo.h"
 #include "generic/rawimage.h"
@@ -34,7 +35,7 @@ struct Data {
 
 class Decoder {
     public:
-        Decoder() {
+        Decoder() : is_running(true) {
             buffer = new uint8_t[BUFFER_SIZE];
         }
         virtual ~Decoder() {
@@ -52,7 +53,7 @@ class Decoder {
             std::istream stream(&file);
             read_meta(stream);
 
-            while (!stream.eof() && is_running) {
+            while (is_running && !stream.eof()) {
                 work(stream);
                 read = stream.tellg();
             }
@@ -80,7 +81,7 @@ class Decoder {
         bool is_raw16 = false;
 
     private:
-        bool is_running = true;
+        std::atomic<bool> is_running;
         size_t read = 0;
         size_t filesize = 1;
 

@@ -31,7 +31,7 @@ int parseCommandLine(QCommandLineParser &parser) {
 
     std::cout << "Decoding \"" << filename.toStdString() << "\"" << std::endl;
 
-    SatID sat = Fingerprint::file(filename.toStdString());
+    SatID sat = Fingerprint().file(filename.toStdString());
     if (sat == SatID::Unknown) {
         std::cout << "Unable to identify satellite" << std::endl;
         return 1;

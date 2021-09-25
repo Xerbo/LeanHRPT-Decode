@@ -58,7 +58,7 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream) {
     CCSDSFingerprint fingerprint(false);
     uint8_t frame[1024];
 
-    while (!stream.eof()) {
+    while (is_running && !stream.eof()) {
         stream.read(reinterpret_cast<char *>(frame), 1024);
 
         SatID id = fingerprint.processFrame(frame);
@@ -76,7 +76,7 @@ SatID Fingerprint::fingerprint_ccsds_raw(std::istream &stream) {
     uint8_t frame[1024];
     uint8_t buffer[1024];
 
-    while (!stream.eof()) {
+    while (is_running && !stream.eof()) {
         stream.read(reinterpret_cast<char *>(buffer), 1024);
 
         if (deframer.work(buffer, frame, 1024)) {
@@ -121,7 +121,7 @@ SatID Fingerprint::id_noaa(std::istream &stream) {
     std::vector<uint16_t> repacked(11090);
     std::map<SatID, size_t> sats;
     
-    while (!stream.eof()) {
+    while (is_running && !stream.eof()) {
         stream.read(reinterpret_cast<char *>(repacked.data()), 11090*2);
 
         uint8_t address = ((repacked[6] & 0x078) >> 3) & 0x000F;
@@ -151,7 +151,7 @@ SatID Fingerprint::id_noaa_raw(std::istream &stream) {
 
     std::map<SatID, size_t> sats;
 
-    while (!stream.eof()) {
+    while (is_running && !stream.eof()) {
         stream.read(reinterpret_cast<char *>(buffer), 1024);
         if (deframer.work(buffer, frame.data(), 1024)) {
             size_t j = 0;

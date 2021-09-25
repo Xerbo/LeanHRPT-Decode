@@ -31,6 +31,7 @@
 #include <QString>
 #include <QActionGroup>
 
+#include "fingerprint.h"
 #include "decoders/decoder.h"
 #include "imagecompositor.h"
 #include "preset.h"
@@ -99,7 +100,10 @@ class MainWindow : public QMainWindow {
         // Decoding
         QFutureWatcher<void> *decodeWatcher;
         Decoder *decoder = nullptr;
+        Fingerprint *fingerprinter = nullptr;
         QLabel *status;
+        QPushButton *cancel_button;
+        bool clean_up = false;
 
         // Internal
         void incrementZoom(int amount);
