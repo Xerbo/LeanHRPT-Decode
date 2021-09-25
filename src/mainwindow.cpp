@@ -76,13 +76,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         if (decoder != nullptr) {
             decoder->stop();
             while (decoder != nullptr) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                asm("nop");
             }
         }
         if (fingerprinter != nullptr) {
             fingerprinter->stop();
             while (fingerprinter != nullptr) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                asm("nop");
             }
         }
     });
@@ -150,13 +150,13 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     if (decoder != nullptr) {
         decoder->stop();
         while (decoder != nullptr) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            asm("nop");
         }
     }
     if (fingerprinter != nullptr) {
         fingerprinter->stop();
         while (fingerprinter != nullptr) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            asm("nop");
         }
     }
 
