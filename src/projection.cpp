@@ -21,6 +21,7 @@
 #include <cmath>
 #include <fstream>
 #include <algorithm>
+#include <map>
 
 namespace geo {
     // Convert from a internal angle of a circle to the viewing angle of a point above the circle.
@@ -61,9 +62,22 @@ namespace geo {
     }
 }
 
-#include <iostream>
+struct ProjectionInfo {
+    double angle;
+    double swath;
+    double time_offset,
+};
 
-void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, std::string filename) {
+const std::map<SatID, ProjectionInfo> projection_factors = {
+    { NOAA15, { -94.0, 2950.0, 0.0 }},
+    { NOAA18, { -94.0, 2950.0, 0.0 }},
+    { NOAA19, { -94.0, 2950.0, 0.0 }},
+    { MetOpA, { -90.0, 2880.0, -0.5 }},
+    { MetOpB, { -90.0, 2880.0, -0.5 }},
+    { MetOpC, { -90.0, 2880.0, -0.5 }},
+};
+
+void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename) {
     if (timestamps.size() == 0) {
         return;
     }
@@ -76,21 +90,29 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
     std::ostream stream(&file);
 
     d_sensor = sensor_info.at(sensor);
+    ProjectionInfo info;
+    try {
+        info = projection_factors.at(sat);
+    } catch(const std::exception& e) {
+        return;
+    }
 
     for (size_t i = 0; i < pointsy; i++) {
         double y = ((double)i/(double)(pointsy)) * (double)timestamps.size();
 
-        double timestamp = timestamps[(int)y] - 0.5;
+        if (timestamps[(int)y] == 0) continue;
+
+        double timestamp = timestamps[(int)y] + info.time_offset;
         struct predict_position orbit = predictor.predict(timestamp);
 
         double az;
         {
             struct predict_position a = predictor.predict(timestamp-0.1);
             struct predict_position b = predictor.predict(timestamp+0.1);
-            az = geo::azimuth({a.latitude, a.longitude}, {b.latitude, b.longitude}) - 90.0*M_PI/180.0;
+            az = geo::azimuth({a.latitude, a.longitude}, {b.latitude, b.longitude}) + info.angle*M_PI/180.0;
         }
 
-        auto scan = calculate_scan({orbit.latitude, orbit.longitude}, az, orbit.altitude, pointsx);
+        auto scan = calculate_scan({orbit.latitude, orbit.longitude}, az, orbit.altitude, info.swath, pointsx);
         for (auto &point : scan) {
             stream << "-gcp " << point.first << " " << y << " " << (point.second.second*180.0/M_PI) << " " << (point.second.first*180.0/M_PI) << " ";
         }
@@ -100,9 +122,9 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
     file.close();
 }
 
-std::vector<std::pair<double, geo::LatLon>> Projector::calculate_scan(geo::LatLon position, double az, double altitude, size_t points) {
+std::vector<std::pair<double, geo::LatLon>> Projector::calculate_scan(geo::LatLon position, double az, double altitude, double swath, size_t points) {
     std::vector<std::pair<double, geo::LatLon>> scan;
-    double view_angle = (double)d_sensor.swath/EARTH_RADIUS;
+    double view_angle = (double)swath/EARTH_RADIUS;
 
     for (size_t i = 0; i < points; i++) {
         // The angle that the sensor is pointing at

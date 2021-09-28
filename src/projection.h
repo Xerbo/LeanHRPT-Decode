@@ -41,9 +41,9 @@ class Projector {
         Projector(std::pair<std::string, std::string> tle)
             : predictor(tle) { }
 
-        void save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, std::string filename);
+        void save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename);
     private:
-        std::vector<std::pair<double, geo::LatLon>> calculate_scan(geo::LatLon position, double az, double altitude, size_t points);
+        std::vector<std::pair<double, geo::LatLon>> calculate_scan(geo::LatLon position, double az, double altitude, double swath, size_t points);
 
         OrbitPredictor predictor;
         SensorInfo d_sensor;

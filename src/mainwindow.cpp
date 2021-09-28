@@ -268,11 +268,30 @@ void MainWindow::startDecode(std::string filename) {
     std::map<SatID, std::string> tle_names = {
         { SatID::MetOpA, "METOP-A"},
         { SatID::MetOpB, "METOP-B"},
-        { SatID::MetOpC, "METOP-C"}
+        { SatID::MetOpC, "METOP-C"},
+        { SatID::NOAA15, "NOAA 15"},
+        { SatID::NOAA18, "NOAA 18"},
+        { SatID::NOAA19, "NOAA 19"},
     };
     proj = new Projector(tle_manager.catalog[tle_names[sat]]);
 
     timestamps = data.timestamps;
+
+    // Detect and remove invalid timestamps
+    for (auto &sensor : timestamps) {
+        double median;
+        {
+            std::vector<double> medianv = sensor.second;
+            std::sort(medianv.begin(), medianv.end());
+            median = medianv[medianv.size()/2];
+        }
+
+        for (size_t i = 0; i < sensor.second.size()-1; i++) {
+            if (fabs(sensor.second[i] - median) > 600.0 || fabs(sensor.second[i] - sensor.second[i+1]) > 0.2) {
+                sensor.second[i] = 0;
+            }
+        }
+    }
 
     delete decoder;
     decoder = nullptr;
@@ -450,7 +469,7 @@ void MainWindow::save_gcp() {
     QString filename = QFileDialog::getSaveFileName(this, "Save GCP File", name, "GCP (*.gcp)");
     if (filename.isEmpty()) return;
 
-    proj->save_gcp_file(timestamps[sensor], 40, 20, sensor, filename.toStdString());
+    proj->save_gcp_file(timestamps[sensor], 40, 20, sensor, sat, filename.toStdString());
 }
 
 void MainWindow::on_presetSelector_activated(QString text) {
