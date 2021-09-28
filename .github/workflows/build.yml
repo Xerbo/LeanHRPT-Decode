@@ -180,7 +180,7 @@ jobs:
             cp $WIN_TEMP_PATH/bin/Qt5Network.dll                       LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Gui.dll                           LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Widgets.dll                       LeanHRPT-Decode/ &&
-            cp $WIN_TEMP_PATH/lib/libpredict.dll                       LeanHRPT-Decode/ &&
+            cp libpredict/build/src/libpredict.dll                     LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/lib/libcorrect.dll                       LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libmuparser.dll                      LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libgcc_s_seh-1.dll                   LeanHRPT-Decode/ &&
