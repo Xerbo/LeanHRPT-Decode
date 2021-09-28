@@ -47,6 +47,7 @@ public:
     QAction *actionAbout_LeanHRPT;
     QAction *actionAbout_Qt;
     QAction *actionSave_Current_Image_Corrected;
+    QAction *actionSave_GCP_File;
     QWidget *centralwidget;
     QHBoxLayout *horizontalLayout;
     QWidget *optionsSidebar;
@@ -132,6 +133,8 @@ public:
         actionAbout_Qt->setObjectName(QString::fromUtf8("actionAbout_Qt"));
         actionSave_Current_Image_Corrected = new QAction(MainWindow);
         actionSave_Current_Image_Corrected->setObjectName(QString::fromUtf8("actionSave_Current_Image_Corrected"));
+        actionSave_GCP_File = new QAction(MainWindow);
+        actionSave_GCP_File->setObjectName(QString::fromUtf8("actionSave_GCP_File"));
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         horizontalLayout = new QHBoxLayout(centralwidget);
@@ -404,6 +407,7 @@ public:
         menuFile->addAction(actionSave_Current_Image);
         menuFile->addAction(actionSave_Current_Image_Corrected);
         menuFile->addAction(actionSave_All_Channels);
+        menuFile->addAction(actionSave_GCP_File);
         menuOptions->addAction(actionFlip);
         menuHelp->addAction(actionDocumentation);
         menuHelp->addAction(actionIssue_Tracker);
@@ -434,6 +438,7 @@ public:
         actionAbout_LeanHRPT->setText(QCoreApplication::translate("MainWindow", "About LeanHRPT", nullptr));
         actionAbout_Qt->setText(QCoreApplication::translate("MainWindow", "About Qt", nullptr));
         actionSave_Current_Image_Corrected->setText(QCoreApplication::translate("MainWindow", "Save Current Image (Corrected)", nullptr));
+        actionSave_GCP_File->setText(QCoreApplication::translate("MainWindow", "Save GCP File", nullptr));
         channelSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Channel Selector", nullptr));
         compoisteSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Composite Channel Selector", nullptr));
         redLabel->setText(QCoreApplication::translate("MainWindow", "Red", nullptr));

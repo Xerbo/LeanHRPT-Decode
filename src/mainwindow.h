@@ -36,6 +36,8 @@
 #include "imagecompositor.h"
 #include "preset.h"
 #include "satinfo.h"
+#include "tle.h"
+#include "projection.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -92,6 +94,10 @@ class MainWindow : public QMainWindow {
         SatID sat;
         int previousTabIndex = 0;
 
+        // Orbit information
+        TLEManager tle_manager;
+        Projector *proj;
+
         // Sensor selection
         Imager sensor;
         QActionGroup *sensor_select;
@@ -133,12 +139,17 @@ class MainWindow : public QMainWindow {
         bool savingImage = false;
         void saveAllChannels();
         void saveCurrentImage(bool corrected);
+
+        // GCP Saving
+        void save_gcp();
+        std::map<Imager, std::vector<double>> timestamps;
     private slots:
         // menuFile
         void on_actionOpen_triggered();
         void on_actionSave_Current_Image_triggered()           { saveCurrentImage(false); };
         void on_actionSave_Current_Image_Corrected_triggered() { saveCurrentImage(true); };
         void on_actionSave_All_Channels_triggered()            { saveAllChannels(); };
+        void on_actionSave_GCP_File_triggered()                { save_gcp(); };
         // menuOptions
         void on_actionFlip_triggered();
         // menuHelp

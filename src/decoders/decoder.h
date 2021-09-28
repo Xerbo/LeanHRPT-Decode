@@ -30,7 +30,7 @@
 
 struct Data {
     std::map<Imager, RawImage *> imagers;
-    std::map<std::string, double> coeffs;
+    std::map<Imager, std::vector<double>> timestamps;
 };
 
 class Decoder {
@@ -69,13 +69,13 @@ class Decoder {
         }
 
         Data get() {
-            return { images, coeffs };
+            return { images, timestamps };
         }
 
     protected:
         uint8_t *buffer;
         std::map<Imager, RawImage *> images;
-        std::map<std::string, double> coeffs;
+        std::map<Imager, std::vector<double>> timestamps;
         virtual void work(std::istream &stream)=0;
         bool is_ccsds_frames = false;
         bool is_raw16 = false;

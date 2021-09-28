@@ -181,6 +181,7 @@ void MainWindow::setState(WindowState state) {
     ui->actionSave_All_Channels->setEnabled(state == WindowState::Finished);
     ui->actionSave_Current_Image->setEnabled(state == WindowState::Finished);
     ui->actionSave_Current_Image_Corrected->setEnabled(state == WindowState::Finished);
+    ui->actionSave_GCP_File->setEnabled(state == WindowState::Finished);
     zoomIn->setEnabled(state == WindowState::Finished);
     zoomOut->setEnabled(state == WindowState::Finished);
     flip->setEnabled(state == WindowState::Finished);
@@ -263,6 +264,15 @@ void MainWindow::startDecode(std::string filename) {
 
     sensor = satellite.default_imager;
     sensor_actions.at(sensor_info.at(satellite.default_imager).name)->setChecked(true);
+
+    std::map<SatID, std::string> tle_names = {
+        { SatID::MetOpA, "METOP-A"},
+        { SatID::MetOpB, "METOP-B"},
+        { SatID::MetOpC, "METOP-C"}
+    };
+    proj = new Projector(tle_manager.catalog[tle_names[sat]]);
+
+    timestamps = data.timestamps;
 
     delete decoder;
     decoder = nullptr;
@@ -433,6 +443,14 @@ void MainWindow::saveAllChannels() {
         status->setText("Done");
         savingImage = false;
     }, directory);
+}
+
+void MainWindow::save_gcp() {
+    QString name = QString("%1_%2.gcp").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name));
+    QString filename = QFileDialog::getSaveFileName(this, "Save GCP File", name, "GCP (*.gcp)");
+    if (filename.isEmpty()) return;
+
+    proj->save_gcp_file(timestamps[sensor], 40, 20, sensor, filename.toStdString());
 }
 
 void MainWindow::on_presetSelector_activated(QString text) {

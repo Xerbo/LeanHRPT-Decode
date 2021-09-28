@@ -18,14 +18,8 @@
 
 #include "geometry.h"
 
+#include "projection.h"
 #include <cmath>
-
-const float EARTH_RADIUS = 6371.0f;
-
-// Convert from a internal angle of a circle to the viewing angle of a point above the circle.
-float earth2sat_angle(float radius, float height, float angle) {
-    return -std::atan(std::sin(angle)*radius / (std::cos(angle)*radius - (radius+height)));
-}
 
 // Based off https://github.com/Xerbo/meteor_corrector
 QImage correct_geometry(QImage image, SatID satellite, Imager sensor) {
@@ -36,12 +30,12 @@ QImage correct_geometry(QImage image, SatID satellite, Imager sensor) {
     std::vector<size_t> lut(output_width);
 
     float view_angle = sensorinfo.swath / EARTH_RADIUS;
-    float sat_edge = earth2sat_angle(EARTH_RADIUS, satinfo.orbit_height, view_angle/2);
+    float sat_edge = geo::earth2sat_angle(EARTH_RADIUS, satinfo.orbit_height, view_angle/2);
 
     // Compute a look up table of pixel positions
     for (size_t x = 0; x < output_width; x++) {
         float angle = (static_cast<float>(x)/static_cast<float>(output_width) - 0.5f) * view_angle;
-        angle = earth2sat_angle(EARTH_RADIUS, satinfo.orbit_height, angle);
+        angle = geo::earth2sat_angle(EARTH_RADIUS, satinfo.orbit_height, angle);
 
         lut[x] = (angle/sat_edge + 1.0f)/2.0f * static_cast<float>(image.width());
     }

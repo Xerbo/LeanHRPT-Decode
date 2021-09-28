@@ -93,6 +93,13 @@ class NOAADecoder : public Decoder {
                 }
             }
 
+            uint16_t days = repacked[8] >> 1;
+            uint32_t ms = (repacked[9] & 0b1111111) << 20 | repacked[10] << 10 | repacked[11];
+
+            double timestamp = 1609459200.0 - 86400.0;
+            timestamp += days*86400.0 + ms/1000.0;
+            timestamps[Imager::AVHRR].push_back(timestamp);
+
             for (size_t i = 0; i < 11090; i++) {
                 ptr[i] *= 64;
             }

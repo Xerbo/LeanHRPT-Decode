@@ -28,7 +28,9 @@ target_compile_options(LeanHRPT-Decode PRIVATE -msse4.2)
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Network REQUIRED)
 target_link_libraries(LeanHRPT-Decode PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(LeanHRPT-Decode PRIVATE Qt${QT_VERSION_MAJOR}::Network)
 
 # Bodge fix for GitHub Actions
 if (WAR_CRIMES)
@@ -38,6 +40,7 @@ endif()
 
 target_link_libraries(LeanHRPT-Decode PUBLIC correct)
 target_link_libraries(LeanHRPT-Decode PUBLIC muparser)
+target_link_libraries(LeanHRPT-Decode PUBLIC predict)
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)

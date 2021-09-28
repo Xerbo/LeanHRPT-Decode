@@ -84,7 +84,16 @@ jobs:
             cd libcorrect &&
             mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
+            make -j4 &&
+            make install'
+
+    - name: Install libpredict
+      run: 'git clone https://github.com/la1k/libpredict &&
+            cd libpredict &&
+            mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
             make -j4 &&
             make install'
 
@@ -93,7 +102,7 @@ jobs:
             cd muparser &&
             mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH -DENABLE_OPENMP=OFF -DENABLE_SAMPLES=OFF .. &&
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$TEMP_PATH -DENABLE_OPENMP=OFF -DENABLE_SAMPLES=OFF .. &&
             make -j4 &&
             make install'
 
@@ -116,6 +125,7 @@ jobs:
             cp calibration.ini                   LeanHRPT-Decode.AppDir/ &&
             cp -r $TEMP_PATH/plugins/platforms/  LeanHRPT-Decode.AppDir/usr/plugins/ &&
             cp $TEMP_PATH/lib/libQt5Gui.so.5     LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp $TEMP_PATH/lib/libQt5Network.so.5 LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libQt5Widgets.so.5 LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libQt5Core.so.5    LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libQt5XcbQpa.so.5  LeanHRPT-Decode.AppDir/usr/lib/ &&
@@ -123,6 +133,7 @@ jobs:
             cp $TEMP_PATH/lib/libicuuc.so.56     LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libicui18n.so.56   LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libicudata.so.56   LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp $TEMP_PATH/lib/libpredict.so      LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libcorrect.so      LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libmuparser.so     LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp build/LeanHRPT-Decode             LeanHRPT-Decode.AppDir/usr/bin/ &&
@@ -189,6 +200,15 @@ jobs:
             make -j4 &&
             make install'
 
+    - name: Install libpredict
+      run: 'git clone https://github.com/la1k/libpredict &&
+            cd libpredict &&
+            mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH .. &&
+            make -j4 &&
+            make install'
+
     - name: Compile LeanHRPT
       run: 'mkdir build &&
             cd build &&
@@ -205,9 +225,11 @@ jobs:
             cp calibration.ini                                         LeanHRPT-Decode/ &&
             cp build/LeanHRPT-Decode.exe                               LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Core.dll                          LeanHRPT-Decode/ &&
+            cp $WIN_TEMP_PATH/bin/Qt5Network.dll                       LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Gui.dll                           LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Widgets.dll                       LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/lib/libcorrect.dll                       LeanHRPT-Decode/ &&
+            cp $WIN_TEMP_PATH/lib/libpredict.dll                       LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libmuparser.dll                      LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libgcc_s_seh-1.dll                   LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libstdc++-6.dll                      LeanHRPT-Decode/ &&

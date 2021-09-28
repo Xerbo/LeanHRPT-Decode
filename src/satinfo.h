@@ -55,13 +55,14 @@ struct SensorInfo {
     std::string name;
     float swath; // in km/px
     float resolution; // in km
+    size_t width;
 };
 
 const std::map<Imager, SensorInfo> sensor_info = {
-    { Imager::AVHRR, SensorInfo {"AVHRR",  2900.0f, 1.1f } },
-    { Imager::VIRR,  SensorInfo {"VIRR",   2800.0f, 1.1f } },
-    { Imager::MSUMR, SensorInfo {"MSU-MR", 2800.0f, 1.0f } },
-    { Imager::MHS,   SensorInfo {"MHS",    2180.0f, 16.0f } }
+    { Imager::AVHRR, SensorInfo {"AVHRR",  2880.0f, 1.1f,  2048 } },
+    { Imager::VIRR,  SensorInfo {"VIRR",   2800.0f, 1.1f,  2048 } },
+    { Imager::MSUMR, SensorInfo {"MSU-MR", 2800.0f, 1.0f,  1572 } },
+    { Imager::MHS,   SensorInfo {"MHS",    2180.0f, 16.0f, 90   } }
 };
 
 const std::map<std::string, Imager> sensors = {
