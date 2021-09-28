@@ -23,7 +23,7 @@
 #include <string>
 #include <map>
 
-#define TLE_URL "https://celestrak.com/NORAD/elements/weather.txt"
+#define TLE_URL "http://celestrak.com/NORAD/elements/weather.txt"
 
 // Super simple class that downloads and parses TLEs in the background
 class TLEManager {

@@ -91,7 +91,7 @@ jobs:
             cp $TEMP_PATH/lib/libicuuc.so.56     LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libicui18n.so.56   LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libicudata.so.56   LeanHRPT-Decode.AppDir/usr/lib/ &&
-            cp $TEMP_PATH/lib/libpredict.so      LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp $TEMP_PATH/lib/libpredict.so.3    LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libcorrect.so      LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libmuparser.so     LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp build/LeanHRPT-Decode             LeanHRPT-Decode.AppDir/usr/bin/ &&
