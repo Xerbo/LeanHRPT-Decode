@@ -23,6 +23,10 @@
 #include <algorithm>
 #include <map>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 namespace geo {
     // Convert from a internal angle of a circle to the viewing angle of a point above the circle.
     double earth2sat_angle(double radius, double height, double angle) {
