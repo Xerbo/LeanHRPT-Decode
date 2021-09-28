@@ -205,7 +205,7 @@ jobs:
             cd libpredict &&
             mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH .. &&
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-D_POSIX_C_SOURCE=1"  -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH .. &&
             make -j4 &&
             make install'
 

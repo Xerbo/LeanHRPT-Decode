@@ -65,7 +65,7 @@ namespace geo {
 struct ProjectionInfo {
     double angle;
     double swath;
-    double time_offset,
+    double time_offset;
 };
 
 const std::map<SatID, ProjectionInfo> projection_factors = {
