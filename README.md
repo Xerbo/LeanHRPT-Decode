@@ -12,7 +12,9 @@ See the [wiki](https://github.com/Xerbo/LeanHRPT-Decode/wiki).
 
 Compiled builds for Linux and Windows are available from the [releases](https://github.com/Xerbo/LeanHRPT-Decode/releases) page.
 
-For those who wish to compile from source you will need `qtbase5-dev`, [`libcorrect`](https://github.com/quiet/libcorrect) and [`muparser`](https://github.com/beltoforion/muparser) installed. After that you can compile with:
+## Building from source
+
+For those who wish to compile from source you will need `qtbase5-dev`, [`libcorrect`](https://github.com/quiet/libcorrect), [`muparser`](https://github.com/beltoforion/muparser) and ['libpredict'](https://github.com/la1k/libpredict) installed. After that you can compile with:
 
 ```sh
 mkdir build && cd build
@@ -29,6 +31,10 @@ ln -s ../calibration.ini ..
 ```
 
 And then run the resulting binary.
+
+### Packaging your own builds
+
+TODO
 
 ## Example results
 
@@ -51,6 +57,7 @@ Input files should be:
 ## Credits
 
  - Reed Solomon - adapted from `libsathelper`
+ - "reckon" - adapted from `noaa-apt`
 
 ## Flowcharts
 

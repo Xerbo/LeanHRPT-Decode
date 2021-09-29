@@ -57,7 +57,7 @@ A high quality, easy to use HRPT decoder\
 <li><code>Ctrl+F</code> Flip image</li>\
 </ul>\
 Licensed under GPL-3.0.\
-<p>This program uses <a href=\"https://github.com/mcmtroffaes/inipp\">inipp</a>, <a href=\"https://github.com/quiet/libcorrect\">libcorrect</a> and <a href=\"https://github.com/beltoforion/muparser\">muParser</a> which are licensed under the MIT, BSD 3-Clause \"Revised\" and BSD 2-Clause \"Simplified\" license respectively.</p>"
+<p>This program uses <a href=\"https://github.com/mcmtroffaes/inipp\">inipp</a>, <a href=\"https://github.com/quiet/libcorrect\">libcorrect</a>, <a href=\"https://github.com/beltoforion/muparser\">muparser</a> and <a href=\"https://github.com/la1k/libpredict\">libpredict</a> which are licensed under the MIT, BSD 3-Clause \"Revised\", BSD 2-Clause \"Simplified\" and GPL-2.0 license respectively.</p>"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
