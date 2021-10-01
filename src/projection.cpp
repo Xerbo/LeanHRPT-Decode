@@ -33,6 +33,10 @@ namespace geo {
         return -atan(sin(angle)*radius / (cos(angle)*radius - (radius+height)));
     }
 
+    double sat2earth_angle(double radius, double height, double angle) {
+        return asin((radius+height)/radius * sin(angle)) - angle;
+    }
+
     // These functions (azimuth and reckon) are adapted from https://github.com/martinber/noaa-apt/blob/master/src/geo.rs
     double azimuth(LatLon a, LatLon b) {
         // https://en.wikipedia.org/w/index.php?title=Azimuth&oldid=750059816#Calculating_azimuth
@@ -67,18 +71,19 @@ namespace geo {
 }
 
 struct ProjectionInfo {
-    double angle;
-    double swath;
-    double time_offset;
+    double angle; // deg;
+    double fov; // +/- deg
+    double xoffset; // deg
+    double time_offset; // seconds
 };
 
 const std::map<SatID, ProjectionInfo> projection_factors = {
-    { NOAA15, { -94.0, 2950.0, 0.0 }},
-    { NOAA18, { -94.0, 2950.0, 0.0 }},
-    { NOAA19, { -94.0, 2950.0, 0.0 }},
-    { MetOpA, { -90.0, 2880.0, -0.5 }},
-    { MetOpB, { -90.0, 2880.0, -0.5 }},
-    { MetOpC, { -90.0, 2880.0, -0.5 }},
+    { NOAA15, { -92.6, 55.31, 0.1, -2.0/6.0 }}, // Untested
+    { NOAA18, { -92.6, 55.31, 0.1, -2.0/6.0 }}, // Untested
+    { NOAA19, { -92.6, 55.31, 0.1, -2.0/6.0 }}, // Needs further tuning
+    { MetOpA, { -90.0, 55.31, 0.1, 1.0/6.0 }}, // Untested
+    { MetOpB, { -90.0, 55.31, 0.1, 1.0/6.0 }}, // Good
+    { MetOpC, { -90.0, 55.31, 0.1, 1.0/6.0 }}, // Untested
 };
 
 void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename) {
@@ -116,7 +121,7 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
             az = geo::azimuth({a.latitude, a.longitude}, {b.latitude, b.longitude}) + info.angle*M_PI/180.0;
         }
 
-        auto scan = calculate_scan({orbit.latitude, orbit.longitude}, az, orbit.altitude, info.swath, pointsx);
+        auto scan = calculate_scan({orbit.latitude, orbit.longitude}, az, orbit.altitude, info.fov, info.xoffset, pointsx);
         for (auto &point : scan) {
             stream << "-gcp " << point.first << " " << y << " " << (point.second.second*180.0/M_PI) << " " << (point.second.first*180.0/M_PI) << " ";
         }
@@ -126,9 +131,9 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
     file.close();
 }
 
-std::vector<std::pair<double, geo::LatLon>> Projector::calculate_scan(geo::LatLon position, double az, double altitude, double swath, size_t points) {
+std::vector<std::pair<double, geo::LatLon>> Projector::calculate_scan(geo::LatLon position, double az, double altitude, double fov, double xoffset, size_t points) {
     std::vector<std::pair<double, geo::LatLon>> scan;
-    double view_angle = (double)swath/EARTH_RADIUS;
+    double view_angle = geo::sat2earth_angle(EARTH_RADIUS, altitude, fov*M_PI/180.0)*2.0;
 
     for (size_t i = 0; i < points; i++) {
         // The angle that the sensor is pointing at
@@ -138,7 +143,7 @@ std::vector<std::pair<double, geo::LatLon>> Projector::calculate_scan(geo::LatLo
 
         // Convert scan angle to angle on the earth
         double sat_edge = geo::earth2sat_angle(EARTH_RADIUS, altitude, view_angle/2);
-        double angle = geo::earth2sat_angle(EARTH_RADIUS, altitude, sensor_angle);
+        double angle = geo::earth2sat_angle(EARTH_RADIUS, altitude, sensor_angle) + xoffset*M_PI/180.0;
 
         // Create a list of points and their respective coordinates
         scan.push_back({(angle/sat_edge + 1.0)/2.0 * (double)d_sensor.width, pos});

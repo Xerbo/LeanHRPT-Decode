@@ -32,6 +32,7 @@ namespace geo {
     using LatLon = std::pair<double, double>;
 
     double earth2sat_angle(double radius, double height, double angle);
+    double sat2earth_angle(double radius, double height, double angle);
     double azimuth(LatLon a, LatLon b);
     LatLon reckon(double lat, double lon, double range, double azimuth);
 }
@@ -43,7 +44,7 @@ class Projector {
 
         void save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename);
     private:
-        std::vector<std::pair<double, geo::LatLon>> calculate_scan(geo::LatLon position, double az, double altitude, double swath, size_t points);
+        std::vector<std::pair<double, geo::LatLon>> calculate_scan(geo::LatLon position, double az, double altitude, double fov, double xoffset, size_t points);
 
         OrbitPredictor predictor;
         SensorInfo d_sensor;
