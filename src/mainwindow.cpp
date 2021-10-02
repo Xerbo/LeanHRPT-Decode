@@ -273,7 +273,9 @@ void MainWindow::startDecode(std::string filename) {
         { SatID::NOAA18, "NOAA 18"},
         { SatID::NOAA19, "NOAA 19"},
     };
-    proj = new Projector(tle_manager.catalog[tle_names[sat]]);
+    if (tle_manager.catalog.count(tle_names[sat])) {
+        proj = new Projector(tle_manager.catalog[tle_names[sat]]);
+    }
 
     timestamps = data.timestamps;
 
@@ -287,7 +289,7 @@ void MainWindow::startDecode(std::string filename) {
         }
 
         for (size_t i = 0; i < sensor.second.size()-1; i++) {
-            if (fabs(sensor.second[i] - median) > 600.0 || fabs(sensor.second[i] - sensor.second[i+1]) > 0.2) {
+            if (fabs(sensor.second[i] - median) > 600.0) {
                 sensor.second[i] = 0;
             }
         }
@@ -465,6 +467,11 @@ void MainWindow::saveAllChannels() {
 }
 
 void MainWindow::save_gcp() {
+    if (tle_manager.catalog.size() == 0) {
+        QMessageBox::warning(this, "Error", "No TLEs loaded, cannot save control points.", QMessageBox::Ok);
+        return;
+    }
+
     QString name = QString("%1_%2.gcp").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name));
     QString filename = QFileDialog::getSaveFileName(this, "Save GCP File", name, "GCP (*.gcp)");
     if (filename.isEmpty()) return;

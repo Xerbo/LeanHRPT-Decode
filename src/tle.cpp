@@ -24,6 +24,10 @@
 TLEManager::TLEManager() {
     QNetworkAccessManager *manager = new QNetworkAccessManager();
     QNetworkAccessManager::connect(manager, &QNetworkAccessManager::finished, [this](QNetworkReply *reply) {
+        if (reply->error() != QNetworkReply::NoError) {
+            return;
+        }
+
         QStringList lines = QString(reply->readAll()).split("\r\n");
 
         for (size_t i = 0; i < lines.size()-2; i += 3) {
