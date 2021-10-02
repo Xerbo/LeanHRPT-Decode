@@ -77,13 +77,16 @@ struct ProjectionInfo {
     double time_offset; // seconds
 };
 
-const std::map<SatID, ProjectionInfo> projection_factors = {
-    { NOAA15, { -92.6, 55.31, 0.1, -2.0/6.0 }}, // Untested
-    { NOAA18, { -92.6, 55.31, 0.1, -2.0/6.0 }}, // Untested
-    { NOAA19, { -92.6, 55.31, 0.1, -2.0/6.0 }}, // Needs further tuning
-    { MetOpA, { -90.0, 55.31, 0.1, 1.0/6.0 }}, // Untested
-    { MetOpB, { -90.0, 55.31, 0.1, 1.0/6.0 }}, // Good
-    { MetOpC, { -90.0, 55.31, 0.1, 1.0/6.0 }}, // Untested
+const std::map<std::pair<SatID, Imager>, ProjectionInfo> projection_factors = {
+    { { NOAA15, AVHRR }, { -92.6, 55.31, 0.1, -2.0/6.0 }}, // Untested
+    { { NOAA18, AVHRR }, { -92.6, 55.31, 0.1, -2.0/6.0 }}, // Untested
+    { { NOAA19, AVHRR }, { -92.6, 55.31, 0.1, -2.0/6.0 }},
+    { { MetOpA, AVHRR }, { -90.0, 55.31, 0.1, 1.0/6.0 }},
+    { { MetOpB, AVHRR }, { -90.0, 55.31, 0.1, 1.0/6.0 }},
+    { { MetOpC, AVHRR }, { -90.0, 55.31, 0.1, 1.0/6.0 }}, // Untested
+    { { MetOpA, MHS },   { -90.0, 49.4, 0.5, 0.5 }},
+    { { MetOpB, MHS },   { -90.0, 49.4, 0.5, 0.5 }},
+    { { MetOpC, MHS },   { -90.0, 49.4, 0.5, 0.5 }}, // Untested
 };
 
 void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename) {
@@ -101,7 +104,7 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
     d_sensor = sensor_info.at(sensor);
     ProjectionInfo info;
     try {
-        info = projection_factors.at(sat);
+        info = projection_factors.at({sat, sensor});
     } catch(const std::exception& e) {
         return;
     }

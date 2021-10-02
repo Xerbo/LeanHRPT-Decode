@@ -80,6 +80,14 @@ class MetOpDecoder : public Decoder {
 
                 if (line.size() == 1308) {
                     images[Imager::MHS]->push16Bit((uint16_t *)&line[70], 0);
+
+                    // Days since 01/01/2000
+                    uint16_t days = line[6] << 8 | line[7];
+                    // Milliseconds since start of the day
+                    uint32_t ms = line[8] << 24 | line[9] << 16 | line[10] << 8 | line[11];
+
+                    double timestamp = 946684800.0 + days*86400.0 + ms/1000.0;
+                    timestamps[Imager::MHS].push_back(timestamp);                    
                 }
             }
         }
