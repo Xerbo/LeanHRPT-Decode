@@ -21,13 +21,21 @@
 #include "projection.h"
 #include <cmath>
 
+QColor lerp(QColor a, QColor b, double n) {
+    return QColor::fromRgbF(
+        a.redF()  *(1.0-n) + b.redF()  *n,
+        a.greenF()*(1.0-n) + b.greenF()*n,
+        a.blueF() *(1.0-n) + b.blueF() *n
+    );
+}
+
 // Based off https://github.com/Xerbo/meteor_corrector
 QImage correct_geometry(QImage image, SatID satellite, Imager sensor) {
     const SatelliteInfo satinfo = satellite_info.at(satellite);
     const SensorInfo sensorinfo = sensor_info.at(sensor);
 
     const size_t output_width = sensorinfo.swath/sensorinfo.resolution;
-    std::vector<size_t> lut(output_width);
+    std::vector<float> lut(output_width);
 
     float view_angle = sensorinfo.swath / EARTH_RADIUS;
     float sat_edge = geo::earth2sat_angle(EARTH_RADIUS, satinfo.orbit_height, view_angle/2);
@@ -37,14 +45,16 @@ QImage correct_geometry(QImage image, SatID satellite, Imager sensor) {
         float angle = (static_cast<float>(x)/static_cast<float>(output_width) - 0.5f) * view_angle;
         angle = geo::earth2sat_angle(EARTH_RADIUS, satinfo.orbit_height, angle);
 
-        lut[x] = (angle/sat_edge + 1.0f)/2.0f * static_cast<float>(image.width());
+        lut[x] = (angle/sat_edge + 1.0f)/2.0f * static_cast<float>(image.width()-1);
     }
 
     // Copy pixels over from the source to the corrected image
     QImage corrected(output_width, image.height(), image.format());
     for (size_t y = 0; y < static_cast<size_t>(image.height()); y++) {
         for (size_t x = 0; x < output_width; x++) {
-            corrected.setPixelColor(x, y, image.pixelColor(lut[x], y));
+            QColor a = image.pixelColor(floor(lut[x]), y);
+            QColor b = image.pixelColor(ceil(lut[x]), y);
+            corrected.setPixelColor(x, y, lerp(a, b, fmod(lut[x], 1.0)));
         }
     }
 

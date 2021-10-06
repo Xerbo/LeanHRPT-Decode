@@ -100,7 +100,7 @@ bool Fingerprint::is_noaa(std::istream &stream) {
     size_t noaa_frames = 0;
     size_t ccsds_frames = 0;
 
-    while (!stream.eof()) {
+    while (is_running && !stream.eof()) {
         stream.read(reinterpret_cast<char *>(buffer), 1024);
         if (deframer.work(buffer, ccsds_frame.data(), 1024)) {
             if (ccsds_frames++ > 200) {
