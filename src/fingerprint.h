@@ -2,6 +2,7 @@
 #define LEANHRPT_FINGERPRINT_H
 
 #include "satinfo.h"
+#include "decoders/decoder.h"
 #include <fstream>
 #include <string>
 #include <atomic>
@@ -9,12 +10,13 @@
 class Fingerprint {
     public:
         Fingerprint() : is_running(true) { }
-        SatID file(std::string filename);
+        std::pair<SatID, FileType> file(std::string filename);
 
         void stop() {
             is_running = false;
         }
     private:
+        SatID fingerprint_vcdu(std::istream &strema);
         SatID fingerprint_ccsds(std::istream &stream);
         SatID fingerprint_ccsds_raw(std::istream &stream);
         bool is_noaa(std::istream &stream);

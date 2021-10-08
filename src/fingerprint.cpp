@@ -70,6 +70,22 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream) {
     return SatID::Unknown;
 }
 
+SatID Fingerprint::fingerprint_vcdu(std::istream &stream) {
+    CCSDSFingerprint fingerprint(false);
+    uint8_t frame[1024];
+
+    while (is_running && !stream.eof()) {
+        stream.read((char *)&frame[4], 892);
+
+        SatID id = fingerprint.processFrame(frame);
+        if (id != SatID::Unknown) {
+            return id;
+        }
+    }
+
+    return SatID::Unknown;
+}
+
 SatID Fingerprint::fingerprint_ccsds_raw(std::istream &stream) {
     ccsds::Deframer deframer;
     CCSDSFingerprint fingerprint(true);
@@ -183,32 +199,47 @@ SatID Fingerprint::id_noaa_raw(std::istream &stream) {
     return SatID::Unknown;
 }
 
-SatID Fingerprint::file(std::string filename) {
+std::pair<SatID, FileType> Fingerprint::file(std::string filename) {
     std::filebuf file;
     if (!file.open(filename, std::ios::in | std::ios::binary)) {
-        return SatID::Unknown;
+        return {SatID::Unknown, FileType::Unknown};
     }
     std::istream stream(&file);
+
+    std::string extension = filename.substr(filename.find(".")+1);
+    if (extension == "cadu") {
+        SatID id = fingerprint_ccsds(stream);
+        file.close();
+        return {id, FileType::CADU};
+    } else if (extension == "vcdu") {
+        SatID id = fingerprint_vcdu(stream);
+        file.close();
+        return {id, FileType::VCDU};
+    } else if (extension == "raw16") {
+        SatID id = id_noaa(stream);
+        file.close();
+        return {id, FileType::raw16};
+    }
 
     if (is_ccsds(stream)) {
         SatID id = fingerprint_ccsds(stream);
         file.close();
-        return id;
+        return {id, FileType::CADU};
     }
 
     if (is_raw16(stream)) {
         SatID id = id_noaa(stream);
         file.close();
-        return id;
+        return {id, FileType::raw16};
     }
 
     if (is_noaa(stream)) {
         SatID id = id_noaa_raw(stream);
         file.close();
-        return id;
+        return {id, FileType::Raw};
     }
 
     SatID id = fingerprint_ccsds_raw(stream);
     file.close();
-    return id;
+    return {id, FileType::Raw};
 }

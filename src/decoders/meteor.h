@@ -48,7 +48,7 @@ class MeteorDecoder : public Decoder {
         ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8> MSUMRDeframer;
 
         void work(std::istream &stream) {
-            if (is_ccsds_frames) {
+            if (d_filetype == FileType::CADU) {
                 stream.read(reinterpret_cast<char *>(frame), 1024);
                 frame_work(frame);
             } else {

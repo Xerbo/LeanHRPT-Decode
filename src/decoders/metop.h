@@ -45,7 +45,7 @@ class MetOpDecoder : public Decoder {
         ccsds::Demuxer demux, mhs_demux;
 
         void work(std::istream &stream) {
-            if (is_ccsds_frames) {
+            if (d_filetype == FileType::CADU) {
                 stream.read(reinterpret_cast<char *>(frame), 1024);
                 frame_work(frame);
             } else {

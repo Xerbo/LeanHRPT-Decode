@@ -46,7 +46,7 @@ class FengyunDecoder : public Decoder {
         SatHelper::ReedSolomon reedSolomon;
 
         void work(std::istream &stream) {
-            if (is_ccsds_frames) {
+            if (d_filetype == FileType::CADU) {
                 stream.read(reinterpret_cast<char *>(frame), 1024);
                 frame_work(frame);
             } else {

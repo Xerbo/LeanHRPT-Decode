@@ -33,6 +33,14 @@ struct Data {
     std::map<Imager, std::vector<double>> timestamps;
 };
 
+enum class FileType {
+    Raw,
+    CADU,
+    VCDU,
+    raw16,
+    Unknown
+};
+
 class Decoder {
     public:
         Decoder() : is_running(true) {
@@ -45,13 +53,14 @@ class Decoder {
             delete[] buffer;
         }
 
-        bool decodeFile(std::string filename) {
+        bool decodeFile(std::string filename, FileType filetype) {
+            d_filetype = filetype;
             std::filebuf file;
             if (!file.open(filename, std::ios::in | std::ios::binary)) {
                 return false;
             }
             std::istream stream(&file);
-            read_meta(stream);
+            get_filesize(stream);
 
             while (is_running && !stream.eof()) {
                 work(stream);
@@ -77,26 +86,19 @@ class Decoder {
         std::map<Imager, RawImage *> images;
         std::map<Imager, std::vector<double>> timestamps;
         virtual void work(std::istream &stream)=0;
-        bool is_ccsds_frames = false;
-        bool is_raw16 = false;
+        FileType d_filetype;
 
     private:
         std::atomic<bool> is_running;
         size_t read = 0;
         size_t filesize = 1;
 
-        void read_meta(std::istream &stream) {
-            // Determine weather the file is CCSDS frames or not
-            uint8_t header[4];
-            stream.read(reinterpret_cast<char *>(header), 4);
-            is_ccsds_frames = (header[0] == 0x1A && header[1] == 0xCF && header[2] && 0xFC && header[3] == 0x1D);
-            is_raw16        = (header[0] == 0x84 && header[1] == 0x02 && header[2] && 0x6F && header[3] == 0x01);
-
+        void get_filesize(std::istream &stream) {
             // Get filesize
             stream.seekg(0, std::ios::end);
             filesize = stream.tellg();
 
-            // Reset
+            // Seek back to the beginning
             stream.seekg(stream.beg);
         }
 };

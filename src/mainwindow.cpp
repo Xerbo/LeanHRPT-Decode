@@ -214,7 +214,8 @@ void MainWindow::startDecode(std::string filename) {
     status->setText("Fingerprinting");
 
     fingerprinter = new Fingerprint;
-    sat = fingerprinter->file(filename);
+    std::pair<SatID, FileType> info = fingerprinter->file(filename);
+    sat = info.first;
     if (sat == SatID::Unknown) {
         delete fingerprinter;
         fingerprinter = nullptr;
@@ -233,7 +234,7 @@ void MainWindow::startDecode(std::string filename) {
         case Mission::POES:     decoder = new NOAADecoder; break;
         default: throw std::runtime_error("invalid value in enum `Mission`");
     }
-    decoder->decodeFile(filename);
+    decoder->decodeFile(filename, info.second);
     if (clean_up) {
         sat = SatID::Unknown;
         delete decoder;

@@ -39,7 +39,7 @@ class NOAADecoder : public Decoder {
             delete[] repacked;
         }
         void work(std::istream &stream) {
-            if (is_raw16) {
+            if (d_filetype == FileType::raw16) {
                 stream.read(reinterpret_cast<char *>(repacked), 11090*2);
                 frame_work(repacked);
             } else {
