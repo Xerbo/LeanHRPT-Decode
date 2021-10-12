@@ -49,6 +49,9 @@ class FengyunDecoder : public Decoder {
             if (d_filetype == FileType::CADU) {
                 stream.read(reinterpret_cast<char *>(frame), 1024);
                 frame_work(frame);
+            } else if (d_filetype == FileType::VCDU) {
+                stream.read((char *)&frame[4], 892);
+                frame_work(frame);
             } else {
                 stream.read(reinterpret_cast<char *>(buffer), BUFFER_SIZE);
                 if (deframer.work(buffer, frame, BUFFER_SIZE)) {
