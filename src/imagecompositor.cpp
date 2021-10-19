@@ -142,14 +142,17 @@ double set_bw(double val) {
 
 // Evaluate `expression` and store the results in `image`
 void ImageCompositor::getExpression(QImage &image, std::string experssion) {
-    if (image.format() != QImage::Format_RGBX64) {
-        image = QImage(image.width(), image.height(), QImage::Format_RGBX64);
+    QImage::Format format = (experssion.substr(0, 3) == "rgb") ? QImage::Format_RGBX64 : QImage::Format_Grayscale16;
+    if (image.format() != format) {
+        image = QImage(image.width(), image.height(), format);
     }
+
     std::vector<quint16 *> rawbits(m_channels);
     for (size_t i = 0; i < m_channels; i++) {
         rawbits[i] = (quint16 *)rawChannels[i].bits();
     }
     QRgba64 *bits = reinterpret_cast<QRgba64 *>(image.bits());
+    quint16 *grayscale_bits = reinterpret_cast<quint16 *>(image.bits());
 
     #pragma omp parallel
     {
@@ -186,7 +189,12 @@ void ImageCompositor::getExpression(QImage &image, std::string experssion) {
                 }
 
                 double val = p.Eval();
-                bits[y*m_width + x] = *(QRgba64 *)&val;
+                QRgba64 color = *(QRgba64 *)&val;
+                if (format == QImage::Format_Grayscale16) {
+                    grayscale_bits[y*m_width + x] = color.red();
+                } else {
+                    bits[y*m_width + x] = color;
+                }
             }
         }
     }
