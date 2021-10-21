@@ -31,6 +31,7 @@
 struct Data {
     std::map<Imager, RawImage *> imagers;
     std::map<Imager, std::vector<double>> timestamps;
+    std::map<std::string, double> caldata;
 };
 
 enum class FileType {
@@ -78,13 +79,14 @@ class Decoder {
         }
 
         Data get() {
-            return { images, timestamps };
+            return { images, timestamps, caldata };
         }
 
     protected:
         uint8_t *buffer;
         std::map<Imager, RawImage *> images;
         std::map<Imager, std::vector<double>> timestamps;
+        std::map<std::string, double> caldata;
         virtual void work(std::istream &stream)=0;
         FileType d_filetype;
 

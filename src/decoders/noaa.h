@@ -33,6 +33,17 @@ class NOAADecoder : public Decoder {
             repacked = new uint16_t[11090];
             images[Imager::AVHRR] = new RawImage(2048, 5);
             images[Imager::MHS] = new RawImage(90, 6);
+
+            caldata["prt"] = 0.0;
+            caldata["ptrn"] = 0.0;
+            caldata["ch1_space"] = 0.0;
+            caldata["ch2_space"] = 0.0;
+            caldata["ch3_space"] = 0.0;
+            caldata["ch4_space"] = 0.0;
+            caldata["ch5_space"] = 0.0;
+            caldata["ch3_cal"] = 0.0;
+            caldata["ch4_cal"] = 0.0;
+            caldata["ch5_cal"] = 0.0;
         }
         ~NOAADecoder() {
             delete[] frame;
@@ -95,6 +106,29 @@ class NOAADecoder : public Decoder {
 
             uint16_t days = repacked[8] >> 1;
             uint32_t ms = (repacked[9] & 0b1111111) << 20 | repacked[10] << 10 | repacked[11];
+
+            if (ptr[17] == ptr[18] && ptr[18] == ptr[19] && ptr[17] != 0) {
+                caldata["prt"] += ptr[17];
+                caldata["prtn"] += 1.0;
+            }
+
+            for (size_t i = 0; i < 5; i++) {
+                double sum = 0.0;
+                for (size_t x = 0; x < 10; x++) {
+                    sum += ptr[52 + x*5 + i];
+                }
+
+                caldata["ch" + std::to_string(i+1) + "_space"] += sum/10.0;
+            }
+
+            for (size_t i = 0; i < 3; i++) {
+                double sum = 0.0;
+                for (size_t x = 0; x < 10; x++) {
+                    sum += ptr[22 + x*3 + i];
+                }
+
+                caldata["ch" + std::to_string(i+3) + "_cal"] += sum/10.0;
+            }
 
             double timestamp = 1609459200.0 - 86400.0;
             timestamp += days*86400.0 + ms/1000.0;

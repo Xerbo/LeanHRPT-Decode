@@ -60,7 +60,7 @@ int parseCommandLine(QCommandLineParser &parser) {
 
     ImageCompositor compositor;
     for (auto imager : data.imagers) {
-        compositor.import(imager.second, sat, imager.first);
+        compositor.import(imager.second, sat, imager.first, data.caldata);
         QImage image(compositor.width(), compositor.height(), QImage::Format_RGBX64);
 
         for (size_t i = 0; i < compositor.channels(); i++) {

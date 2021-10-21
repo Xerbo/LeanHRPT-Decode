@@ -32,7 +32,7 @@ enum Equalization {
 
 class ImageCompositor {
     public:
-        void import(RawImage *image, SatID satellite, Imager sensor);
+        void import(RawImage *image, SatID satellite, Imager sensor, std::map<std::string, double> caldata);
 
         // Manipulation functions
         void flip();
@@ -53,9 +53,11 @@ class ImageCompositor {
         size_t m_channels;
         bool m_isFlipped;
         std::vector<QImage> rawChannels;
+        std::map<std::string, double> d_caldata;
 
         void calibrate_avhrr(QImage &image, double a1, double b1, double a2, double b2, double c);
         void calibrate_linear(QImage &image, double a, double b);
+        void calibrate_ir(size_t ch, double Ns, double b0, double b1, double b2, double Vc, double A, double B);
 
         template<typename T, size_t A, size_t B>
         static std::vector<size_t> create_histogram(QImage &image, float clip_limit = 1.0f);

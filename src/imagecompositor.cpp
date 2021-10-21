@@ -34,11 +34,17 @@ T clamp(T v, T lo, T hi) {
     return std::max(lo, std::min(hi, v));
 }
 
-void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor) {
+double str2double(std::string str) {
+    QLocale l(QLocale::C);
+    return l.toDouble(QString::fromStdString(str));
+}
+
+void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, std::map<std::string, double> caldata) {
     m_width = image->width();
     m_height = image->rows();
     m_channels = image->channels();
     m_isFlipped = false;
+    d_caldata = caldata;
 
     rawChannels.clear();
     rawChannels.resize(m_channels);
@@ -55,17 +61,25 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor) {
         if (ini.sections.count(name)) {
             std::map<std::string, std::string> coefficients = ini.sections.at(name);
 
-            QLocale l(QLocale::C);
             if (coefficients.count("a1")) {
-                double a1 = l.toDouble(QString::fromStdString(coefficients.at("a1")));
-                double b1 = l.toDouble(QString::fromStdString(coefficients.at("b1")));
-                double a2 = l.toDouble(QString::fromStdString(coefficients.at("a2")));
-                double b2 = l.toDouble(QString::fromStdString(coefficients.at("b2")));
-                double c  = l.toDouble(QString::fromStdString(coefficients.at("c")));
+                double a1 = str2double(coefficients.at("a1"));
+                double b1 = str2double(coefficients.at("b1"));
+                double a2 = str2double(coefficients.at("a2"));
+                double b2 = str2double(coefficients.at("b2"));
+                double c  = str2double(coefficients.at("c"));
                 calibrate_avhrr(rawChannels[i], a1, b1, a2, b2, c);
+            } else if (coefficients.count("ns")) {
+                double ns = str2double(coefficients.at("ns"));
+                double b0 = str2double(coefficients.at("b0"));
+                double b1 = str2double(coefficients.at("b1"));
+                double b2 = str2double(coefficients.at("b2"));
+                double vc = str2double(coefficients.at("vc"));
+                double a = str2double(coefficients.at("a"));
+                double b = str2double(coefficients.at("b"));
+                calibrate_ir(i+1, ns, b0, b1, b2, vc, a, b);
             } else if (coefficients.count("a")) {
-                double a = l.toDouble(QString::fromStdString(coefficients.at("a")));
-                double b = l.toDouble(QString::fromStdString(coefficients.at("b")));
+                double a = str2double(coefficients.at("a"));
+                double b = str2double(coefficients.at("b"));
                 calibrate_linear(rawChannels[i], a, b);
             }
         }
@@ -75,6 +89,40 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor) {
         for(size_t i = 0; i < m_channels; i++) {
             rawChannels[i] = rawChannels[i].mirrored(true, false);
         }
+    }
+}
+
+void ImageCompositor::calibrate_ir(size_t ch, double Ns, double b0, double b1, double b2, double Vc, double A, double B) {
+    double Cprt = d_caldata["prt"]/d_caldata["prtn"]; // Average PRT count
+
+    // Each PRT reading should be calculated seperately,
+    // but this seems to work well enough
+    double Tbb = 276.6 + Cprt * 0.0511; // Blackbody temperature
+    double Tbbstar = A + B*Tbb; // Effective blackbody temperature
+
+    const double c1 = 1.1910427e-5; // mW/(m^2-sr-cm^-4)
+    const double c2 = 1.4387752; // cm-K
+    double Nbb = c1*pow(Vc, 3) / (exp(c2 * Vc/Tbbstar)-1.0); // Blackbody radiance
+
+    double Cs = d_caldata["ch" + std::to_string(ch) + "_space"]/ static_cast<double>(m_height); // Average space count
+    double Cbb = d_caldata["ch" + std::to_string(ch) + "_cal"] / static_cast<double>(m_height); // Average backscan count
+
+    quint16 *bits = (quint16 *)rawChannels[ch-1].bits();
+
+    for (size_t i = 0; i < m_height*m_width; i++) {
+        double Ce = bits[i]/64; // Earth count
+        double Nlin = Ns + (Nbb - Ns) * (Cs - Ce)/(Cs - Cbb); // Linear radiance estimate
+        double Ncor = b0 + b1*Nlin + b2*pow(Nlin, 2); // Non-linear correction
+        double Ne = Nlin + Ncor; // Radiance
+
+        double Testar = c2 * Vc / log(c1 * pow(Vc, 3) / Ne + 1.0); // Equivlent black body temperature
+        double Te = (Testar - A) / B; // Temperature (kelvin)
+    
+        // Convert to celsius
+        Te -= 273.15;
+
+        Te = (Te + 80.0) / 160.0 * (double)UINT16_MAX;
+        bits[i] = clamp(Te, 0.0, (double)UINT16_MAX);
     }
 }
 
