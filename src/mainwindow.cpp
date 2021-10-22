@@ -17,6 +17,7 @@
  */
 
 #include "mainwindow.h"
+#include "projectdialog.h"
 #include "ui_mainwindow.h"
 
 #include <QPushButton>
@@ -109,6 +110,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     });
 
     setState(WindowState::Idle);
+
+    project_diag = new ProjectDialog(this);
+    ProjectDialog::connect(project_diag, &ProjectDialog::prepareImage, [this]() {
+        QImage copy(display);
+        ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
+        copy.save("/tmp/input.png");
+
+        if (tle_manager.catalog.size() == 0) {
+            QMessageBox::warning(this, "Error", "No TLEs loaded, cannot save control points.", QMessageBox::Ok);
+            return;
+        }
+        proj->save_gcp_file(timestamps[sensor], 40, 20, sensor, sat, "/tmp/gcp.gcp");
+
+        project_diag->start();
+    });
 }
 
 MainWindow::~MainWindow() {
@@ -170,7 +186,7 @@ void MainWindow::incrementZoom(int amount) {
 }
 
 void MainWindow::setState(WindowState state) {
-    QWidget *items[] = { ui->groupBox, ui->menuOptions, ui->menuSensor, ui->stackedOptions, ui->zoomSelectorBox, ui->imageTabs };
+    QWidget *items[] = { ui->groupBox, ui->menuTools, ui->menuOptions, ui->menuSensor, ui->stackedOptions, ui->zoomSelectorBox, ui->imageTabs };
 
     for (QWidget *item : items) {
         item->setEnabled(state == WindowState::Finished);

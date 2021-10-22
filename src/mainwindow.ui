@@ -488,7 +488,14 @@
      <string>Sensor</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionGeoprojector"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuTools"/>
    <addaction name="menuOptions"/>
    <addaction name="menuSensor"/>
    <addaction name="menuHelp"/>
@@ -545,6 +552,11 @@
   <action name="actionSave_GCP_File">
    <property name="text">
     <string>Save GCP File</string>
+   </property>
+  </action>
+  <action name="actionGeoprojector">
+   <property name="text">
+    <string>Geoprojector</string>
    </property>
   </action>
  </widget>

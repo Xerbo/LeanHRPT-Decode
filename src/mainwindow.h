@@ -31,6 +31,7 @@
 #include <QString>
 #include <QActionGroup>
 
+#include "projectdialog.h"
 #include "fingerprint.h"
 #include "decoders/decoder.h"
 #include "imagecompositor.h"
@@ -95,6 +96,7 @@ class MainWindow : public QMainWindow {
         int previousTabIndex = 0;
 
         // Orbit information
+        ProjectDialog *project_diag;
         TLEManager tle_manager;
         Projector *proj;
 
@@ -150,6 +152,8 @@ class MainWindow : public QMainWindow {
         void on_actionSave_Current_Image_Corrected_triggered() { saveCurrentImage(true); };
         void on_actionSave_All_Channels_triggered()            { saveAllChannels(); };
         void on_actionSave_GCP_File_triggered()                { save_gcp(); };
+        // menuTools
+        void on_actionGeoprojector_triggered() { project_diag->show(); };
         // menuOptions
         void on_actionFlip_triggered();
         // menuHelp

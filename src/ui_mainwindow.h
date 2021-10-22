@@ -48,6 +48,7 @@ public:
     QAction *actionAbout_Qt;
     QAction *actionSave_Current_Image_Corrected;
     QAction *actionSave_GCP_File;
+    QAction *actionGeoprojector;
     QWidget *centralwidget;
     QHBoxLayout *horizontalLayout;
     QWidget *optionsSidebar;
@@ -104,6 +105,7 @@ public:
     QMenu *menuOptions;
     QMenu *menuHelp;
     QMenu *menuSensor;
+    QMenu *menuTools;
     QStatusBar *statusbar;
 
     void setupUi(QMainWindow *MainWindow)
@@ -135,6 +137,8 @@ public:
         actionSave_Current_Image_Corrected->setObjectName(QString::fromUtf8("actionSave_Current_Image_Corrected"));
         actionSave_GCP_File = new QAction(MainWindow);
         actionSave_GCP_File->setObjectName(QString::fromUtf8("actionSave_GCP_File"));
+        actionGeoprojector = new QAction(MainWindow);
+        actionGeoprojector->setObjectName(QString::fromUtf8("actionGeoprojector"));
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         horizontalLayout = new QHBoxLayout(centralwidget);
@@ -393,12 +397,15 @@ public:
         menuHelp->setObjectName(QString::fromUtf8("menuHelp"));
         menuSensor = new QMenu(menubar);
         menuSensor->setObjectName(QString::fromUtf8("menuSensor"));
+        menuTools = new QMenu(menubar);
+        menuTools->setObjectName(QString::fromUtf8("menuTools"));
         MainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
         MainWindow->setStatusBar(statusbar);
 
         menubar->addAction(menuFile->menuAction());
+        menubar->addAction(menuTools->menuAction());
         menubar->addAction(menuOptions->menuAction());
         menubar->addAction(menuSensor->menuAction());
         menubar->addAction(menuHelp->menuAction());
@@ -414,6 +421,7 @@ public:
         menuHelp->addSeparator();
         menuHelp->addAction(actionAbout_LeanHRPT);
         menuHelp->addAction(actionAbout_Qt);
+        menuTools->addAction(actionGeoprojector);
 
         retranslateUi(MainWindow);
         QObject::connect(imageTabs, SIGNAL(currentChanged(int)), stackedOptions, SLOT(setCurrentIndex(int)));
@@ -439,6 +447,7 @@ public:
         actionAbout_Qt->setText(QCoreApplication::translate("MainWindow", "About Qt", nullptr));
         actionSave_Current_Image_Corrected->setText(QCoreApplication::translate("MainWindow", "Save Current Image (Corrected)", nullptr));
         actionSave_GCP_File->setText(QCoreApplication::translate("MainWindow", "Save GCP File", nullptr));
+        actionGeoprojector->setText(QCoreApplication::translate("MainWindow", "Geoprojector", nullptr));
         channelSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Channel Selector", nullptr));
         compoisteSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Composite Channel Selector", nullptr));
         redLabel->setText(QCoreApplication::translate("MainWindow", "Red", nullptr));
@@ -468,6 +477,7 @@ public:
         menuOptions->setTitle(QCoreApplication::translate("MainWindow", "Options", nullptr));
         menuHelp->setTitle(QCoreApplication::translate("MainWindow", "Help", nullptr));
         menuSensor->setTitle(QCoreApplication::translate("MainWindow", "Sensor", nullptr));
+        menuTools->setTitle(QCoreApplication::translate("MainWindow", "Tools", nullptr));
     } // retranslateUi
 
 };
