@@ -138,18 +138,17 @@ void ProjectDialog::start(Imager sensor) {
 
     createVrt(sensor);
 
+#ifdef _WIN32
+    QString program = "C:\\OSGeo4W\\bin\\gdalwarp.exe";
+#else
     QString program = "gdalwarp";
+#endif
     QStringList arguments;
     arguments << "-overwrite" << "-r" << interpolation << "-tps" << "-t_srs" << epsg << (QString::fromStdString(get_temp_dir()) + "/image.vrt") << outputFilename;
 
     history = "Command: " + program + " " + arguments.join(" ") + "\n";
 
     process = new QProcess(this);
-#ifdef _WIN32
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert("PATH", env.value("PATH") + ";C:\\OSGeo4W\\bin");
-    process->setProcessEnvironment(env);
-#endif
     process->setProcessChannelMode(QProcess::MergedChannels);
     process->start(program, arguments, QIODevice::ReadOnly);
 
