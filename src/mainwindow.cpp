@@ -112,18 +112,26 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setState(WindowState::Idle);
 
     project_diag = new ProjectDialog(this);
-    ProjectDialog::connect(project_diag, &ProjectDialog::prepareImage, [this]() {
-        QImage copy(display);
-        ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
-        copy.save("/tmp/input.png");
+    ProjectDialog::connect(project_diag, &ProjectDialog::prepareImage, [this](bool viewport) {
+        if (viewport) {
+            QImage copy(display);
+            ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
+            copy.save("/tmp/viewport.png", nullptr, 100);
+        } else {
+            ImageCompositor *c = compositors[sensor];
+            for (size_t i = 0; i < c->channels(); i++) {
+                QImage channel(c->width(), c->height(), QImage::Format_Grayscale16);
+                compositors[sensor]->getChannel(channel, i+1);
+                channel.save(QString("/tmp/channel-%1.png").arg(QString::number(i+1)), nullptr, 100);
+            }
+        }
 
         if (tle_manager.catalog.size() == 0) {
             QMessageBox::warning(this, "Error", "No TLEs loaded, cannot save control points.", QMessageBox::Ok);
             return;
         }
-        proj->save_gcp_file(timestamps[sensor], 40, 20, sensor, sat, "/tmp/gcp.gcp");
-
-        project_diag->start();
+        proj->save_gcp_file(timestamps[sensor], 40, 20, sensor, sat, "/tmp/image.gcp");
+        project_diag->start(sensor);
     });
 }
 

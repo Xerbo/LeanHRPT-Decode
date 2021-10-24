@@ -21,6 +21,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 enum Mission {
     POES,
@@ -49,6 +50,49 @@ enum Imager {
     VIRR,
     MSUMR,
     MHS
+};
+
+enum Format {
+    UnknownF,
+    DegreeC,
+    Percent,
+    Raw
+};
+
+struct FormatInfo {
+    std::string unit;
+    double scale;
+    double offset;
+};
+
+const std::map<Format, FormatInfo> format_info = {
+    { UnknownF, FormatInfo { "?", 100.0/(double)UINT16_MAX, 0.0 }},
+    { DegreeC, FormatInfo { "°C", 160.0/(double)UINT16_MAX, -80.0 }},
+    { Percent, FormatInfo { "%", 100.0/(double)UINT16_MAX, 0.0 }},
+    { Raw, FormatInfo { "counts", 1.0, 0.0 }}
+};
+
+struct ChannelInfo {
+    double wavelength;
+    std::string wl_unit;
+    Format format;
+};
+
+const std::map<Imager, std::vector<ChannelInfo>> channels = {
+    {Imager::AVHRR, {
+        ChannelInfo { 0.630, "µm", Percent },
+        ChannelInfo { 0.862, "µm", Percent },
+        ChannelInfo { 0.0,   "?",  UnknownF }, // Fucking channel 3A/3B
+        ChannelInfo { 10.80, "µm", DegreeC },
+        ChannelInfo { 12.00, "µm", DegreeC },
+    }},
+    {Imager::MHS, {
+        ChannelInfo { 89.0,    "GHz (V)", Raw },
+        ChannelInfo { 157.0,   "GHz (V)", Raw },
+        ChannelInfo { 183.331, "GHz (H)", Raw },
+        ChannelInfo { 183.331, "GHz (H)", Raw },
+        ChannelInfo { 190.331, "GHz (V)", Raw },
+    }}
 };
 
 struct SensorInfo {

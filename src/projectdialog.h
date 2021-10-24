@@ -19,9 +19,11 @@
 #ifndef PROJECTDIALOG_H
 #define PROJECTDIALOG_H
 
+#include "satinfo.h"
+
 #include <QDialog>
+#include <QProcess>
 #include <QTimer>
-#include <cstdlib>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ProjectDialog; }
@@ -33,21 +35,22 @@ class ProjectDialog : public QDialog {
         ProjectDialog(QWidget *parent = nullptr);
         ~ProjectDialog();
 
-        void start();
+        void start(Imager sensor);
     private:
         Ui::ProjectDialog *ui;
 
         QString outputFilename;
         QTimer *timer;
         QString history;
-        FILE *process = nullptr;
+        QProcess *process;
 
         void set_enabled(bool enabled);
+        void createVrt(Imager sensor);
     private slots:
         void on_startButton_clicked();
         void on_output_clicked();
     signals:
-        void prepareImage();
+        void prepareImage(bool viewport);
 };
 
 #endif

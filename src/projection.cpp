@@ -27,6 +27,8 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#define RAD2DEG (180.0/M_PI)
+
 namespace geo {
     // Convert from a internal angle of a circle to the viewing angle of a point above the circle.
     double earth2sat_angle(double radius, double height, double angle) {
@@ -100,6 +102,8 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
         return;
     }
     std::ostream stream(&file);
+    // It may be more accurate to use EPSG:3786 here since reckon doesn't take the earths shape into account
+    stream << "<GCPList Projection=\"EPSG:4326\">\n";
 
     d_sensor = sensor_info.at(sensor);
     ProjectionInfo info;
@@ -109,6 +113,7 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
         return;
     }
 
+    size_t n = 0;
     for (size_t i = 0; i < pointsy; i++) {
         double y = ((double)i/(double)(pointsy)) * (double)timestamps.size();
 
@@ -126,10 +131,12 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
 
         auto scan = calculate_scan({orbit.latitude, orbit.longitude}, az, orbit.altitude, info.fov, info.xoffset, pointsx);
         for (auto &point : scan) {
-            stream << "-gcp " << point.first << " " << y << " " << (point.second.second*180.0/M_PI) << " " << (point.second.first*180.0/M_PI) << " ";
+            stream << "<GCP Id=\"" << n << "\" Pixel=\"" << point.first << "\" Line=\"" << y << "\" X=\"" << (point.second.second*RAD2DEG) << "\" Y=\"" << (point.second.first*180.0/M_PI) << "\" />\n";
+            n++;
         }
     }
 
+    stream << "</GCPList>\n";
     stream.flush();
     file.close();
 }
