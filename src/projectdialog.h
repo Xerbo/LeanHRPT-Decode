@@ -29,6 +29,14 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class ProjectDialog; }
 QT_END_NAMESPACE
 
+static std::string get_temp_dir() {
+#ifdef _WIN32
+    return std::getenv("TEMP");
+#else
+    return "/tmp";
+#endif
+}
+
 class ProjectDialog : public QDialog {
     Q_OBJECT
     public:

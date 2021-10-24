@@ -69,10 +69,10 @@ void ProjectDialog::on_startButton_clicked() {
 }
 
 void ProjectDialog::createVrt(Imager sensor) {
-    std::ifstream src("/tmp/image.gcp");
-    std::ofstream dst("/tmp/image.vrt");
+    std::ifstream src(get_temp_dir() + "/image.gcp");
+    std::ofstream dst(get_temp_dir() + "/image.vrt");
 
-    QImage image((ui->source->currentText() == "Viewport") ? "/tmp/viewport.png" : "/tmp/channel-1.png");
+    QImage image((ui->source->currentText() == "Viewport") ? (QString::fromStdString(get_temp_dir()) + "/viewport.png") : (QString::fromStdString(get_temp_dir()) + "/channel-1.png"));
     dst << "<VRTDataset rasterXSize=\"" << image.width() << "\" rasterYSize=\"" << image.height() << "\">\n";
     dst << src.rdbuf();
 
@@ -89,7 +89,7 @@ void ProjectDialog::createVrt(Imager sensor) {
                 dst << "  <ColorInterp>" << channel_names[i] << "</ColorInterp>\n";
             }
             dst << "  <SimpleSource>\n";
-            dst << "    <SourceFilename relativeToVRT=\"1\">/tmp/viewport.png</SourceFilename>\n";
+            dst << "    <SourceFilename relativeToVRT=\"1\">" + get_temp_dir() + "/viewport.png</SourceFilename>\n";
             if (nchannels == 3) {
                 dst << "    <SourceBand>" << (i+1) << "</SourceBand>\n";
             }
@@ -107,7 +107,7 @@ void ProjectDialog::createVrt(Imager sensor) {
             dst << "  <Offset>" << chinfo.offset << "</Offset>\n";
             dst << "  <UnitType>" << chinfo.unit << "</UnitType>\n";
             dst << "  <SimpleSource>\n";
-            dst << "    <SourceFilename relativeToVRT=\"1\">/tmp/channel-" << (i+1) << ".png</SourceFilename>\n";
+            dst << "    <SourceFilename relativeToVRT=\"1\">" + get_temp_dir() + "/channel-" << (i+1) << ".png</SourceFilename>\n";
             dst << "  </SimpleSource>\n";
             dst << "</VRTRasterBand>\n";
         }
@@ -137,7 +137,7 @@ void ProjectDialog::start(Imager sensor) {
 
     QString program = "gdalwarp";
     QStringList arguments;
-    arguments << "-overwrite" << "-r" << interpolation << "-tps" << "-t_srs" << epsg << "/tmp/image.vrt" << outputFilename;
+    arguments << "-overwrite" << "-r" << interpolation << "-tps" << "-t_srs" << epsg << (QString::fromStdString(get_temp_dir()) + "/image.vrt") << outputFilename;
 
     history = "Command: " + program + " " + arguments.join(" ") + "\n";
 
