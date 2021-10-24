@@ -145,6 +145,11 @@ void ProjectDialog::start(Imager sensor) {
     history = "Command: " + program + " " + arguments.join(" ") + "\n";
 
     process = new QProcess(this);
+#ifdef _WIN32
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("PATH", env.value("PATH") + ";C:\\OSGeo4W\\bin");
+    process->setProcessEnvironment(env);
+#endif
     process->setProcessChannelMode(QProcess::MergedChannels);
     process->start(program, arguments, QIODevice::ReadOnly);
 
