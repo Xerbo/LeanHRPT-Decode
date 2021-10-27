@@ -175,6 +175,7 @@ jobs:
             cp logo128.png                                             LeanHRPT-Decode/ &&
             cp presets.ini                                             LeanHRPT-Decode/ &&
             cp calibration.ini                                         LeanHRPT-Decode/ &&
+            cp projection.ini                                          LeanHRPT-Decode/ &&
             cp build/LeanHRPT-Decode.exe                               LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Core.dll                          LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Network.dll                       LeanHRPT-Decode/ &&

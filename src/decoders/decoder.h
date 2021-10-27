@@ -22,6 +22,8 @@
 #include <istream>
 #include <fstream>
 #include <atomic>
+#include <QFileInfo>
+#include <QDateTime>
 
 #include "satinfo.h"
 #include "generic/rawimage.h"
@@ -62,6 +64,7 @@ class Decoder {
             }
             std::istream stream(&file);
             get_filesize(stream);
+            created = QFileInfo(QString::fromStdString(filename)).birthTime().toSecsSinceEpoch();
 
             while (is_running && !stream.eof()) {
                 work(stream);
@@ -89,6 +92,7 @@ class Decoder {
         std::map<std::string, double> caldata;
         virtual void work(std::istream &stream)=0;
         FileType d_filetype;
+        time_t created;
 
     private:
         std::atomic<bool> is_running;

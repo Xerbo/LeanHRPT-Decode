@@ -48,6 +48,7 @@ class ProjectDialog : public QDialog {
         Ui::ProjectDialog *ui;
 
         QString outputFilename;
+        QString gcpFilename;
         QTimer *timer;
         QString history;
         QProcess *process;
@@ -56,9 +57,10 @@ class ProjectDialog : public QDialog {
         void createVrt(Imager sensor);
     private slots:
         void on_startButton_clicked();
+        void on_gcp_clicked();
         void on_output_clicked();
     signals:
-        void prepareImage(bool viewport);
+        void prepareImage(bool viewport, bool createGcp);
 };
 
 #endif

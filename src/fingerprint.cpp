@@ -10,7 +10,7 @@
 
 class CCSDSFingerprint {
     public:
-        CCSDSFingerprint(bool raw) : _raw(raw), telemetry_deframer(10, false) { };
+        CCSDSFingerprint(bool raw) : _raw(raw), telemetry_deframer(9, false) { };
         SatID processFrame(uint8_t *frame) {
             uint8_t telemetry_buffer[8];
             uint8_t telemetry_frame[74];
@@ -109,7 +109,7 @@ SatID Fingerprint::fingerprint_ccsds_raw(std::istream &stream) {
 bool Fingerprint::is_noaa(std::istream &stream) {
     uint8_t buffer[1024];
     ccsds::Deframer deframer;
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer2(10, true);
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer2(8, true);
     std::vector<uint8_t> ccsds_frame(1024);
     std::vector<uint8_t> noaa_frame((11090*10) / 8);
 

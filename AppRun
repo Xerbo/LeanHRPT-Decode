@@ -9,6 +9,9 @@ fi
 if [ ! -e "$HOME/.config/leanhrpt/calibration.ini" ]; then
     cp "${HERE}/calibration.ini" "$HOME/.config/leanhrpt/calibration.ini"
 fi
+if [ ! -e "$HOME/.config/leanhrpt/projection.ini" ]; then
+    cp "${HERE}/projection.ini" "$HOME/.config/leanhrpt/projection.ini"
+fi
 
 export PATH="${HERE}/usr/bin/:${PATH}"
 export LD_LIBRARY_PATH="${HERE}/usr/lib/"

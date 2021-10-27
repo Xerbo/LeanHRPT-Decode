@@ -17,6 +17,7 @@
  */
 
 #include "projection.h"
+#include "config.h"
 
 #include <cmath>
 #include <fstream>
@@ -28,6 +29,7 @@
 #endif
 
 #define RAD2DEG (180.0/M_PI)
+#define DEG2RAD (M_PI/180.0)
 
 namespace geo {
     // Convert from a internal angle of a circle to the viewing angle of a point above the circle.
@@ -72,24 +74,10 @@ namespace geo {
     }
 }
 
-struct ProjectionInfo {
-    double angle; // deg;
-    double fov; // +/- deg
-    double xoffset; // deg
-    double time_offset; // seconds
-};
-
-const std::map<std::pair<SatID, Imager>, ProjectionInfo> projection_factors = {
-    { { NOAA15, AVHRR }, { -92.6, 55.31, 0.1, -2.0/6.0 }}, // Untested
-    { { NOAA18, AVHRR }, { -92.6, 55.31, 0.1, -2.0/6.0 }}, // Untested
-    { { NOAA19, AVHRR }, { -92.6, 55.31, 0.1, -2.0/6.0 }},
-    { { MetOpA, AVHRR }, { -90.0, 55.31, 0.1, 1.0/6.0 }},
-    { { MetOpB, AVHRR }, { -90.0, 55.31, 0.1, 1.0/6.0 }},
-    { { MetOpC, AVHRR }, { -90.0, 55.31, 0.1, 1.0/6.0 }}, // Untested
-    { { MetOpA, MHS },   { -90.0, 49.4, 0.5, 0.5 }},
-    { { MetOpB, MHS },   { -90.0, 49.4, 0.5, 0.5 }},
-    { { MetOpC, MHS },   { -90.0, 49.4, 0.5, 0.5 }}, // Untested
-};
+static double str2double(std::string str) {
+    QLocale l(QLocale::C);
+    return l.toDouble(QString::fromStdString(str));
+}
 
 void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename) {
     if (timestamps.size() == 0) {
@@ -97,42 +85,53 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
     }
 
     std::filebuf file;
-    file.open(filename, std::ios::out);
-    if (!file.is_open()) {
+    if (!file.open(filename, std::ios::out)) {
         return;
     }
     std::ostream stream(&file);
-    // It may be more accurate to use EPSG:3786 here since reckon doesn't take the earths shape into account
     stream << "<GCPList Projection=\"EPSG:4326\">\n";
 
+    Config proj_info("projection.ini");
+    auto params = proj_info.sections.at(satellite_info.at(sat).name + "_" + sensor_info.at(sensor).name);
+    double fov = str2double(params["fov"]);
+    double yaw = str2double(params["yaw"]);
+    double roll = str2double(params["roll"]);
+    double toffset = str2double(params["toffset"]);
+
     d_sensor = sensor_info.at(sensor);
-    ProjectionInfo info;
-    try {
-        info = projection_factors.at({sat, sensor});
-    } catch(const std::exception& e) {
-        return;
-    }
 
     size_t n = 0;
-    for (size_t i = 0; i < pointsy; i++) {
-        double y = ((double)i/(double)(pointsy)) * (double)timestamps.size();
+    size_t need = 0;
+    for (size_t i = 0; i < timestamps.size(); i++) {
+        bool line_ok = false;
 
-        if (timestamps[(int)y] == 0) continue;
-
-        double timestamp = timestamps[(int)y] + info.time_offset;
-        struct predict_position orbit = predictor.predict(timestamp);
-
-        double az;
-        {
-            struct predict_position a = predictor.predict(timestamp-0.1);
-            struct predict_position b = predictor.predict(timestamp+0.1);
-            az = geo::azimuth({a.latitude, a.longitude}, {b.latitude, b.longitude}) + info.angle*M_PI/180.0;
+        need++;
+        if (need > timestamps.size()/pointsy && timestamps[i] != 0.0) {
+            line_ok = true;
+            need = 0;
         }
 
-        auto scan = calculate_scan({orbit.latitude, orbit.longitude}, az, orbit.altitude, info.fov, info.xoffset, pointsx);
-        for (auto &point : scan) {
-            stream << "<GCP Id=\"" << n << "\" Pixel=\"" << point.first << "\" Line=\"" << y << "\" X=\"" << (point.second.second*RAD2DEG) << "\" Y=\"" << (point.second.first*180.0/M_PI) << "\" />\n";
-            n++;
+        if (line_ok) {
+            double timestamp = timestamps[i] + toffset;
+            struct predict_position orbit = predictor.predict(timestamp);
+
+            double az;
+            {
+                struct predict_position a = predictor.predict(timestamp-0.1);
+                struct predict_position b = predictor.predict(timestamp+0.1);
+                az = geo::azimuth({a.latitude, a.longitude}, {b.latitude, b.longitude});
+                if (az < -M_PI/2 || az > M_PI/2) {
+                    az = az + (-90 - yaw)*DEG2RAD;
+                } else {
+                    az = az + (-90 + yaw)*DEG2RAD;
+                }
+            }
+
+            auto scan = calculate_scan({orbit.latitude, orbit.longitude}, az, orbit.altitude, fov, roll, pointsx);
+            for (auto &point : scan) {
+                stream << "<GCP Id=\"" << n << "\" Pixel=\"" << point.first << "\" Line=\"" << i << "\" X=\"" << (point.second.second*RAD2DEG) << "\" Y=\"" << (point.second.first*180.0/M_PI) << "\" />\n";
+                n++;
+            }
         }
     }
 

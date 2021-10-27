@@ -28,16 +28,16 @@ ProjectDialog::ProjectDialog(QWidget *parent) : QDialog(parent) {
 
     timer = new QTimer(this);
     QTimer::connect(timer, &QTimer::timeout, this, [this]() {
-        if (process->state() == QProcess::NotRunning) {
-            timer->stop();
-            set_enabled(true);
-            return;
-        }
-
         QByteArray data = process->read(128);
         if (data.size() != 0) {
             history.append(QString(data));
             ui->logWindow->setPlainText(history);
+        }
+
+        if (process->state() == QProcess::NotRunning) {
+            timer->stop();
+            set_enabled(true);
+            return;
         }
     });
 }
@@ -64,13 +64,26 @@ void ProjectDialog::on_output_clicked() {
     }
 }
 
+void ProjectDialog::on_gcp_clicked() {
+    gcpFilename = QFileDialog::getSaveFileName(this, "Select Output File", "", "GeoTIFF (*.tif *.tiff)");
+    if (gcpFilename.isEmpty()) {
+        ui->gcp->setText("(From TLE)");
+    } else {
+        ui->gcp->setText(gcpFilename);
+    }
+}
+
 void ProjectDialog::on_startButton_clicked() {
-    prepareImage(ui->source->currentText() == "Viewport");
+    prepareImage(ui->source->currentText() == "Viewport", gcpFilename.isEmpty());
 }
 
 void ProjectDialog::createVrt(Imager sensor) {
     std::filebuf in;
-    in.open(get_temp_dir() + "/image.gcp", std::ios::in);
+    if (gcpFilename.isEmpty()) {
+        in.open(get_temp_dir() + "/image.gcp", std::ios::in);
+    } else {
+        in.open(get_temp_dir() + gcpFilename.toStdString(), std::ios::in);
+    }
     std::filebuf out;
     out.open(get_temp_dir() + "/image.vrt", std::ios::out);
     std::ostream dst(&out);
@@ -104,7 +117,7 @@ void ProjectDialog::createVrt(Imager sensor) {
         for (size_t i = 0; i < ch.size(); i++) {
             FormatInfo chinfo = format_info.at(ch[i].format);
             dst << "<VRTRasterBand dataType=\"UInt16\" band=\"" << (i+1) << "\">\n";
-            dst << "  <Description>" << ch[i].wavelength << " µm</Description>\n";
+            dst << "  <Description>" << ch[i].wavelength << " " << ch[i].wl_unit << "</Description>\n";
             dst << "  <NoDataValue>0.0</NoDataValue>\n";
             dst << "  <Scale>" << chinfo.scale << "</Scale>\n";
             dst << "  <Offset>" << chinfo.offset << "</Offset>\n";

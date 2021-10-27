@@ -29,10 +29,12 @@ public:
     QFormLayout *settings;
     QLabel *sourceLabel;
     QComboBox *source;
-    QComboBox *projection;
-    QComboBox *interpolation;
     QLabel *projectionLabel;
+    QComboBox *projection;
     QLabel *interpolationLabel;
+    QComboBox *interpolation;
+    QLabel *gcpLabel;
+    QPushButton *gcp;
     QLabel *outputLabel;
     QPushButton *output;
     QPushButton *startButton;
@@ -44,7 +46,7 @@ public:
     {
         if (ProjectDialog->objectName().isEmpty())
             ProjectDialog->setObjectName(QString::fromUtf8("ProjectDialog"));
-        ProjectDialog->resize(476, 384);
+        ProjectDialog->resize(618, 514);
         QIcon icon;
         icon.addFile(QString::fromUtf8("logo128.png"), QSize(), QIcon::Normal, QIcon::Off);
         ProjectDialog->setWindowIcon(icon);
@@ -69,7 +71,13 @@ public:
 
         settings->setWidget(0, QFormLayout::FieldRole, source);
 
+        projectionLabel = new QLabel(ProjectDialog);
+        projectionLabel->setObjectName(QString::fromUtf8("projectionLabel"));
+
+        settings->setWidget(1, QFormLayout::LabelRole, projectionLabel);
+
         projection = new QComboBox(ProjectDialog);
+        projection->addItem(QString());
         projection->addItem(QString());
         projection->addItem(QString());
         projection->setObjectName(QString::fromUtf8("projection"));
@@ -77,6 +85,11 @@ public:
         projection->setSizePolicy(sizePolicy);
 
         settings->setWidget(1, QFormLayout::FieldRole, projection);
+
+        interpolationLabel = new QLabel(ProjectDialog);
+        interpolationLabel->setObjectName(QString::fromUtf8("interpolationLabel"));
+
+        settings->setWidget(2, QFormLayout::LabelRole, interpolationLabel);
 
         interpolation = new QComboBox(ProjectDialog);
         interpolation->addItem(QString());
@@ -89,27 +102,29 @@ public:
 
         settings->setWidget(2, QFormLayout::FieldRole, interpolation);
 
-        projectionLabel = new QLabel(ProjectDialog);
-        projectionLabel->setObjectName(QString::fromUtf8("projectionLabel"));
+        gcpLabel = new QLabel(ProjectDialog);
+        gcpLabel->setObjectName(QString::fromUtf8("gcpLabel"));
 
-        settings->setWidget(1, QFormLayout::LabelRole, projectionLabel);
+        settings->setWidget(3, QFormLayout::LabelRole, gcpLabel);
 
-        interpolationLabel = new QLabel(ProjectDialog);
-        interpolationLabel->setObjectName(QString::fromUtf8("interpolationLabel"));
+        gcp = new QPushButton(ProjectDialog);
+        gcp->setObjectName(QString::fromUtf8("gcp"));
+        sizePolicy.setHeightForWidth(gcp->sizePolicy().hasHeightForWidth());
+        gcp->setSizePolicy(sizePolicy);
 
-        settings->setWidget(2, QFormLayout::LabelRole, interpolationLabel);
+        settings->setWidget(3, QFormLayout::FieldRole, gcp);
 
         outputLabel = new QLabel(ProjectDialog);
         outputLabel->setObjectName(QString::fromUtf8("outputLabel"));
 
-        settings->setWidget(3, QFormLayout::LabelRole, outputLabel);
+        settings->setWidget(4, QFormLayout::LabelRole, outputLabel);
 
         output = new QPushButton(ProjectDialog);
         output->setObjectName(QString::fromUtf8("output"));
         sizePolicy.setHeightForWidth(output->sizePolicy().hasHeightForWidth());
         output->setSizePolicy(sizePolicy);
 
-        settings->setWidget(3, QFormLayout::FieldRole, output);
+        settings->setWidget(4, QFormLayout::FieldRole, output);
 
 
         verticalLayout->addLayout(settings);
@@ -152,16 +167,19 @@ public:
         source->setItemText(0, QCoreApplication::translate("ProjectDialog", "Viewport", nullptr));
         source->setItemText(1, QCoreApplication::translate("ProjectDialog", "Raw Channels", nullptr));
 
+        projectionLabel->setText(QCoreApplication::translate("ProjectDialog", "Target Projection", nullptr));
         projection->setItemText(0, QCoreApplication::translate("ProjectDialog", "EPSG:4326 (WGS 84)", nullptr));
-        projection->setItemText(1, QCoreApplication::translate("ProjectDialog", "EPSG:3857 (Web Mercator)", nullptr));
+        projection->setItemText(1, QCoreApplication::translate("ProjectDialog", "EPSG:3995 (Artic Polar)", nullptr));
+        projection->setItemText(2, QCoreApplication::translate("ProjectDialog", "EPSG:3857 (Web Mercator)", nullptr));
 
+        interpolationLabel->setText(QCoreApplication::translate("ProjectDialog", "Interpolation", nullptr));
         interpolation->setItemText(0, QCoreApplication::translate("ProjectDialog", "Nearest Neighbor", nullptr));
         interpolation->setItemText(1, QCoreApplication::translate("ProjectDialog", "Bilinear", nullptr));
         interpolation->setItemText(2, QCoreApplication::translate("ProjectDialog", "Cubic", nullptr));
         interpolation->setItemText(3, QCoreApplication::translate("ProjectDialog", "Lanczos", nullptr));
 
-        projectionLabel->setText(QCoreApplication::translate("ProjectDialog", "Target Projection", nullptr));
-        interpolationLabel->setText(QCoreApplication::translate("ProjectDialog", "Interpolation", nullptr));
+        gcpLabel->setText(QCoreApplication::translate("ProjectDialog", "GCP File", nullptr));
+        gcp->setText(QCoreApplication::translate("ProjectDialog", "(From TLE)", nullptr));
         outputLabel->setText(QCoreApplication::translate("ProjectDialog", "Output File", nullptr));
         output->setText(QCoreApplication::translate("ProjectDialog", "Select...", nullptr));
         startButton->setText(QCoreApplication::translate("ProjectDialog", "Start", nullptr));

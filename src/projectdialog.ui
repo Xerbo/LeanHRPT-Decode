@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>476</width>
-    <height>384</height>
+    <width>618</width>
+    <height>514</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,6 +47,13 @@
        </item>
       </widget>
      </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="projectionLabel">
+       <property name="text">
+        <string>Target Projection</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="1">
       <widget class="QComboBox" name="projection">
        <property name="sizePolicy">
@@ -62,9 +69,21 @@
        </item>
        <item>
         <property name="text">
+         <string>EPSG:3995 (Artic Polar)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>EPSG:3857 (Web Mercator)</string>
         </property>
        </item>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="interpolationLabel">
+       <property name="text">
+        <string>Interpolation</string>
+       </property>
       </widget>
      </item>
      <item row="2" column="1">
@@ -100,28 +119,34 @@
        </item>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="projectionLabel">
-       <property name="text">
-        <string>Target Projection</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="interpolationLabel">
-       <property name="text">
-        <string>Interpolation</string>
-       </property>
-      </widget>
-     </item>
      <item row="3" column="0">
+      <widget class="QLabel" name="gcpLabel">
+       <property name="text">
+        <string>GCP File</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QPushButton" name="gcp">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>(From TLE)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
       <widget class="QLabel" name="outputLabel">
        <property name="text">
         <string>Output File</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
+     <item row="4" column="1">
       <widget class="QPushButton" name="output">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">

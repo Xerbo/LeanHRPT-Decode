@@ -22,6 +22,7 @@
 #include <string>
 #include <cstdint>
 #include <bitset>
+#include <ctime>
 
 #include "decoder.h"
 #include "generic/deframer.h"
@@ -72,7 +73,7 @@ class NOAADecoder : public Decoder {
         void frame_work(uint16_t *ptr) {
             uint16_t *data_words = &ptr[103];
 
-            uint8_t frame_type = (ptr[6] >> 7) & 0b11;                
+            uint8_t frame_type = (ptr[6] >> 7) & 0b11;
             if (frame_type == 3) { // AIS Frame
                 for (size_t i = 0; i < 5; i++) {
                     uint8_t ais_frame[104];
@@ -104,9 +105,6 @@ class NOAADecoder : public Decoder {
                 }
             }
 
-            uint16_t days = repacked[8] >> 1;
-            uint32_t ms = (repacked[9] & 0b1111111) << 20 | repacked[10] << 10 | repacked[11];
-
             if (ptr[17] == ptr[18] && ptr[18] == ptr[19] && ptr[17] != 0) {
                 caldata["prt"] += ptr[17];
                 caldata["prtn"] += 1.0;
@@ -130,8 +128,20 @@ class NOAADecoder : public Decoder {
                 caldata["ch" + std::to_string(i+3) + "_cal"] += sum/10.0;
             }
 
-            double timestamp = 1609459200.0 - 86400.0;
-            timestamp += days*86400.0 + ms/1000.0;
+            // Calculate the timestamp of the start of the year
+            struct tm* timeinfo = gmtime(&created);
+            timeinfo->tm_sec = 0;
+            timeinfo->tm_min = 0;
+            timeinfo->tm_hour = 0;
+            timeinfo->tm_mday = 1;
+            timeinfo->tm_wday = 0;
+            timeinfo->tm_yday = 0;
+            timeinfo->tm_mon = 0;
+            time_t year = mktime(timeinfo) - 86400;
+
+            uint16_t days = repacked[8] >> 1;
+            uint32_t ms = (repacked[9] & 0b1111111) << 20 | repacked[10] << 10 | repacked[11];
+            double timestamp = (double)year + (double)days*86400.0 + (double)ms/1000.0;
             timestamps[Imager::AVHRR].push_back(timestamp);
 
             for (size_t i = 0; i < 11090; i++) {

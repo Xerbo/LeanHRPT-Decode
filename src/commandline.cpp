@@ -25,6 +25,8 @@
 #include "decoders/fengyun.h"
 #include "decoders/metop.h"
 
+#include <iostream>
+
 int parseCommandLine(QCommandLineParser &parser) {
     QString filename = parser.positionalArguments().first();
     if (filename.isEmpty()) return 1;
@@ -47,6 +49,7 @@ int parseCommandLine(QCommandLineParser &parser) {
         case Mission::MeteorM:  decoder = new MeteorDecoder; break;
         case Mission::MetOp:    decoder = new MetOpDecoder; break;
         case Mission::POES:     decoder = new NOAADecoder; break;
+        default: throw std::runtime_error("invalid value in enum `Mission`");
     }
 
     std::cout << "Starting decode" << std::endl;;

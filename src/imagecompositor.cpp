@@ -34,7 +34,7 @@ T clamp(T v, T lo, T hi) {
     return std::max(lo, std::min(hi, v));
 }
 
-double str2double(std::string str) {
+static double str2double(std::string str) {
     QLocale l(QLocale::C);
     return l.toDouble(QString::fromStdString(str));
 }

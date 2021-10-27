@@ -26,7 +26,7 @@
 #include "ccsds/deframer.h"
 #include "generic/deframer.h"
 
-#include <iostream>
+#include <ctime>
 
 // http://planet.iitp.ru/index.php?lang=en&page_type=spacecraft&page=meteor_m_n2_structure_1
 class MeteorDecoder : public Decoder {
@@ -67,6 +67,19 @@ class MeteorDecoder : public Decoder {
             std::memcpy(&msumrBuffer[238*3], &ptr[791-1], 234);
 
             if (MSUMRDeframer.work(msumrBuffer, msumrFrame, 948)) {
+                int hours = msumrFrame[8];
+                hours = (hours-3) % 24; // Moscow to UTC
+                int minutes = msumrFrame[9];
+                int seconds = msumrFrame[10];
+                int delay = msumrFrame[10];
+
+                if (hours < 24 || minutes < 60 || seconds < 60) {
+                    time_t day = created/86400 * 86400;
+                    timestamps[Imager::MSUMR].push_back((double)day + (double)hours*3600.0 + (double)minutes*60.0 + (double)seconds + (double)delay/255.0);
+                } else {
+                    timestamps[Imager::MSUMR].push_back(0.0);
+                }
+
                 images[Imager::MSUMR]->push10Bit(&msumrFrame[50], 0);
             }
         }

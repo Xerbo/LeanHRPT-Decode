@@ -112,7 +112,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setState(WindowState::Idle);
 
     project_diag = new ProjectDialog(this);
-    ProjectDialog::connect(project_diag, &ProjectDialog::prepareImage, [this](bool viewport) {
+    ProjectDialog::connect(project_diag, &ProjectDialog::prepareImage, [this](bool viewport, bool createGcp) {
         if (viewport) {
             QImage copy(display);
             ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
@@ -126,11 +126,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             }
         }
 
-        if (tle_manager.catalog.size() == 0) {
-            QMessageBox::warning(this, "Error", "No TLEs loaded, cannot save control points.", QMessageBox::Ok);
-            return;
+        if (createGcp) {
+            if (tle_manager.catalog.size() == 0) {
+                QMessageBox::warning(this, "Error", "No TLEs loaded, cannot save control points.", QMessageBox::Ok);
+                return;
+            }
+            double width = compositors[sensor]->width();
+            double height = compositors[sensor]->height();
+            proj->save_gcp_file(timestamps[sensor], height/width * 20.0, 20, sensor, sat, get_temp_dir() + "/image.gcp");
         }
-        proj->save_gcp_file(timestamps[sensor], 40, 20, sensor, sat, get_temp_dir() + "/image.gcp");
+
         project_diag->start(sensor);
     });
 }
@@ -297,6 +302,7 @@ void MainWindow::startDecode(std::string filename) {
         { SatID::NOAA15, "NOAA 15"},
         { SatID::NOAA18, "NOAA 18"},
         { SatID::NOAA19, "NOAA 19"},
+        { SatID::MeteorM22, "METEOR-M2 2"},
     };
     if (tle_manager.catalog.count(tle_names[sat])) {
         proj = new Projector(tle_manager.catalog[tle_names[sat]]);
@@ -315,6 +321,9 @@ void MainWindow::startDecode(std::string filename) {
 
         for (size_t i = 0; i < sensor.second.size()-1; i++) {
             if (fabs(sensor.second[i] - median) > 600.0) {
+                sensor.second[i] = 0;
+            }
+            if (sensor.first != Imager::MHS && fabs(sensor.second[i] - sensor.second[i+1]) > 0.2) {
                 sensor.second[i] = 0;
             }
         }
@@ -500,8 +509,9 @@ void MainWindow::save_gcp() {
     QString name = QString("%1_%2.gcp").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name));
     QString filename = QFileDialog::getSaveFileName(this, "Save GCP File", name, "GCP (*.gcp)");
     if (filename.isEmpty()) return;
-
-    proj->save_gcp_file(timestamps[sensor], 40, 20, sensor, sat, filename.toStdString());
+    double width = compositors[sensor]->width();
+    double height = compositors[sensor]->height();
+    proj->save_gcp_file(timestamps[sensor], height/width * 20.0, 20, sensor, sat, filename.toStdString());
 }
 
 void MainWindow::on_presetSelector_activated(QString text) {
