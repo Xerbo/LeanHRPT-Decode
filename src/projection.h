@@ -21,6 +21,7 @@
 
 #include "satinfo.h"
 #include "orbit.h"
+#include "geo/geodetic.h"
 #include <utility>
 #include <cmath>
 #include <vector>
@@ -29,12 +30,10 @@
 const double EARTH_RADIUS = 6371.0;
 
 namespace geo {
-    using LatLon = std::pair<double, double>;
-
-    double earth2sat_angle(double radius, double height, double angle);
-    double sat2earth_angle(double radius, double height, double angle);
-    double azimuth(LatLon a, LatLon b);
-    LatLon reckon(double lat, double lon, double range, double azimuth);
+    // Convert from a internal angle of a circle to the viewing angle of a point above the circle.
+    inline double earth2sat_angle(double radius, double height, double angle) {
+        return -atan(sin(angle)*radius / (cos(angle)*radius - (radius+height)));
+    }
 }
 
 class Projector {
@@ -44,7 +43,7 @@ class Projector {
 
         void save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename);
     private:
-        std::vector<std::pair<double, geo::LatLon>> calculate_scan(geo::LatLon position, double az, double altitude, double fov, double xoffset, size_t points);
+        std::vector<std::pair<double, Geodetic>> calculate_scan(const Geodetic &position, double azimuth, double fov, double roll, double pitch, size_t n);
 
         OrbitPredictor predictor;
         SensorInfo d_sensor;

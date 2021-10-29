@@ -17,10 +17,18 @@
  */
 
 #include "projectdialog.h"
-#include "ui_projectdialog.h"
+#include "qt/ui_projectdialog.h"
 
 #include <QFileDialog>
 #include <fstream>
+
+std::string get_temp_dir() {
+#ifdef _WIN32
+    return std::getenv("TEMP");
+#else
+    return "/tmp";
+#endif
+}
 
 ProjectDialog::ProjectDialog(QWidget *parent) : QDialog(parent) {
     ui = new Ui::ProjectDialog;

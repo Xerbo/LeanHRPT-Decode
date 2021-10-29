@@ -14,7 +14,7 @@ Compiled builds for Linux and Windows are available from the [releases](https://
 
 ## Building from source
 
-For those who wish to compile from source you will need `qtbase5-dev`, [`libcorrect`](https://github.com/quiet/libcorrect), [`muparser`](https://github.com/beltoforion/muparser) and ['libpredict'](https://github.com/la1k/libpredict) installed. After that you can compile with:
+For those who wish to compile from source you will need `qtbase5-dev`, [`libcorrect`](https://github.com/quiet/libcorrect), [`muparser`](https://github.com/beltoforion/muparser) and [`libpredict`](https://github.com/la1k/libpredict) installed. After that you can compile with:
 
 ```sh
 mkdir build && cd build
@@ -28,6 +28,7 @@ You may also wish to symlink the configuration files into the build directory:
 # Assuming you are in LeanHRPT-Decode/build
 ln -s ../presets.ini ..
 ln -s ../calibration.ini ..
+ln -s ../projection.ini ..
 ```
 
 And then run the resulting binary.

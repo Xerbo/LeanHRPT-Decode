@@ -18,7 +18,7 @@
 
 #include "mainwindow.h"
 #include "projectdialog.h"
-#include "ui_mainwindow.h"
+#include "qt/ui_mainwindow.h"
 
 #include <QPushButton>
 #include <QFileDialog>
@@ -133,7 +133,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             }
             double width = compositors[sensor]->width();
             double height = compositors[sensor]->height();
-            proj->save_gcp_file(timestamps[sensor], height/width * 20.0, 20, sensor, sat, get_temp_dir() + "/image.gcp");
+            proj->save_gcp_file(timestamps[sensor], height/width * 21.0, 21, sensor, sat, get_temp_dir() + "/image.gcp");
         }
 
         project_diag->start(sensor);
@@ -511,7 +511,7 @@ void MainWindow::save_gcp() {
     if (filename.isEmpty()) return;
     double width = compositors[sensor]->width();
     double height = compositors[sensor]->height();
-    proj->save_gcp_file(timestamps[sensor], height/width * 20.0, 20, sensor, sat, filename.toStdString());
+    proj->save_gcp_file(timestamps[sensor], height/width * 21.0, 21, sensor, sat, filename.toStdString());
 }
 
 void MainWindow::on_presetSelector_activated(QString text) {
