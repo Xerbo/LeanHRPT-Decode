@@ -74,6 +74,7 @@ class NOAADecoder : public Decoder {
             uint16_t *data_words = &ptr[103];
 
             uint8_t frame_type = (ptr[6] >> 7) & 0b11;
+            bool line_ok = true;
             if (frame_type == 3) { // AIS Frame
                 for (size_t i = 0; i < 5; i++) {
                     uint8_t ais_frame[104];
@@ -87,6 +88,7 @@ class NOAADecoder : public Decoder {
                         bool parity = std::bitset<8>(ais_frame[j]).count() % 2;
                         if (parity != std::bitset<16>(word).test(1)) {
                             parity_ok = false;
+                            line_ok = false;
                             break;
                         }
                     }
@@ -142,7 +144,11 @@ class NOAADecoder : public Decoder {
             uint16_t days = repacked[8] >> 1;
             uint32_t ms = (repacked[9] & 0b1111111) << 20 | repacked[10] << 10 | repacked[11];
             double timestamp = (double)year + (double)days*86400.0 + (double)ms/1000.0;
-            timestamps[Imager::AVHRR].push_back(timestamp);
+            if (frame_type == 3 && line_ok) {
+                timestamps[Imager::AVHRR].push_back(timestamp);
+            } else {
+                timestamps[Imager::AVHRR].push_back(0.0);
+            }
 
             for (size_t i = 0; i < 11090; i++) {
                 ptr[i] *= 64;

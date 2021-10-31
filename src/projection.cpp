@@ -73,7 +73,11 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
                 struct predict_position a = predictor.predict(timestamp-0.1);
                 struct predict_position b = predictor.predict(timestamp+0.1);
                 azimuth = deg2rad(90) - calculateBearingAngle(Geodetic(a), Geodetic(b));
-                azimuth += deg2rad(yaw);
+                if (azimuth > M_PI) {
+                    azimuth += deg2rad(yaw);
+                } else {
+                    azimuth -= deg2rad(yaw);
+                }
             }
 
             auto scan = calculate_scan(Geodetic(orbit), azimuth, fov, roll, pitch, pointsx);

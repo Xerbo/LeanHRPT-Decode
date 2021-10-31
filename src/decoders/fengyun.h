@@ -29,10 +29,17 @@
 
 class FengyunDecoder : public Decoder {
     public:
-        FengyunDecoder() : virrDeframer(8, false) {
+        FengyunDecoder(SatID sat) : virrDeframer(8, false) {
             frame = new uint8_t[1024];
             line = new uint8_t[208400 / 8];
             images[Imager::VIRR] = new RawImage(2048, 10);
+
+            switch (sat) {
+                case SatID::FengYun3A: launch_timestamp = 1289347200.0; break;
+                case SatID::FengYun3B: launch_timestamp = 1289347200.0; break;
+                case SatID::FengYun3C: launch_timestamp = 1522368000.0; break;
+                default: throw std::runtime_error("Non FY SatID passed to FengyunDecoder");
+            }
         }
         ~FengyunDecoder() {
             delete[] frame;
@@ -44,6 +51,7 @@ class FengyunDecoder : public Decoder {
         ccsds::Deframer deframer;
         ccsds::Derand derand;
         SatHelper::ReedSolomon reedSolomon;
+        double launch_timestamp;
 
         void work(std::istream &stream) {
             if (d_filetype == FileType::CADU) {
@@ -66,6 +74,20 @@ class FengyunDecoder : public Decoder {
             uint8_t VCID = ptr[5] & 0x3f; // 0b111111
             if (VCID == 5) {
                 if (virrDeframer.work(&ptr[14], line, 882)) {
+                    // Stolen from the power of @Aang254's SatDump
+                    uint8_t timestamp[8];
+                    timestamp[0] = (line[26041] & 0b111111) << 2 | line[26042] >> 6;
+                    timestamp[1] = (line[26042] & 0b111111) << 2 | line[26043] >> 6;
+                    timestamp[2] = (line[26043] & 0b111111) << 2 | line[26044] >> 6;
+                    timestamp[3] = (line[26044] & 0b111111) << 2 | line[26045] >> 6;
+                    timestamp[4] = (line[26045] & 0b111111) << 2 | line[26046] >> 6;
+                    timestamp[6] = (line[26046] & 0b111111) << 2 | line[26047] >> 6;
+                    timestamp[7] = (line[26047] & 0b111111) << 2 | line[26048] >> 6;
+
+                    uint16_t days = (timestamp[1] & 0b11) << 10 | timestamp[2] << 2 | timestamp[3] >> 6;
+                    uint32_t ms = (timestamp[3] & 0b11) << 24 | timestamp[4] << 16 | timestamp[6] << 8 | timestamp[7];
+                    timestamps[Imager::VIRR].push_back(launch_timestamp + days*86400.0 + ms/1000.0 + 12.0*3600.0);
+
                     images[Imager::VIRR]->push10Bit(line, 349);
                 }
             }

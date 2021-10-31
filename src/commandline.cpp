@@ -45,7 +45,7 @@ int parseCommandLine(QCommandLineParser &parser) {
 
     Decoder *decoder;
     switch (mission) {
-        case Mission::FengYun3: decoder = new FengyunDecoder; break;
+        case Mission::FengYun3: decoder = new FengyunDecoder(sat); break;
         case Mission::MeteorM:  decoder = new MeteorDecoder; break;
         case Mission::MetOp:    decoder = new MetOpDecoder; break;
         case Mission::POES:     decoder = new NOAADecoder; break;

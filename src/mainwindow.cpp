@@ -257,7 +257,7 @@ void MainWindow::startDecode(std::string filename) {
     // Decode
     status->setText(QString("Decoding %1...").arg(QString::fromStdString(filename)));
     switch (satellite.mission) {
-        case Mission::FengYun3: decoder = new FengyunDecoder; break;
+        case Mission::FengYun3: decoder = new FengyunDecoder(sat); break;
         case Mission::MeteorM:  decoder = new MeteorDecoder; break;
         case Mission::MetOp:    decoder = new MetOpDecoder; break;
         case Mission::POES:     decoder = new NOAADecoder; break;
@@ -303,6 +303,9 @@ void MainWindow::startDecode(std::string filename) {
         { SatID::NOAA18, "NOAA 18"},
         { SatID::NOAA19, "NOAA 19"},
         { SatID::MeteorM22, "METEOR-M2 2"},
+        { SatID::FengYun3A, "FENGYUN 3A"},
+        { SatID::FengYun3B, "FENGYUN 3B"},
+        { SatID::FengYun3C, "FENGYUN 3C"},
     };
     if (tle_manager.catalog.count(tle_names[sat])) {
         proj = new Projector(tle_manager.catalog[tle_names[sat]]);
@@ -316,14 +319,12 @@ void MainWindow::startDecode(std::string filename) {
         {
             std::vector<double> medianv = sensor.second;
             std::sort(medianv.begin(), medianv.end());
+            medianv.erase(std::remove(medianv.begin(), medianv.end(), 0.0), medianv.end());
             median = medianv[medianv.size()/2];
         }
 
         for (size_t i = 0; i < sensor.second.size()-1; i++) {
             if (fabs(sensor.second[i] - median) > 600.0) {
-                sensor.second[i] = 0;
-            }
-            if (sensor.first != Imager::MHS && fabs(sensor.second[i] - sensor.second[i+1]) > 0.2) {
                 sensor.second[i] = 0;
             }
         }

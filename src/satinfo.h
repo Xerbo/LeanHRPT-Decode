@@ -82,9 +82,9 @@ const std::map<Imager, std::vector<ChannelInfo>> channels = {
     {Imager::AVHRR, {
         ChannelInfo { 0.630, "µm", Percent },
         ChannelInfo { 0.862, "µm", Percent },
-        ChannelInfo { 0.0,   "?",  UnknownF }, // Fucking channel 3A/3B
-        ChannelInfo { 10.80, "µm", DegreeC },
-        ChannelInfo { 12.00, "µm", DegreeC },
+        ChannelInfo { -1.0,  "?",  UnknownF }, // Fucking channel 3A/3B
+        ChannelInfo { 10.80, "µm", Raw },
+        ChannelInfo { 12.00, "µm", Raw },
     }},
     {Imager::MHS, {
         ChannelInfo { 89.0,    "GHz (V)", Raw },
