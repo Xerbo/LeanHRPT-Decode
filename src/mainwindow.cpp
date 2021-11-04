@@ -107,6 +107,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     QActionGroup::connect(sensor_select, &QActionGroup::triggered, [this](QAction *action) {
         sensor = sensors.at(action->text().toStdString());
         decodeFinished();
+        ui->actionEnable_Overlay->setEnabled(!compositors[sensor]->map.isNull());
+        ui->actionEnable_Overlay->setChecked(compositors[sensor]->enable_map);
     });
 
     setState(WindowState::Idle);
@@ -116,6 +118,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         if (viewport) {
             QImage copy(display);
             ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
+            compositors[sensor]->overlay_map(copy);
             copy.save(QString::fromStdString(get_temp_dir()) + "/viewport.png", nullptr, 100);
         } else {
             ImageCompositor *c = compositors[sensor];
@@ -137,6 +140,25 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         }
 
         project_diag->start(sensor);
+    });
+
+    mapsettings_dialog = new MapSettings(this);
+    MapSettings::connect(mapsettings_dialog, &MapSettings::prepareGcps, [this]() {
+        if (tle_manager.catalog.size() == 0) {
+            QMessageBox::warning(this, "Error", "No TLEs loaded, cannot save control points.", QMessageBox::Ok);
+            return;
+        }
+        double width = compositors[sensor]->width();
+        double height = compositors[sensor]->height();
+        proj->save_gcp_file(timestamps[sensor], height/width * 21.0, 21, sensor, sat, get_temp_dir() + "/image.gcp");
+
+        mapsettings_dialog->start(compositors[sensor]->width(), compositors[sensor]->height());
+    });
+    MapSettings::connect(mapsettings_dialog, &MapSettings::finished, [this]() {
+        compositors[sensor]->map_color = mapsettings_dialog->color;
+        compositors[sensor]->load_map(QString::fromStdString(get_temp_dir() + "/map.tif"));
+        ui->actionEnable_Overlay->setEnabled(!compositors[sensor]->map.isNull());
+        updateDisplay();
     });
 }
 
@@ -199,7 +221,7 @@ void MainWindow::incrementZoom(int amount) {
 }
 
 void MainWindow::setState(WindowState state) {
-    QWidget *items[] = { ui->groupBox, ui->menuTools, ui->menuOptions, ui->menuSensor, ui->stackedOptions, ui->zoomSelectorBox, ui->imageTabs };
+    QWidget *items[] = { ui->groupBox, ui->menuTools, ui->menuMap, ui->menuOptions, ui->menuSensor, ui->stackedOptions, ui->zoomSelectorBox, ui->imageTabs };
 
     for (QWidget *item : items) {
         item->setEnabled(state == WindowState::Finished);
@@ -412,10 +434,13 @@ void MainWindow::setComposite(std::array<size_t, 3> channels) {
 void MainWindow::setEqualization(Equalization type) {
     selectedEqualization = type;
     if (selectedEqualization == None) {
-        displayQImage(scene, display);
+        QImage copy(display);
+        compositors[sensor]->overlay_map(copy);
+        displayQImage(scene, copy);
     } else {
         QImage copy(display);
         ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
+        compositors[sensor]->overlay_map(copy);
         displayQImage(scene, copy);
     }
 }
@@ -443,10 +468,13 @@ void MainWindow::updateDisplay() {
     }
 
     if (selectedEqualization == None) {
-        displayQImage(scene, display);
+        QImage copy(display);
+        compositors[sensor]->overlay_map(copy);
+        displayQImage(scene, copy);
     } else {
         QImage copy(display);
         ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
+        compositors[sensor]->overlay_map(copy);
         displayQImage(scene, copy);
     }
 }
@@ -473,6 +501,7 @@ void MainWindow::saveCurrentImage(bool corrected) {
     QtConcurrent::run([this](QString filename, bool corrected) {
         QImage copy(display);
         ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
+        compositors[sensor]->overlay_map(copy);
         if (corrected) {
             correct_geometry(copy, sat, sensor).save(filename);
         } else {

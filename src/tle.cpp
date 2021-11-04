@@ -41,4 +41,3 @@ TLEManager::TLEManager() {
 
     manager->get(QNetworkRequest(QUrl(TLE_URL)));
 }
-

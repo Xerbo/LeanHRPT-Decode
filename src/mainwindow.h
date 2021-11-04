@@ -32,6 +32,7 @@
 #include <QActionGroup>
 
 #include "projectdialog.h"
+#include "mapsettings.h"
 #include "fingerprint.h"
 #include "decoders/decoder.h"
 #include "imagecompositor.h"
@@ -97,6 +98,7 @@ class MainWindow : public QMainWindow {
 
         // Orbit information
         ProjectDialog *project_diag;
+        MapSettings *mapsettings_dialog;
         TLEManager tle_manager;
         Projector *proj;
 
@@ -154,6 +156,9 @@ class MainWindow : public QMainWindow {
         void on_actionSave_GCP_File_triggered()                { save_gcp(); };
         // menuTools
         void on_actionGeoprojector_triggered() { project_diag->show(); };
+        // menuMap
+        void on_actionEnable_Overlay_toggled(bool toggled) { compositors[sensor]->enable_map = toggled; updateDisplay(); };
+        void on_actionMap_Settings_triggered() { mapsettings_dialog->show(); };
         // menuOptions
         void on_actionFlip_triggered();
         // menuHelp

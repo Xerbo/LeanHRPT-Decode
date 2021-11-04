@@ -494,8 +494,16 @@
     </property>
     <addaction name="actionGeoprojector"/>
    </widget>
+   <widget class="QMenu" name="menuMap">
+    <property name="title">
+     <string>Map</string>
+    </property>
+    <addaction name="actionEnable_Overlay"/>
+    <addaction name="actionMap_Settings"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuTools"/>
+   <addaction name="menuMap"/>
    <addaction name="menuOptions"/>
    <addaction name="menuSensor"/>
    <addaction name="menuHelp"/>
@@ -557,6 +565,22 @@
   <action name="actionGeoprojector">
    <property name="text">
     <string>Geoprojector</string>
+   </property>
+  </action>
+  <action name="actionEnable_Overlay">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Enable Overlay</string>
+   </property>
+  </action>
+  <action name="actionMap_Settings">
+   <property name="text">
+    <string>Map Settings</string>
    </property>
   </action>
  </widget>

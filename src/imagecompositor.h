@@ -21,6 +21,7 @@
 
 #include <vector>
 #include <QImage>
+#include <QPainter>
 #include "generic/rawimage.h"
 #include "satinfo.h"
 
@@ -45,6 +46,36 @@ class ImageCompositor {
         size_t width()    { return m_width; };
         size_t height()   { return m_height; };
         size_t channels() { return m_channels; };
+
+        QImage map;
+        bool enable_map = false;
+        QColor map_color;
+
+        void load_map(QString filename) {
+            map = QImage(filename).convertToFormat(QImage::Format_ARGB32);
+
+            for (size_t y = 0; y < (size_t)map.height(); y++) {
+                for (size_t x = 0; x < (size_t)map.width(); x++) {
+                    if (map.pixelColor(x, y).red() == 0) {
+                        map.setPixelColor(x, y, QColor(0, 0, 0, 0));
+                    } else {
+                        map.setPixelColor(x, y, map_color);
+                    }
+                }
+            }
+        }
+
+        void overlay_map(QImage &image) {
+            if (!map.isNull() && enable_map) {
+                image = image.convertToFormat(QImage::Format_RGBX64);
+                QPainter painter(&image);
+                if (m_isFlipped) {
+                    painter.drawImage(0, 0, map.mirrored(true, true));
+                } else {
+                    painter.drawImage(0, 0, map);
+                }
+            }
+        }
 
         static void equalise(QImage &image, Equalization equalization, float clipLimit, bool brightness_only);
     private:

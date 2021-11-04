@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'mainwindow.ui'
 **
-** Created by: Qt User Interface Compiler version 5.15.2
+** Created by: Qt User Interface Compiler version 5.12.8
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -49,6 +49,8 @@ public:
     QAction *actionSave_Current_Image_Corrected;
     QAction *actionSave_GCP_File;
     QAction *actionGeoprojector;
+    QAction *actionEnable_Overlay;
+    QAction *actionMap_Settings;
     QWidget *centralwidget;
     QHBoxLayout *horizontalLayout;
     QWidget *optionsSidebar;
@@ -106,6 +108,7 @@ public:
     QMenu *menuHelp;
     QMenu *menuSensor;
     QMenu *menuTools;
+    QMenu *menuMap;
     QStatusBar *statusbar;
 
     void setupUi(QMainWindow *MainWindow)
@@ -139,6 +142,12 @@ public:
         actionSave_GCP_File->setObjectName(QString::fromUtf8("actionSave_GCP_File"));
         actionGeoprojector = new QAction(MainWindow);
         actionGeoprojector->setObjectName(QString::fromUtf8("actionGeoprojector"));
+        actionEnable_Overlay = new QAction(MainWindow);
+        actionEnable_Overlay->setObjectName(QString::fromUtf8("actionEnable_Overlay"));
+        actionEnable_Overlay->setCheckable(true);
+        actionEnable_Overlay->setEnabled(false);
+        actionMap_Settings = new QAction(MainWindow);
+        actionMap_Settings->setObjectName(QString::fromUtf8("actionMap_Settings"));
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         horizontalLayout = new QHBoxLayout(centralwidget);
@@ -399,6 +408,8 @@ public:
         menuSensor->setObjectName(QString::fromUtf8("menuSensor"));
         menuTools = new QMenu(menubar);
         menuTools->setObjectName(QString::fromUtf8("menuTools"));
+        menuMap = new QMenu(menubar);
+        menuMap->setObjectName(QString::fromUtf8("menuMap"));
         MainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
@@ -406,6 +417,7 @@ public:
 
         menubar->addAction(menuFile->menuAction());
         menubar->addAction(menuTools->menuAction());
+        menubar->addAction(menuMap->menuAction());
         menubar->addAction(menuOptions->menuAction());
         menubar->addAction(menuSensor->menuAction());
         menubar->addAction(menuHelp->menuAction());
@@ -422,6 +434,8 @@ public:
         menuHelp->addAction(actionAbout_LeanHRPT);
         menuHelp->addAction(actionAbout_Qt);
         menuTools->addAction(actionGeoprojector);
+        menuMap->addAction(actionEnable_Overlay);
+        menuMap->addAction(actionMap_Settings);
 
         retranslateUi(MainWindow);
         QObject::connect(imageTabs, SIGNAL(currentChanged(int)), stackedOptions, SLOT(setCurrentIndex(int)));
@@ -436,48 +450,51 @@ public:
 
     void retranslateUi(QMainWindow *MainWindow)
     {
-        MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "LeanHRPT Decode", nullptr));
-        actionOpen->setText(QCoreApplication::translate("MainWindow", "Open", nullptr));
-        actionSave_Current_Image->setText(QCoreApplication::translate("MainWindow", "Save Current Image", nullptr));
-        actionSave_All_Channels->setText(QCoreApplication::translate("MainWindow", "Save All Channels", nullptr));
-        actionFlip->setText(QCoreApplication::translate("MainWindow", "Flip", nullptr));
-        actionDocumentation->setText(QCoreApplication::translate("MainWindow", "Documentation", nullptr));
-        actionIssue_Tracker->setText(QCoreApplication::translate("MainWindow", "Issue Tracker", nullptr));
-        actionAbout_LeanHRPT->setText(QCoreApplication::translate("MainWindow", "About LeanHRPT", nullptr));
-        actionAbout_Qt->setText(QCoreApplication::translate("MainWindow", "About Qt", nullptr));
-        actionSave_Current_Image_Corrected->setText(QCoreApplication::translate("MainWindow", "Save Current Image (Corrected)", nullptr));
-        actionSave_GCP_File->setText(QCoreApplication::translate("MainWindow", "Save GCP File", nullptr));
-        actionGeoprojector->setText(QCoreApplication::translate("MainWindow", "Geoprojector", nullptr));
-        channelSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Channel Selector", nullptr));
-        compoisteSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Composite Channel Selector", nullptr));
-        redLabel->setText(QCoreApplication::translate("MainWindow", "Red", nullptr));
-        greenLabel->setText(QCoreApplication::translate("MainWindow", "Green", nullptr));
-        blueLabel->setText(QCoreApplication::translate("MainWindow", "Blue", nullptr));
-        presetSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Select Preset", nullptr));
+        MainWindow->setWindowTitle(QApplication::translate("MainWindow", "LeanHRPT Decode", nullptr));
+        actionOpen->setText(QApplication::translate("MainWindow", "Open", nullptr));
+        actionSave_Current_Image->setText(QApplication::translate("MainWindow", "Save Current Image", nullptr));
+        actionSave_All_Channels->setText(QApplication::translate("MainWindow", "Save All Channels", nullptr));
+        actionFlip->setText(QApplication::translate("MainWindow", "Flip", nullptr));
+        actionDocumentation->setText(QApplication::translate("MainWindow", "Documentation", nullptr));
+        actionIssue_Tracker->setText(QApplication::translate("MainWindow", "Issue Tracker", nullptr));
+        actionAbout_LeanHRPT->setText(QApplication::translate("MainWindow", "About LeanHRPT", nullptr));
+        actionAbout_Qt->setText(QApplication::translate("MainWindow", "About Qt", nullptr));
+        actionSave_Current_Image_Corrected->setText(QApplication::translate("MainWindow", "Save Current Image (Corrected)", nullptr));
+        actionSave_GCP_File->setText(QApplication::translate("MainWindow", "Save GCP File", nullptr));
+        actionGeoprojector->setText(QApplication::translate("MainWindow", "Geoprojector", nullptr));
+        actionEnable_Overlay->setText(QApplication::translate("MainWindow", "Enable Overlay", nullptr));
+        actionMap_Settings->setText(QApplication::translate("MainWindow", "Map Settings", nullptr));
+        channelSelectorBox->setTitle(QApplication::translate("MainWindow", "Channel Selector", nullptr));
+        compoisteSelectorBox->setTitle(QApplication::translate("MainWindow", "Composite Channel Selector", nullptr));
+        redLabel->setText(QApplication::translate("MainWindow", "Red", nullptr));
+        greenLabel->setText(QApplication::translate("MainWindow", "Green", nullptr));
+        blueLabel->setText(QApplication::translate("MainWindow", "Blue", nullptr));
+        presetSelectorBox->setTitle(QApplication::translate("MainWindow", "Select Preset", nullptr));
         presetDescription->setText(QString());
-        presetReload->setText(QCoreApplication::translate("MainWindow", "Reload", nullptr));
+        presetReload->setText(QApplication::translate("MainWindow", "Reload", nullptr));
         presetAuthor->setText(QString());
         presetCategory->setText(QString());
-        groupBox->setTitle(QCoreApplication::translate("MainWindow", "Equalisation", nullptr));
-        equalisationNone->setText(QCoreApplication::translate("MainWindow", "None", nullptr));
-        equalisationStretch->setText(QCoreApplication::translate("MainWindow", "Stretch", nullptr));
-        equalisationHistogram->setText(QCoreApplication::translate("MainWindow", "Histogram", nullptr));
-        label->setText(QCoreApplication::translate("MainWindow", "Contrast Limit:", nullptr));
-        brightnessOnly->setText(QCoreApplication::translate("MainWindow", "Brightness Only", nullptr));
-        zoomSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Zoom", nullptr));
-        zoomSelector->setItemText(0, QCoreApplication::translate("MainWindow", "25%", nullptr));
-        zoomSelector->setItemText(1, QCoreApplication::translate("MainWindow", "50%", nullptr));
-        zoomSelector->setItemText(2, QCoreApplication::translate("MainWindow", "100%", nullptr));
-        zoomSelector->setItemText(3, QCoreApplication::translate("MainWindow", "200%", nullptr));
+        groupBox->setTitle(QApplication::translate("MainWindow", "Equalisation", nullptr));
+        equalisationNone->setText(QApplication::translate("MainWindow", "None", nullptr));
+        equalisationStretch->setText(QApplication::translate("MainWindow", "Stretch", nullptr));
+        equalisationHistogram->setText(QApplication::translate("MainWindow", "Histogram", nullptr));
+        label->setText(QApplication::translate("MainWindow", "Contrast Limit:", nullptr));
+        brightnessOnly->setText(QApplication::translate("MainWindow", "Brightness Only", nullptr));
+        zoomSelectorBox->setTitle(QApplication::translate("MainWindow", "Zoom", nullptr));
+        zoomSelector->setItemText(0, QApplication::translate("MainWindow", "25%", nullptr));
+        zoomSelector->setItemText(1, QApplication::translate("MainWindow", "50%", nullptr));
+        zoomSelector->setItemText(2, QApplication::translate("MainWindow", "100%", nullptr));
+        zoomSelector->setItemText(3, QApplication::translate("MainWindow", "200%", nullptr));
 
-        imageTabs->setTabText(imageTabs->indexOf(channelTab), QCoreApplication::translate("MainWindow", "Single Channel", nullptr));
-        imageTabs->setTabText(imageTabs->indexOf(compositeTab), QCoreApplication::translate("MainWindow", "Composite", nullptr));
-        imageTabs->setTabText(imageTabs->indexOf(presetTab), QCoreApplication::translate("MainWindow", "Presets", nullptr));
-        menuFile->setTitle(QCoreApplication::translate("MainWindow", "File", nullptr));
-        menuOptions->setTitle(QCoreApplication::translate("MainWindow", "Options", nullptr));
-        menuHelp->setTitle(QCoreApplication::translate("MainWindow", "Help", nullptr));
-        menuSensor->setTitle(QCoreApplication::translate("MainWindow", "Sensor", nullptr));
-        menuTools->setTitle(QCoreApplication::translate("MainWindow", "Tools", nullptr));
+        imageTabs->setTabText(imageTabs->indexOf(channelTab), QApplication::translate("MainWindow", "Single Channel", nullptr));
+        imageTabs->setTabText(imageTabs->indexOf(compositeTab), QApplication::translate("MainWindow", "Composite", nullptr));
+        imageTabs->setTabText(imageTabs->indexOf(presetTab), QApplication::translate("MainWindow", "Presets", nullptr));
+        menuFile->setTitle(QApplication::translate("MainWindow", "File", nullptr));
+        menuOptions->setTitle(QApplication::translate("MainWindow", "Options", nullptr));
+        menuHelp->setTitle(QApplication::translate("MainWindow", "Help", nullptr));
+        menuSensor->setTitle(QApplication::translate("MainWindow", "Sensor", nullptr));
+        menuTools->setTitle(QApplication::translate("MainWindow", "Tools", nullptr));
+        menuMap->setTitle(QApplication::translate("MainWindow", "Map", nullptr));
     } // retranslateUi
 
 };

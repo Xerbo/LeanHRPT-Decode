@@ -73,7 +73,7 @@ void ProjectDialog::on_output_clicked() {
 }
 
 void ProjectDialog::on_gcp_clicked() {
-    gcpFilename = QFileDialog::getSaveFileName(this, "Select Output File", "", "GeoTIFF (*.tif *.tiff)");
+    gcpFilename = QFileDialog::getOpenFileName(this, "Select Output File", "", "GeoTIFF (*.tif *.tiff)");
     if (gcpFilename.isEmpty()) {
         ui->gcp->setText("(From TLE)");
     } else {
