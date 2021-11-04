@@ -118,6 +118,7 @@ jobs:
             mkdir LeanHRPT-Decode.AppDir/usr/bin &&
             mkdir LeanHRPT-Decode.AppDir/usr/lib &&
             mkdir LeanHRPT-Decode.AppDir/usr/plugins &&
+            mkdir LeanHRPT-Decode.AppDir/usr/plugins/imageformats &&
             cp AppRun                            LeanHRPT-Decode.AppDir/ &&
             cp LeanHRPT-Decode.desktop           LeanHRPT-Decode.AppDir/ &&
             cp logo128.png                       LeanHRPT-Decode.AppDir/ &&
@@ -220,6 +221,7 @@ jobs:
       run: 'mkdir LeanHRPT-Decode &&
             mkdir LeanHRPT-Decode/plugins &&
             mkdir LeanHRPT-Decode/plugins/styles &&
+            mkdir LeanHRPT-Decode/plugins/imageformats &&
             mkdir LeanHRPT-Decode/platforms &&
             cp logo128.png                                             LeanHRPT-Decode/ &&
             cp presets.ini                                             LeanHRPT-Decode/ &&
