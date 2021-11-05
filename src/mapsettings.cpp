@@ -107,7 +107,7 @@ void MapSettings::start(size_t width, size_t height) {
     QString program = "ogr2ogr";
 #endif
     QStringList arguments;
-    arguments << "-tps" << (QString::fromStdString(get_temp_dir()) + "/map.shp") << shapefileFilename;
+    arguments << "-tps" << "-nlt" << "LINESTRING" << (QString::fromStdString(get_temp_dir()) + "/map.shp") << shapefileFilename;
     history = "Command: " + program + " " + arguments.join(" ") + "\n";
     ui->logWindow->setPlainText(history);
     createGcps(arguments);
