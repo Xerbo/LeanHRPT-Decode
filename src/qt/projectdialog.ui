@@ -35,6 +35,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="toolTip">
+        <string>The source of the data, &quot;Raw Channels&quot; creates a file containing all channels with units</string>
+       </property>
        <item>
         <property name="text">
          <string>Viewport</string>
@@ -94,8 +97,11 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="toolTip">
+        <string>In order of speed, fastest -&gt; slowest (where slowest is the highest quality)</string>
+       </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>2</number>
        </property>
        <item>
         <property name="text">
@@ -133,6 +139,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string>Use to project an old pass where TLEs have drifted too much</string>
        </property>
        <property name="text">
         <string>(From TLE)</string>

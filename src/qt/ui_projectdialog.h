@@ -154,7 +154,7 @@ public:
 
         retranslateUi(ProjectDialog);
 
-        interpolation->setCurrentIndex(1);
+        interpolation->setCurrentIndex(2);
 
 
         QMetaObject::connectSlotsByName(ProjectDialog);
@@ -167,6 +167,9 @@ public:
         source->setItemText(0, QCoreApplication::translate("ProjectDialog", "Viewport", nullptr));
         source->setItemText(1, QCoreApplication::translate("ProjectDialog", "Raw Channels", nullptr));
 
+#if QT_CONFIG(tooltip)
+        source->setToolTip(QCoreApplication::translate("ProjectDialog", "The source of the data, \"Raw Channels\" creates a file containing all channels with units", nullptr));
+#endif // QT_CONFIG(tooltip)
         projectionLabel->setText(QCoreApplication::translate("ProjectDialog", "Target Projection", nullptr));
         projection->setItemText(0, QCoreApplication::translate("ProjectDialog", "EPSG:4326 (WGS 84)", nullptr));
         projection->setItemText(1, QCoreApplication::translate("ProjectDialog", "EPSG:3995 (Artic Polar)", nullptr));
@@ -178,7 +181,13 @@ public:
         interpolation->setItemText(2, QCoreApplication::translate("ProjectDialog", "Cubic", nullptr));
         interpolation->setItemText(3, QCoreApplication::translate("ProjectDialog", "Lanczos", nullptr));
 
+#if QT_CONFIG(tooltip)
+        interpolation->setToolTip(QCoreApplication::translate("ProjectDialog", "In order of speed, fastest -> slowest (where slowest is the highest quality)", nullptr));
+#endif // QT_CONFIG(tooltip)
         gcpLabel->setText(QCoreApplication::translate("ProjectDialog", "GCP File", nullptr));
+#if QT_CONFIG(tooltip)
+        gcp->setToolTip(QCoreApplication::translate("ProjectDialog", "Use to project an old pass where TLEs have drifted too much", nullptr));
+#endif // QT_CONFIG(tooltip)
         gcp->setText(QCoreApplication::translate("ProjectDialog", "(From TLE)", nullptr));
         outputLabel->setText(QCoreApplication::translate("ProjectDialog", "Output File", nullptr));
         output->setText(QCoreApplication::translate("ProjectDialog", "Select...", nullptr));

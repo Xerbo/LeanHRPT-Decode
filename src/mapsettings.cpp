@@ -146,8 +146,6 @@ void MapSettings::createGcps(QStringList &list) {
     }
     std::istream stream(&in);
 
-    //std::ostringstream out;
-
     for (std::string str; std::getline(stream, str); ) {
         if (str.substr(0, 5) == "<GCP ") {
             double line = str2double(get_tag(str, "Line"));
@@ -162,6 +160,4 @@ void MapSettings::createGcps(QStringList &list) {
             list << QString::number(line);
         }
     }
-
-    //return out.str();
 }

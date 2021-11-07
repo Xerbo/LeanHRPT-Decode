@@ -1,5 +1,5 @@
 /*
- * Taken from https://github.com/Digitelektro/MeteorDemod
+ * Modified from https://github.com/Digitelektro/MeteorDemod
  * Its license is as follows:
  * 
  * MIT License
@@ -48,10 +48,6 @@ struct Matrix4x4
                   m31, m32, m33, m34,
                   m41, m42, m43, m44}) {
 
-    }
-
-    Matrix4x4(const Matrix4x4 &m)
-        : mElements(m.mElements) {
     }
 
     static Matrix4x4 CreateRotationX(double angle) {

@@ -36,8 +36,8 @@ class ImageCompositor {
         void import(RawImage *image, SatID satellite, Imager sensor, std::map<std::string, double> caldata);
 
         // Manipulation functions
-        void flip();
         void setFlipped(bool state);
+        bool flipped() { return m_isFlipped; }
 
         void getChannel(QImage &image, size_t channel);
         void getComposite(QImage &image, std::array<size_t, 3> chs);

@@ -71,7 +71,7 @@ class FengyunDecoder : public Decoder {
         }
 
         void frame_work(uint8_t *ptr) {
-            uint8_t VCID = ptr[5] & 0x3f; // 0b111111
+            uint8_t VCID = ptr[5] & 0b111111;
             if (VCID == 5) {
                 if (virrDeframer.work(&ptr[14], line, 882)) {
                     // Stolen from the power of @Aang254's SatDump

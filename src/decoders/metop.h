@@ -62,7 +62,7 @@ class MetOpDecoder : public Decoder {
         }
 
         void frame_work(uint8_t *ptr) {
-            uint8_t VCID = ptr[5] & 0x3f; // 0b111111
+            uint8_t VCID = ptr[5] & 0b111111;
             if (VCID == 9) {
                 std::vector<uint8_t> line = demux.work(ptr);
 

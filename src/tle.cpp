@@ -30,10 +30,10 @@ TLEManager::TLEManager() {
 
         QStringList lines = QString(reply->readAll()).split("\r\n");
 
-        for (size_t i = 0; i < lines.size()-2; i += 3) {
-            std::string name  = lines[i  ].simplified().toStdString();
-            std::string line1 = lines[i+1].toStdString();
-            std::string line2 = lines[i+2].toStdString();
+        for (size_t i = 0; i < (size_t)lines.size()/3; i++) {
+            std::string name  = lines[i*3    ].simplified().toStdString();
+            std::string line1 = lines[i*3 + 1].toStdString();
+            std::string line2 = lines[i*3 + 2].toStdString();
 
             catalog.insert({name, {line1, line2}});
         }

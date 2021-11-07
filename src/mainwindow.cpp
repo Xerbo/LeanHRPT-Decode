@@ -28,16 +28,12 @@
 #include <QCloseEvent>
 
 #include "geometry.h"
+#include "math.h"
 
 #include "decoders/meteor.h"
 #include "decoders/noaa.h"
 #include "decoders/fengyun.h"
 #include "decoders/metop.h"
-
-template<typename T>
-T clamp(T v, T lo, T hi) {
-    return std::max(lo, std::min(hi, v));
-}
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ui = new Ui::MainWindow;
@@ -52,14 +48,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     // Keyboard shortcuts
     zoomIn  = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Plus),  this);
     zoomOut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus), this);
-    flip    = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_F),     this);
 
     QShortcut::connect(zoomIn,  &QShortcut::activated, std::bind(&MainWindow::incrementZoom, this,  1));
     QShortcut::connect(zoomOut, &QShortcut::activated, std::bind(&MainWindow::incrementZoom, this, -1));
-    QShortcut::connect(flip, &QShortcut::activated, [this]() {
-        ui->actionFlip->setChecked(!ui->actionFlip->isChecked());
-        on_actionFlip_triggered();
-    });
 
     // Status bar
     status = new QLabel();
@@ -117,16 +108,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ProjectDialog::connect(project_diag, &ProjectDialog::prepareImage, [this](bool viewport, bool createGcp) {
         if (viewport) {
             QImage copy(display);
+            // Very very horrible hack
+            if (compositors[sensor]->flipped()) {
+                copy = copy.mirrored(true, true);
+            }
             ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
             compositors[sensor]->overlay_map(copy);
             copy.save(QString::fromStdString(get_temp_dir()) + "/viewport.png", nullptr, 100);
         } else {
             ImageCompositor *c = compositors[sensor];
+
+            bool was_flipped = c->flipped();
+            c->setFlipped(false);
             for (size_t i = 0; i < c->channels(); i++) {
                 QImage channel(c->width(), c->height(), QImage::Format_Grayscale16);
-                compositors[sensor]->getChannel(channel, i+1);
+                c->getChannel(channel, i+1);
                 channel.save(QString::fromStdString(get_temp_dir()) + "/channel-" + QString::number(i+1) + ".png", nullptr, 100);
             }
+            c->setFlipped(was_flipped);
         }
 
         if (createGcp) {
@@ -163,11 +162,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 }
 
 MainWindow::~MainWindow() {
-    delete zoomIn;
-    delete zoomOut;
-    delete flip;
-    delete scene;
-    delete decodeWatcher;
     delete ui;
 }
 
@@ -235,7 +229,6 @@ void MainWindow::setState(WindowState state) {
     ui->actionSave_GCP_File->setEnabled(state == WindowState::Finished);
     zoomIn->setEnabled(state == WindowState::Finished);
     zoomOut->setEnabled(state == WindowState::Finished);
-    flip->setEnabled(state == WindowState::Finished);
 }
 
 void MainWindow::populateChannelSelectors(size_t channels) {
@@ -374,6 +367,7 @@ void MainWindow::decodeFinished() {
     populateChannelSelectors(compositors.at(sensor)->channels());
     status->setText(QString("%1 - %2: %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(compositors.at(sensor)->height()));
     setState(WindowState::Finished);
+    ui->actionFlip->setChecked(false);
 
     // Load satellite specific presets
     reloadPresets();
@@ -446,7 +440,7 @@ void MainWindow::setEqualization(Equalization type) {
 }
 
 void MainWindow::on_actionFlip_triggered() {
-    compositors.at(sensor)->flip();
+    compositors.at(sensor)->setFlipped(ui->actionFlip->isChecked());
     updateDisplay();
 }
 

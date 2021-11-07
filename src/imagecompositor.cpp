@@ -28,11 +28,7 @@
 #include <QLocale>
 
 #include "config.h"
-
-template<typename T>
-T clamp(T v, T lo, T hi) {
-    return std::max(lo, std::min(hi, v));
-}
+#include "math.h"
 
 static double str2double(std::string str) {
     QLocale l(QLocale::C);
@@ -155,6 +151,10 @@ void ImageCompositor::getChannel(QImage &image, size_t channel) {
         image = QImage(image.width(), image.height(), QImage::Format_Grayscale16);
     }
     std::memcpy(image.bits(), rawChannels[channel-1].bits(), sizeof(unsigned short) * m_width * m_height);
+
+    if (m_isFlipped) {
+        image = image.mirrored(true, true);
+    }
 }
 
 // Composites 3 Grayscale16 images into each channel of a RGB16 image
@@ -173,24 +173,15 @@ void ImageCompositor::getComposite(QImage &image, std::array<size_t, 3> chs) {
     for (size_t i = 0; i < m_height*m_width; i++) {
         bits[i] = QRgba64::fromRgba64(chbits[0][i], chbits[1][i], chbits[2][i], UINT16_MAX);
     }
-}
 
-double set_rgb(double r, double g, double b) {
-    QRgba64 a = QRgba64::fromRgba64(
-        clamp(r, 0.0, 1.0) * (double)UINT16_MAX,
-        clamp(g, 0.0, 1.0) * (double)UINT16_MAX,
-        clamp(b, 0.0, 1.0) * (double)UINT16_MAX,
-        UINT16_MAX
-    );
-    return *(double *)&a;
-}
-double set_bw(double val) {
-    return set_rgb(val, val, val);
+    if (m_isFlipped) {
+        image = image.mirrored(true, true);
+    }
 }
 
 // Evaluate `expression` and store the results in `image`
 void ImageCompositor::getExpression(QImage &image, std::string experssion) {
-    QImage::Format format = (experssion.substr(0, 3) == "rgb") ? QImage::Format_RGBX64 : QImage::Format_Grayscale16;
+    QImage::Format format = (experssion.find(",") == std::string::npos) ? QImage::Format_Grayscale16 : QImage::Format_RGBX64;
     if (image.format() != format) {
         image = QImage(image.width(), image.height(), format);
     }
@@ -199,8 +190,10 @@ void ImageCompositor::getExpression(QImage &image, std::string experssion) {
     for (size_t i = 0; i < m_channels; i++) {
         rawbits[i] = (quint16 *)rawChannels[i].bits();
     }
-    QRgba64 *bits = reinterpret_cast<QRgba64 *>(image.bits());
-    quint16 *grayscale_bits = reinterpret_cast<quint16 *>(image.bits());
+    std::tuple<QRgba64 *, quint16 *> bits = std::make_tuple(
+        reinterpret_cast<QRgba64 *>(image.bits()),
+        reinterpret_cast<quint16 *>(image.bits())
+    );    
 
     #pragma omp parallel
     {
@@ -220,15 +213,13 @@ void ImageCompositor::getExpression(QImage &image, std::string experssion) {
             p.DefineVar("NIR", &ch[1]);
             p.DefineVar("RED", &ch[0]);
 
-            p.DefineFun("rgb", set_rgb);
-            p.DefineFun("bw", set_bw);
             p.SetExpr(experssion);
         } catch (mu::Parser::exception_type &e) {
             std::cout << e.GetMsg() << std::endl;
         }
 
-        size_t start =  (float)omp_get_thread_num()      /(float)omp_get_num_threads() * (float)m_height;
-        size_t end   = ((float)omp_get_thread_num()+1.0f)/(float)omp_get_num_threads() * (float)m_height;
+        size_t start =  (double)omp_get_thread_num()     /(double)omp_get_num_threads() * (double)m_height;
+        size_t end   = ((double)omp_get_thread_num()+1.0)/(double)omp_get_num_threads() * (double)m_height;
 
         for (size_t y = start; y < end; y++) {
             for (size_t x = 0; x < m_width; x++) {
@@ -236,28 +227,29 @@ void ImageCompositor::getExpression(QImage &image, std::string experssion) {
                     ch[i] = (double)rawbits[i][y*m_width + x] / (double)UINT16_MAX;
                 }
 
-                double val = p.Eval();
-                QRgba64 color = *(QRgba64 *)&val;
-                if (format == QImage::Format_Grayscale16) {
-                    grayscale_bits[y*m_width + x] = color.red();
+                int channels;
+                double *rgb = p.Eval(channels);
+                if (channels == 1) {
+                    std::get<1>(bits)[y*m_width + x] = clamp(rgb[0], 0.0, 1.0) * (double)UINT16_MAX;
                 } else {
-                    bits[y*m_width + x] = color;
+                    std::get<0>(bits)[y*m_width + x] = QRgba64::fromRgba64(
+                        clamp(rgb[0], 0.0, 1.0) * (double)UINT16_MAX,
+                        clamp(rgb[1], 0.0, 1.0) * (double)UINT16_MAX,
+                        clamp(rgb[2], 0.0, 1.0) * (double)UINT16_MAX,
+                        UINT16_MAX
+                    );
                 }
             }
         }
     }
+
+    if (m_isFlipped) {
+        image = image.mirrored(true, true);
+    }
 }
 
 void ImageCompositor::setFlipped(bool state) {
-    if (state != m_isFlipped) {
-        flip();
-    }
-}
-void ImageCompositor::flip() {
-    m_isFlipped = !m_isFlipped;
-    for (size_t i = 0; i < rawChannels.size(); i++) {
-        rawChannels[i] = rawChannels[i].mirrored(true, true);
-    }
+    m_isFlipped = state;
 }
 
 template<typename T, size_t A, size_t B>

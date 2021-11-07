@@ -31,7 +31,7 @@ namespace ccsds {
         packet.clear();
 
         // Parse FHP
-        uint16_t fhp = (in[12] << 8 | in[13]) & 0x07ff; // 0b11111111111
+        uint16_t fhp = (in[12] << 8 | in[13]) & 0b11111111111;
 
         // MPDU with just data, no CPPDU header
         if (writingData && fhp > dataLength - 6) {

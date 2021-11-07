@@ -73,7 +73,6 @@ class MainWindow : public QMainWindow {
         void setState(WindowState state);
 
         // Shortcuts
-        QShortcut *flip;
         QShortcut *zoomIn;
         QShortcut *zoomOut;
 

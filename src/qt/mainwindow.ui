@@ -531,6 +531,9 @@
    <property name="text">
     <string>Flip</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
   </action>
   <action name="actionDocumentation">
    <property name="text">

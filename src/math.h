@@ -33,4 +33,9 @@ inline double rad2deg(double rad) {
     return rad * RAD2DEG;
 }
 
+template<typename T>
+inline T clamp(T v, T lo, T hi) {
+    return std::max(lo, std::min(hi, v));
+}
+
 #endif
