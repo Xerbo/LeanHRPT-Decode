@@ -124,6 +124,7 @@ jobs:
             cp logo128.png                       LeanHRPT-Decode.AppDir/ &&
             cp presets.ini                       LeanHRPT-Decode.AppDir/ &&
             cp calibration.ini                   LeanHRPT-Decode.AppDir/ &&
+            cp projection.ini                    LeanHRPT-Decode.AppDir/ &&
             cp -r $TEMP_PATH/plugins/platforms/                        LeanHRPT-Decode.AppDir/usr/plugins/ &&
             cp $TEMP_PATH/plugins/imageformats/libq{jpeg,webp,tiff}.so LeanHRPT-Decode.AppDir/usr/plugins/imageformats/ &&
             cp $TEMP_PATH/lib/libQt5Gui.so.5     LeanHRPT-Decode.AppDir/usr/lib/ &&
@@ -139,6 +140,8 @@ jobs:
             cp $TEMP_PATH/lib/libcorrect.so      LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libmuparser.so     LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp build/LeanHRPT-Decode             LeanHRPT-Decode.AppDir/usr/bin/ &&
+            find LeanHRPT-Decode.AppDir/ -name "*.so*" -exec strip {} \; &&
+            strip LeanHRPT-Decode.AppDir/usr/bin/LeanHRPT-Decode &&
             ./appimagetool-x86_64.AppImage LeanHRPT-Decode.AppDir'
 
     - name: Upload AppImage
@@ -242,6 +245,8 @@ jobs:
             cp $WIN_TEMP_PATH/plugins/styles/qwindowsvistastyle.dll      LeanHRPT-Decode/plugins/styles/ &&
             cp $WIN_TEMP_PATH/plugins/imageformats/q{jpeg,webp,tiff}.dll LeanHRPT-Decode/plugins/imageformats/ &&
             cp $WIN_TEMP_PATH/plugins/platforms/qwindows.dll           LeanHRPT-Decode/platforms/ &&
+            find LeanHRPT-Decode/ -name "*.dll" -exec x86_64-w64-mingw32-strip {} \; &&
+            find LeanHRPT-Decode/ -name "*.exe" -exec x86_64-w64-mingw32-strip {} \; &&
             zip -r LeanHRPT-Decode.zip LeanHRPT-Decode/'
 
     - name: Upload zip
