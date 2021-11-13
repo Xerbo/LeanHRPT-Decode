@@ -51,24 +51,11 @@ TODO
 Input files should be:
 
  - NOAA - raw data, bi-phase/manchester/PM decoded and not raw16
- - Meteor - raw data, bi-phase/manchester/PM decoded *or* CADUs (deframed)
- - MetOp - output from viterbi *or* CADUs (deframed, derandomized with RS applied)
- - FengYun - output from viterbi *or* CADUs (deframed, derandomized with RS applied)
+ - Meteor - raw data, bi-phase/manchester/PM decoded or CADUs (deframed)
+ - MetOp - output from viterbi, CADUs (deframed, derandomized with RS applied) or VCDUs
+ - FengYun - output from viterbi, CADUs (deframed, derandomized with RS applied) or VCDUs
 
 ## Credits
 
  - Reed Solomon - adapted from `libsathelper`
- - "reckon" - adapted from `noaa-apt`
-
-## Flowcharts
-
-Included in this repository are GNURadio flowcharts for demodulating NOAA, Meteor, FengYun and MetOp. These flowcharts have been created from the ground up using only standard GNURadio blocks, not requiring any OOP modules such as `gr-hrpt`.
-
-All flowcharts have file sources for both 32-bit float (gqrx) and WAV, by default WAV is selected (requires GNURadio >3.9 in order to read RF64 files).
-
-The `NOAA Meteor HRPT Demodulator` flowchart contains a proper PM/bi-phase demodulator which gives a +3db signal increase.
-
- - For NOAA, use the `NOAA Meteor HRPT Demodulator` flowchart, it **does not** output a framed raw16 file and is incompatible with other software as of now.
- - For Meteor, use the `NOAA Meteor HRPT Demodulator` flowchart, it outputs manchester decoded data, to use the resulting file in MetFy3x simply uncheck "Manchester Decode".
- - For FengYun, use the `Fengyun Demodulator` flowchart, it outputs 8 bit (little endian) signed soft symbols.
- - For MetOp, use the `MetOp Demodulator` flowchart, it outputs 8 bit (little endian) signed soft symbols.
+ - Geotranslation code - taken from `MeteorDemod`
