@@ -21,7 +21,7 @@ class Fingerprint {
         SatID fingerprint_ccsds_raw(std::istream &stream);
         bool is_noaa(std::istream &stream);
         SatID id_noaa_raw(std::istream &stream);
-        SatID id_noaa(std::istream &stream);
+        SatID id_noaa(std::istream &stream, bool hrp = false);
 
         static bool is_ccsds(std::istream &stream) {
             uint8_t header[4];
@@ -34,6 +34,12 @@ class Fingerprint {
             stream.read((char *)&header, 4);
             stream.seekg(stream.beg);
             return (header[0] == 0x84 && header[1] == 0x02 && header[2] && 0x6F && header[3] == 0x01);  
+        };
+        static bool is_hrp(std::istream &stream) {
+            uint8_t header[4];
+            stream.read((char *)&header, 4);
+            stream.seekg(stream.beg);
+            return (header[0] == 0x02 && header[1] == 0x84 && header[2] && 0x01 && header[3] == 0x6F);  
         };
 
         std::atomic<bool> is_running;

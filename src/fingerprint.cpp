@@ -133,12 +133,19 @@ bool Fingerprint::is_noaa(std::istream &stream) {
     return false;
 }
 
-SatID Fingerprint::id_noaa(std::istream &stream) {
+SatID Fingerprint::id_noaa(std::istream &stream, bool hrp) {
     std::vector<uint16_t> repacked(11090);
     std::map<SatID, size_t> sats;
     
     while (is_running && !stream.eof()) {
         stream.read(reinterpret_cast<char *>(repacked.data()), 11090*2);
+
+        if (hrp) {
+            for (size_t i = 0; i < 11090; i++) {
+                uint16_t x = repacked[i];
+                repacked[i] = (x & 0xFF) << 8 | (x >> 8);
+            }
+        }
 
         uint8_t address = ((repacked[6] & 0x078) >> 3) & 0x000F;
         switch (address) {
@@ -219,6 +226,10 @@ std::pair<SatID, FileType> Fingerprint::file(std::string filename) {
         SatID id = id_noaa(stream);
         file.close();
         return {id, FileType::raw16};
+    } else if (extension == "hrp") {
+        SatID id = id_noaa(stream, true);
+        file.close();
+        return {id, FileType::HRP};
     }
 
     if (is_ccsds(stream)) {
@@ -231,6 +242,12 @@ std::pair<SatID, FileType> Fingerprint::file(std::string filename) {
         SatID id = id_noaa(stream);
         file.close();
         return {id, FileType::raw16};
+    }
+
+    if (is_hrp(stream)) {
+        SatID id = id_noaa(stream, true);
+        file.close();
+        return {id, FileType::HRP};
     }
 
     if (is_noaa(stream)) {

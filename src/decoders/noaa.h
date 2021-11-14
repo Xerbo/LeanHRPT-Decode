@@ -54,6 +54,13 @@ class NOAADecoder : public Decoder {
             if (d_filetype == FileType::raw16) {
                 stream.read(reinterpret_cast<char *>(repacked), 11090*2);
                 frame_work(repacked);
+            } else if (d_filetype == FileType::HRP) {
+                stream.read(reinterpret_cast<char *>(repacked), 11090*2);
+                for (size_t i = 0; i < 11090; i++) {
+                    uint16_t x = repacked[i];
+                    repacked[i] = (x & 0xFF) << 8 | (x >> 8);
+                }
+                frame_work(repacked);
             } else {
                 stream.read(reinterpret_cast<char *>(buffer), BUFFER_SIZE);
                 if(deframer.work(buffer, frame, BUFFER_SIZE)) {
