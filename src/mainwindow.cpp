@@ -149,14 +149,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         }
         double width = compositors[sensor]->width();
         double height = compositors[sensor]->height();
-        proj->save_gcp_file(timestamps[sensor], height/width * 21.0, 21, sensor, sat, get_temp_dir() + "/image.gcp");
+        proj->save_gcp_file(timestamps[sensor], height/width * 31.0, 31, sensor, sat, get_temp_dir() + "/image.gcp");
 
         mapsettings_dialog->start(compositors[sensor]->width(), compositors[sensor]->height());
     });
     MapSettings::connect(mapsettings_dialog, &MapSettings::finished, [this]() {
         compositors[sensor]->map_color = mapsettings_dialog->color;
         compositors[sensor]->load_map(QString::fromStdString(get_temp_dir() + "/map.tif"));
-        ui->actionEnable_Overlay->setEnabled(!compositors[sensor]->map.isNull());
+        compositors[sensor]->enable_map = true;
+        ui->actionEnable_Overlay->setEnabled(true);
         updateDisplay();
     });
 }
@@ -368,6 +369,7 @@ void MainWindow::decodeFinished() {
     status->setText(QString("%1 - %2: %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(compositors.at(sensor)->height()));
     setState(WindowState::Finished);
     ui->actionFlip->setChecked(false);
+    ui->actionEnable_Overlay->setChecked(false);
 
     // Load satellite specific presets
     reloadPresets();

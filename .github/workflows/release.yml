@@ -29,30 +29,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  upload_flowcharts:
-    runs-on: ubuntu-latest
-    needs: [prepare_release]
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Install apt dependencies
-      run: 'sudo apt-get update && sudo apt-get install -y zip'
-
-    - name: Zip up flowcharts
-      run: 'zip -r Flowcharts.zip Flowcharts/'
-
-    - name: Upload flowcharts
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ needs.prepare_release.outputs.upload_url }}
-        asset_path: ./Flowcharts.zip
-        asset_name: Flowcharts.zip
-        asset_content_type: application/zip
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-
   build_linux:
     runs-on: ubuntu-latest
     needs: [prepare_release]
@@ -142,7 +118,7 @@ jobs:
             cp build/LeanHRPT-Decode             LeanHRPT-Decode.AppDir/usr/bin/ &&
             find LeanHRPT-Decode.AppDir/ -name "*.so*" -exec strip {} \; &&
             strip LeanHRPT-Decode.AppDir/usr/bin/LeanHRPT-Decode &&
-            ./appimagetool-x86_64.AppImage LeanHRPT-Decode.AppDir'
+            ./appimagetool-x86_64.AppImage --comp xz LeanHRPT-Decode.AppDir'
 
     - name: Upload AppImage
       uses: actions/upload-release-asset@v1
@@ -196,21 +172,21 @@ jobs:
             make -j4 &&
             make install'
 
+    - name: Install libpredict
+      run: 'git clone https://github.com/la1k/libpredict &&
+            cd libpredict &&
+            mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-D_POSIX_C_SOURCE=1" -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH .. &&
+            make -j4 &&
+            make install'
+
     - name: Install muparser
       run: 'git clone https://github.com/beltoforion/muparser &&
             cd muparser &&
             mkdir build &&
             cd build &&
             cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH -DENABLE_OPENMP=OFF -DENABLE_SAMPLES=OFF -DCMAKE_SHARED_LINKER_FLAGS="-static-libstdc++" .. &&
-            make -j4 &&
-            make install'
-
-    - name: Install libpredict
-      run: 'git clone https://github.com/la1k/libpredict &&
-            cd libpredict &&
-            mkdir build &&
-            cd build &&
-            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-D_POSIX_C_SOURCE=1"  -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH .. &&
             make -j4 &&
             make install'
 
@@ -235,8 +211,8 @@ jobs:
             cp $WIN_TEMP_PATH/bin/Qt5Network.dll                       LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Gui.dll                           LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Widgets.dll                       LeanHRPT-Decode/ &&
-            cp $WIN_TEMP_PATH/lib/libcorrect.dll                       LeanHRPT-Decode/ &&
             cp libpredict/build/src/libpredict.dll                     LeanHRPT-Decode/ &&
+            cp $WIN_TEMP_PATH/lib/libcorrect.dll                       LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libmuparser.dll                      LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libgcc_s_seh-1.dll                   LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libstdc++-6.dll                      LeanHRPT-Decode/ &&
