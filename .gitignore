@@ -37,6 +37,7 @@
 *.exe
 *.out
 *.app
+*.AppImage
 
 ### CMake ###
 CMakeLists.txt.user
@@ -58,27 +59,22 @@ CMakeUserPresets.json
 
 ### LeanHRPT ###
 # Images
-*.bmp
+*.webp
 *.jpg
 *.png
+*.tif
 !images/*
 !logo128.png
 
 # Binary files
 *.bin
-
-# Baseband/symbols
-*.wav
-*.raw
-*.soft
-*.soft8
-data/
+*.cadu
+*.vcdu
+*.raw16
+*.hrp
 
 # CMake build directory
 build/
 
 # VSCode
 .vscode/
-
-# Compiled flowcharts
-Flowcharts/*.py

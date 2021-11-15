@@ -41,6 +41,7 @@ enum class FileType {
     CADU,
     VCDU,
     raw16,
+    HRP,
     Unknown
 };
 
