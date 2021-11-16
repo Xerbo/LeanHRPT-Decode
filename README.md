@@ -41,8 +41,8 @@ TODO
 
 |Satellite|LeanHRPT|SatDump|
  -|-|-
-|MetOp<br/>(Airspy Mini and SAWBird GOES+, received by Byggemandboesen)|![A MetOp image from LeanHRPT](images/metop-example.jpg)|![A MetOp image from SatDump](images/metop-satdump.jpg)|
-|FengYun<br/>(Airspy Mini and SAWBird GOES+, received by Byggemandboesen)|![A FengYun image from LeanHRPT](images/fengyun-example.jpg)|![A FengYun image from SatDump](images/fengyun-satdump.jpg)|
+|MetOp<br/>(Airspy Mini and SAWBird GOES+, received by [Byggemandboesen](https://github.com/byggemandboesen))|![A MetOp image from LeanHRPT](images/metop-example.jpg)|![A MetOp image from SatDump](images/metop-satdump.jpg)|
+|FengYun<br/>(Airspy Mini and SAWBird GOES+, received by [Byggemandboesen](https://github.com/byggemandboesen))|![A FengYun image from LeanHRPT](images/fengyun-example.jpg)|![A FengYun image from SatDump](images/fengyun-satdump.jpg)|
 |Meteor<br/>(NooElec NESDR SMArt @ 2.4msps and SAWBird GOES+, received by me)|![A Meteor image from LeanHRPT](images/meteor-example.jpg)|![A Meteor image from SatDump](images/meteor-satdump.jpg)|
 |NOAA<br/>(NooElec NESDR SMArt @ 2.4msps and SAWBird GOES+, received by me)|![A NOAA image from LeanHRPT](images/noaa-example.jpg)|![A NOAA image from SatDump](images/noaa-satdump.jpg)|
 
