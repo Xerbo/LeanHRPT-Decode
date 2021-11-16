@@ -50,8 +50,8 @@ TODO
 
 Input files should be:
 
- - NOAA - raw data, bi-phase/manchester/PM decoded and not raw16
- - Meteor - raw data, bi-phase/manchester/PM decoded or CADUs (deframed)
+ - NOAA - raw data, bi-phase/manchester decoded or raw16
+ - Meteor - raw data, bi-phase/manchester decoded or CADUs (deframed)
  - MetOp - output from viterbi, CADUs (deframed, derandomized with RS applied) or VCDUs
  - FengYun - output from viterbi, CADUs (deframed, derandomized with RS applied) or VCDUs
 
