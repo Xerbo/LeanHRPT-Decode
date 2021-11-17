@@ -30,8 +30,11 @@ int main(int argc, char *argv[]) {
     parser.addHelpOption();
     parser.addVersionOption();
 
-    parser.process(app);
+    parser.addOption({{"i", "ini"}, "Path to an ini continaing composite definitions (https://github.com/Xerbo/LeanHRPT-Decode/wiki/Command-Line)", "ini"});
+    parser.addOption({{"o", "out"}, "Write images into <outdir>", "out"});
+    parser.addOption({{"f", "flip"}, "Flip the image"});
     parser.addPositionalArgument("file", "filename");
+    parser.process(app);
 
     if (parser.positionalArguments().isEmpty()) {
         MainWindow window;
