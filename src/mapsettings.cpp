@@ -107,10 +107,10 @@ void MapSettings::start(size_t width, size_t height) {
     QString program = "ogr2ogr";
 #endif
     QStringList arguments;
-    arguments << "-tps" << "-nlt" << "LINESTRING" << (QString::fromStdString(get_temp_dir()) + "/map.shp") << shapefileFilename;
+    arguments << "-tps" << "-nlt" << "LINESTRING" << "--optfile" << (QString::fromStdString(get_temp_dir()) + "/gcp.opt") << (QString::fromStdString(get_temp_dir()) + "/map.shp") << shapefileFilename;
     history = "Command: " + program + " " + arguments.join(" ") + "\n";
     ui->logWindow->setPlainText(history);
-    createGcps(arguments);
+    createGcps();
 
     _width = width;
     _height = height;
@@ -137,14 +137,18 @@ static double str2double(std::string str) {
     return l.toDouble(QString::fromStdString(str));
 }
 
-void MapSettings::createGcps(QStringList &list) {
+void MapSettings::createGcps() {
     std::filebuf in;
     if (gcpFilename.isEmpty()) {
         in.open(get_temp_dir() + "/image.gcp", std::ios::in);
     } else {
-        in.open(get_temp_dir() + gcpFilename.toStdString(), std::ios::in);
+        in.open(gcpFilename.toStdString(), std::ios::in);
     }
     std::istream stream(&in);
+
+    std::filebuf out;
+    out.open(get_temp_dir() + "/gcp.opt", std::ios::out);
+    std::ostream ostream(&out);
 
     for (std::string str; std::getline(stream, str); ) {
         if (str.substr(0, 5) == "<GCP ") {
@@ -153,11 +157,11 @@ void MapSettings::createGcps(QStringList &list) {
             double x = str2double(get_tag(str, "X"));
             double y = str2double(get_tag(str, "Y"));
 
-            list << "-gcp";
-            list << QString::number(x);
-            list << QString::number(y);
-            list << QString::number(pixel);
-            list << QString::number(line);
+            ostream << "-gcp ";
+            ostream << x << " ";
+            ostream << y << " ";
+            ostream << pixel << " ";
+            ostream << line << " " << std::endl;
         }
     }
 }

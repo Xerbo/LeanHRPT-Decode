@@ -90,7 +90,7 @@ void ProjectDialog::createVrt(Imager sensor) {
     if (gcpFilename.isEmpty()) {
         in.open(get_temp_dir() + "/image.gcp", std::ios::in);
     } else {
-        in.open(get_temp_dir() + gcpFilename.toStdString(), std::ios::in);
+        in.open(gcpFilename.toStdString(), std::ios::in);
     }
     std::filebuf out;
     out.open(get_temp_dir() + "/image.vrt", std::ios::out);

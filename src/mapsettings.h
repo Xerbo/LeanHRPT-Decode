@@ -53,7 +53,7 @@ class MapSettings : public QDialog {
         QColorDialog *color_dialog;
 
         void set_enabled(bool enabled);
-        void createGcps(QStringList &list);
+        void createGcps();
     signals:
         void prepareGcps();
         void finished();

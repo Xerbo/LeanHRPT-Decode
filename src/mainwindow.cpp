@@ -158,6 +158,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         compositors[sensor]->load_map(QString::fromStdString(get_temp_dir() + "/map.tif"));
         compositors[sensor]->enable_map = true;
         ui->actionEnable_Overlay->setEnabled(true);
+        ui->actionEnable_Overlay->setChecked(true);
         updateDisplay();
     });
 }
