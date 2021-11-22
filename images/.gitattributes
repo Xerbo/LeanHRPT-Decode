@@ -1,0 +1,4 @@
+fy.webp filter=lfs diff=lfs merge=lfs -text
+ir.webp filter=lfs diff=lfs merge=lfs -text
+metop.webp filter=lfs diff=lfs merge=lfs -text
+mhs.png filter=lfs diff=lfs merge=lfs -text

@@ -14,7 +14,7 @@ Compiled builds for Linux and Windows are available from the [releases](https://
 
 ## Building from source
 
-For those who wish to compile from source you will need `qtbase5-dev`, [`libcorrect`](https://github.com/quiet/libcorrect), [`muparser`](https://github.com/beltoforion/muparser) and [`libpredict`](https://github.com/la1k/libpredict) installed. After that you can compile with:
+For those who wish to compile from source you will need `qtbase5-dev` (at least 5.14), [`libcorrect`](https://github.com/quiet/libcorrect), [`muparser`](https://github.com/beltoforion/muparser) and [`libpredict`](https://github.com/la1k/libpredict) installed. After that you can compile with:
 
 ```sh
 mkdir build && cd build
@@ -33,18 +33,12 @@ ln -s ../projection.ini ..
 
 And then run the resulting binary.
 
-### Packaging your own builds
-
-TODO
-
 ## Example results
 
-|Satellite|LeanHRPT|SatDump|
- -|-|-
-|MetOp<br/>(Airspy Mini and SAWBird GOES+, received by [Byggemandboesen](https://github.com/byggemandboesen))|![A MetOp image from LeanHRPT](images/metop-example.jpg)|![A MetOp image from SatDump](images/metop-satdump.jpg)|
-|FengYun<br/>(Airspy Mini and SAWBird GOES+, received by [Byggemandboesen](https://github.com/byggemandboesen))|![A FengYun image from LeanHRPT](images/fengyun-example.jpg)|![A FengYun image from SatDump](images/fengyun-satdump.jpg)|
-|Meteor<br/>(NooElec NESDR SMArt @ 2.4msps and SAWBird GOES+, received by me)|![A Meteor image from LeanHRPT](images/meteor-example.jpg)|![A Meteor image from SatDump](images/meteor-satdump.jpg)|
-|NOAA<br/>(NooElec NESDR SMArt @ 2.4msps and SAWBird GOES+, received by me)|![A NOAA image from LeanHRPT](images/noaa-example.jpg)|![A NOAA image from SatDump](images/noaa-satdump.jpg)|
+|![](images/fy.webp)FengYun-3B with the "NCSWIR" preset|![](images/metop.webp)MetOp-C 321 with a map overlay|
+ -|-
+|![](images/ir.webp)**Projected NOAA IR image**|![](images/mhs.png)<br/>**MHS 112 Composite with "brightness only" equalization**|
+
 
 ## Input file format
 
