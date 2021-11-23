@@ -20,24 +20,45 @@
 
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkReply>
+#include <QFileInfo>
+#include <QDateTime>
 
 TLEManager::TLEManager() {
-    QNetworkAccessManager *manager = new QNetworkAccessManager();
-    QNetworkAccessManager::connect(manager, &QNetworkAccessManager::finished, [this](QNetworkReply *reply) {
-        if (reply->error() != QNetworkReply::NoError) {
-            return;
-        }
+    quint64 time = QDateTime::currentSecsSinceEpoch();
+    quint64 modified = QFileInfo("weather.txt").lastModified().toSecsSinceEpoch();
 
-        QStringList lines = QString(reply->readAll()).split("\r\n");
+    if (time - modified > 24*60*60) {
+        QNetworkAccessManager *manager = new QNetworkAccessManager();
+        QNetworkAccessManager::connect(manager, &QNetworkAccessManager::finished, [this](QNetworkReply *reply) {
+            if (reply->error() != QNetworkReply::NoError) {
+                return;
+            }
 
-        for (size_t i = 0; i < (size_t)lines.size()/3; i++) {
-            std::string name  = lines[i*3    ].simplified().toStdString();
-            std::string line1 = lines[i*3 + 1].toStdString();
-            std::string line2 = lines[i*3 + 2].toStdString();
+            QFile tle("weather.txt");
+            tle.open(QIODevice::WriteOnly | QIODevice::Text);
+            while (!reply->atEnd()) {
+                tle.write(reply->read(1024));
+            }
+            tle.close();
 
-            catalog.insert({name, {line1, line2}});
-        }
-    });
+            parse("weather.txt");
+        });
 
-    manager->get(QNetworkRequest(QUrl(TLE_URL)));
+        manager->get(QNetworkRequest(QUrl(TLE_URL)));
+    } else {
+        parse("weather.txt");
+    }
+}
+
+void TLEManager::parse(std::string filename) {
+    QFile tle(QString::fromStdString(filename));
+    tle.open(QIODevice::ReadOnly | QIODevice::Text);
+
+    while (!tle.atEnd()) {
+        std::string name  = tle.readLine().simplified().toStdString();
+        std::string line1 = tle.readLine().toStdString();
+        std::string line2 = tle.readLine().toStdString();
+
+        catalog.insert({name, {line1, line2}});
+    }
 }

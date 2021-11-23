@@ -30,6 +30,8 @@ class TLEManager {
     public:
         TLEManager();
         std::map<std::string, std::pair<std::string, std::string>> catalog;
+    private:
+        void parse(std::string filename);
 };
 
 #endif

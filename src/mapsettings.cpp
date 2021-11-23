@@ -65,6 +65,9 @@ MapSettings::MapSettings(QWidget *parent) : QDialog(parent) {
         color = _color;
         ui->color->setStyleSheet("background-color: rgb(" + QString::number(color.red()) + ", " + QString::number(color.green()) + ", " + QString::number(color.blue()) + ");");
     });
+
+    color = QColor(255, 255, 0);
+    ui->color->setStyleSheet("background-color: rgb(255, 255, 0);");
 }
 
 MapSettings::~MapSettings() {
