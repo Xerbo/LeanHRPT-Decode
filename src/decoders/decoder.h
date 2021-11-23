@@ -65,7 +65,7 @@ class Decoder {
             }
             std::istream stream(&file);
             get_filesize(stream);
-            created = QFileInfo(QString::fromStdString(filename)).birthTime().toSecsSinceEpoch();
+            created = QFileInfo(QString::fromStdString(filename)).birthTime().toUTC().toSecsSinceEpoch();
 
             while (is_running && !stream.eof()) {
                 work(stream);

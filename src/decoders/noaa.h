@@ -138,16 +138,9 @@ class NOAADecoder : public Decoder {
             }
 
             // Calculate the timestamp of the start of the year
-            struct tm* timeinfo = gmtime(&created);
-            timeinfo->tm_sec = 0;
-            timeinfo->tm_min = 0;
-            timeinfo->tm_hour = 0;
-            timeinfo->tm_mday = 1;
-            timeinfo->tm_wday = 0;
-            timeinfo->tm_yday = 0;
-            timeinfo->tm_mon = 0;
-            time_t year = mktime(timeinfo) - 86400;
-
+            int _year = QDateTime::fromSecsSinceEpoch(created).date().year();
+            double year = QDate(_year, 1, 1).startOfDay(Qt::UTC).toSecsSinceEpoch() - 86400.0;
+            
             uint16_t days = repacked[8] >> 1;
             uint32_t ms = (repacked[9] & 0b1111111) << 20 | repacked[10] << 10 | repacked[11];
             double timestamp = (double)year + (double)days*86400.0 + (double)ms/1000.0;
