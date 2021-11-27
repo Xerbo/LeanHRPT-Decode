@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/Xerbo/LeanHRPT-Decode/actions/workflows/build.yml/badge.svg)](https://github.com/Xerbo/LeanHRPT-Decode/actions/workflows/build.yml)
 
-A high quality, easy to use HRPT decoder.
+A high quality, easy to use HRPT decoder. Also see [LeanHRPT Demod](https://github.com/Xerbo/LeanHRPT-Demod).
 
 ## Usage
 
