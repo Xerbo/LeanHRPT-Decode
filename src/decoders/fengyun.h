@@ -23,9 +23,6 @@
 
 #include "decoder.h"
 #include "generic/deframer.h"
-#include "ccsds/derand.h"
-#include "ccsds/reedsolomon.h"
-#include "ccsds/deframer.h"
 
 class FengyunDecoder : public Decoder {
     public:
@@ -48,9 +45,6 @@ class FengyunDecoder : public Decoder {
     private:
         uint8_t *frame, *line;
         ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 208400> virrDeframer;
-        ccsds::Deframer deframer;
-        ccsds::Derand derand;
-        SatHelper::ReedSolomon reedSolomon;
         double launch_timestamp;
 
         void work(std::istream &stream) {
@@ -60,13 +54,6 @@ class FengyunDecoder : public Decoder {
             } else if (d_filetype == FileType::VCDU) {
                 stream.read((char *)&frame[4], 892);
                 frame_work(frame);
-            } else {
-                stream.read(reinterpret_cast<char *>(buffer), BUFFER_SIZE);
-                if (deframer.work(buffer, frame, BUFFER_SIZE)) {
-                    derand.work(frame, 1024);
-                    reedSolomon.decode_intreleaved_ccsds(frame);
-                    frame_work(frame);
-                }
             }
         }
 

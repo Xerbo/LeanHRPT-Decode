@@ -42,7 +42,6 @@ if (WAR_CRIMES)
     target_link_directories(LeanHRPT-Decode PRIVATE /tmp/winbuild/lib)
 endif()
 
-target_link_libraries(LeanHRPT-Decode PUBLIC correct)
 target_link_libraries(LeanHRPT-Decode PUBLIC muparser)
 target_link_libraries(LeanHRPT-Decode PUBLIC predict)
 

@@ -14,7 +14,7 @@ Compiled builds for Linux and Windows are available from the [releases](https://
 
 ## Building from source
 
-For those who wish to compile from source you will need `qtbase5-dev` (at least 5.14), [`libcorrect`](https://github.com/quiet/libcorrect), [`muparser`](https://github.com/beltoforion/muparser) and [`libpredict`](https://github.com/la1k/libpredict) installed. After that you can compile with:
+For those who wish to compile from source you will need `qtbase5-dev` (at least 5.14), [`muparser`](https://github.com/beltoforion/muparser) and [`libpredict`](https://github.com/la1k/libpredict) installed. After that you can compile with:
 
 ```sh
 mkdir build && cd build
@@ -51,5 +51,4 @@ Input files should be:
 
 ## Credits
 
- - Reed Solomon - adapted from `libsathelper`
  - Geotranslation code - taken from `MeteorDemod`

@@ -6,12 +6,11 @@
 #include <set>
 
 #include "ccsds/deframer.h"
-#include "ccsds/derand.h"
 #include "generic/deframer.h"
 
 class CCSDSFingerprint {
     public:
-        CCSDSFingerprint(bool raw) : _raw(raw), telemetry_deframer(9, false) { };
+        CCSDSFingerprint() : telemetry_deframer(9, false) { };
         SatID processFrame(uint8_t *frame) {
             uint8_t telemetry_buffer[8];
             uint8_t telemetry_frame[74];
@@ -23,8 +22,6 @@ class CCSDSFingerprint {
             if (telemetry_deframer.work(telemetry_buffer, telemetry_frame, 8)) {
                 sats[SatID::MeteorM22]++;
             } else {
-                if (_raw) derand.work(frame, 1024);
-
                 // List of SCIDs here (excluding FY) https://sanaregistry.org/r/spacecraftid/
                 uint8_t SCID = ((uint16_t)frame[4] << 8 | frame[5]) >> 6;
                 switch (SCID) {
@@ -49,15 +46,13 @@ class CCSDSFingerprint {
             return SatID::Unknown;
         }
     private:
-        const bool _raw;
         ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 74 * 8> telemetry_deframer;
 
-        ccsds::Derand derand;
         std::map<SatID, size_t> sats;
 };
 
 SatID Fingerprint::fingerprint_ccsds(std::istream &stream) {
-    CCSDSFingerprint fingerprint(false);
+    CCSDSFingerprint fingerprint;
     uint8_t frame[1024];
 
     while (is_running && !stream.eof()) {
@@ -73,7 +68,7 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream) {
 }
 
 SatID Fingerprint::fingerprint_vcdu(std::istream &stream) {
-    CCSDSFingerprint fingerprint(false);
+    CCSDSFingerprint fingerprint;
     uint8_t frame[1024];
 
     while (is_running && !stream.eof()) {
@@ -82,26 +77,6 @@ SatID Fingerprint::fingerprint_vcdu(std::istream &stream) {
         SatID id = fingerprint.processFrame(frame);
         if (id != SatID::Unknown) {
             return id;
-        }
-    }
-
-    return SatID::Unknown;
-}
-
-SatID Fingerprint::fingerprint_ccsds_raw(std::istream &stream) {
-    ccsds::Deframer deframer;
-    CCSDSFingerprint fingerprint(true);
-    uint8_t frame[1024];
-    uint8_t buffer[1024];
-
-    while (is_running && !stream.eof()) {
-        stream.read(reinterpret_cast<char *>(buffer), 1024);
-
-        if (deframer.work(buffer, frame, 1024)) {
-            SatID id = fingerprint.processFrame(frame);
-            if (id != SatID::Unknown) {
-                return id;
-            }
         }
     }
 
@@ -288,13 +263,6 @@ std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
         return {id, FileType::Raw, Protocol::HRPT};
     }
 
-    SatID id = fingerprint_ccsds_raw(stream);
     file.close();
-    std::set<Protocol> a = downlinks(id);
-    if (a.size() == 1) {
-        return {id, FileType::Raw, *a.begin()};
-    } else {
-        // (super) Bad bad bad
-        return {id, FileType::CADU, id == SatID::MeteorM2 ? Protocol::LRPT : Protocol::MeteorHRPT };
-    }
+    return {SatID::Unknown, FileType::Unknown, Protocol::Unkonwn};
 }

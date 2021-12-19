@@ -18,7 +18,6 @@ class Fingerprint {
     private:
         SatID fingerprint_vcdu(std::istream &strema);
         SatID fingerprint_ccsds(std::istream &stream);
-        SatID fingerprint_ccsds_raw(std::istream &stream);
         bool is_noaa(std::istream &stream);
         SatID id_noaa_raw(std::istream &stream);
         SatID id_noaa(std::istream &stream, bool hrp = false);

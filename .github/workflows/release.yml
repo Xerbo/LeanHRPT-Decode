@@ -55,15 +55,6 @@ jobs:
       run: 'aqt install 5.14.2 linux desktop &&
             cp -r 5.14.2/gcc_64/* $TEMP_PATH'
 
-    - name: Install libcorrect
-      run: 'git clone https://github.com/quiet/libcorrect &&
-            cd libcorrect &&
-            mkdir build &&
-            cd build &&
-            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
-            make -j4 &&
-            make install'
-
     - name: Install libpredict
       run: 'git clone https://github.com/la1k/libpredict &&
             cd libpredict &&
@@ -113,7 +104,6 @@ jobs:
             cp $TEMP_PATH/lib/libicui18n.so.56   LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libicudata.so.56   LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libpredict.so.3    LeanHRPT-Decode.AppDir/usr/lib/ &&
-            cp $TEMP_PATH/lib/libcorrect.so      LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libmuparser.so.2   LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp build/LeanHRPT-Decode             LeanHRPT-Decode.AppDir/usr/bin/ &&
             find LeanHRPT-Decode.AppDir/ -name "*.so*" -exec strip {} \; &&
@@ -162,15 +152,6 @@ jobs:
             ln -s $TEMP_PATH/bin/rcc $WIN_TEMP_PATH/bin/rcc.exe &&
             rm $WIN_TEMP_PATH/bin/uic.exe &&
             ln -s $TEMP_PATH/bin/uic $WIN_TEMP_PATH/bin/uic.exe'
-    
-    - name: Install libcorrect
-      run: 'git clone https://github.com/quiet/libcorrect &&
-            cd libcorrect &&
-            mkdir build &&
-            cd build &&
-            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH .. &&
-            make -j4 &&
-            make install'
 
     - name: Install libpredict
       run: 'git clone https://github.com/la1k/libpredict &&
@@ -212,7 +193,6 @@ jobs:
             cp $WIN_TEMP_PATH/bin/Qt5Gui.dll                           LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Widgets.dll                       LeanHRPT-Decode/ &&
             cp libpredict/build/src/libpredict.dll                     LeanHRPT-Decode/ &&
-            cp $WIN_TEMP_PATH/lib/libcorrect.dll                       LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libmuparser.dll                      LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libgcc_s_seh-1.dll                   LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libstdc++-6.dll                      LeanHRPT-Decode/ &&

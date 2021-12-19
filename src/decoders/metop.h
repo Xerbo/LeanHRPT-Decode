@@ -22,9 +22,6 @@
 #include <cstdint>
 
 #include "decoder.h"
-#include "ccsds/deframer.h"
-#include "ccsds/derand.h"
-#include "ccsds/reedsolomon.h"
 #include "ccsds/demuxer.h"
 
 class MetOpDecoder : public Decoder {
@@ -39,9 +36,6 @@ class MetOpDecoder : public Decoder {
         }
     private:
         uint8_t *frame;
-        SatHelper::ReedSolomon reedSolomon;
-        ccsds::Deframer deframer;
-        ccsds::Derand derand;
         ccsds::SimpleDemuxer demux, mhs_demux;
 
         void work(std::istream &stream) {
@@ -51,13 +45,6 @@ class MetOpDecoder : public Decoder {
             } else if (d_filetype == FileType::VCDU) {
                 stream.read((char *)&frame[4], 892);
                 frame_work(frame);
-            } else {
-                stream.read(reinterpret_cast<char *>(buffer), BUFFER_SIZE);
-                if (deframer.work(buffer, frame, BUFFER_SIZE)) {
-                    derand.work(frame, 1024);
-                    reedSolomon.decode_intreleaved_ccsds(frame);
-                    frame_work(frame);
-                }
             }
         }
 
