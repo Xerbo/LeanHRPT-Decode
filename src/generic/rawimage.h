@@ -42,6 +42,15 @@ class RawImage {
         size_t width() { return m_width; }
         size_t channels() { return m_channels; }
         size_t rows() { return m_rows; }
+        void set_height(size_t new_height) {
+            m_rows = new_height;
+
+            for (auto &channel : imageBuffer) {
+                if (channel.size() <= m_rows*m_width) {
+                    channel.resize((m_rows+1000) * m_width);
+                }
+            }
+        }
     private:
         unsigned short *rowBuffer;
         std::vector<std::vector<unsigned short>> imageBuffer;

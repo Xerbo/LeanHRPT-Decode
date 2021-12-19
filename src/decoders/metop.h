@@ -42,7 +42,7 @@ class MetOpDecoder : public Decoder {
         SatHelper::ReedSolomon reedSolomon;
         ccsds::Deframer deframer;
         ccsds::Derand derand;
-        ccsds::Demuxer demux, mhs_demux;
+        ccsds::SimpleDemuxer demux, mhs_demux;
 
         void work(std::istream &stream) {
             if (d_filetype == FileType::CADU) {

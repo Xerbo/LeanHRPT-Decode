@@ -10,7 +10,7 @@
 class Fingerprint {
     public:
         Fingerprint() : is_running(true) { }
-        std::pair<SatID, FileType> file(std::string filename);
+        std::tuple<SatID, FileType, Protocol> file(std::string filename);
 
         void stop() {
             is_running = false;

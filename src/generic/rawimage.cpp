@@ -74,11 +74,5 @@ void RawImage::push16Bit(const uint16_t *data, int offset) {
         }
     }
 
-    m_rows++;
-
-    if (m_rows == imageBuffer[0].size()/m_width) {
-        for (std::vector<unsigned short> &channel : imageBuffer) {
-            channel.resize(channel.size() + m_width*1000);
-        }
-    }
+    set_height(m_rows+1);
 }

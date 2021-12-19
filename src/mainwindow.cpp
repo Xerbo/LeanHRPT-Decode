@@ -30,7 +30,8 @@
 #include "geometry.h"
 #include "math.h"
 
-#include "decoders/meteor.h"
+#include "decoders/meteor_hrpt.h"
+#include "decoders/meteor_lrpt.h"
 #include "decoders/noaa.h"
 #include "decoders/fengyun.h"
 #include "decoders/metop.h"
@@ -260,8 +261,9 @@ void MainWindow::startDecode(std::string filename) {
     status->setText("Fingerprinting");
 
     fingerprinter = new Fingerprint;
-    std::pair<SatID, FileType> info = fingerprinter->file(filename);
-    sat = info.first;
+    FileType type;
+    Protocol protocol;
+    std::tie(sat, type, protocol) = fingerprinter->file(filename);
     if (sat == SatID::Unknown) {
         delete fingerprinter;
         fingerprinter = nullptr;
@@ -273,14 +275,15 @@ void MainWindow::startDecode(std::string filename) {
 
     // Decode
     status->setText(QString("Decoding %1...").arg(QString::fromStdString(filename)));
-    switch (satellite.mission) {
-        case Mission::FengYun3: decoder = new FengyunDecoder(sat); break;
-        case Mission::MeteorM:  decoder = new MeteorDecoder; break;
-        case Mission::MetOp:    decoder = new MetOpDecoder; break;
-        case Mission::POES:     decoder = new NOAADecoder; break;
-        default: throw std::runtime_error("invalid value in enum `Mission`");
+    switch (protocol) {
+        case Protocol::LRPT:        decoder = new MeteorLRPTDecoder; break;
+        case Protocol::HRPT:        decoder = new NOAADecoder; break;
+        case Protocol::AHRPT:       decoder = new MetOpDecoder; break;
+        case Protocol::MeteorHRPT:  decoder = new MeteorHRPTDecoder; break;
+        case Protocol::FengYunHRPT: decoder = new FengyunDecoder(sat); break;
+        default: throw std::runtime_error("invalid value in enum `Protocol`");
     }
-    decoder->decodeFile(filename, info.second);
+    decoder->decodeFile(filename, type);
     if (clean_up) {
         sat = SatID::Unknown;
         delete decoder;
@@ -319,6 +322,7 @@ void MainWindow::startDecode(std::string filename) {
         { SatID::NOAA15, "NOAA 15"},
         { SatID::NOAA18, "NOAA 18"},
         { SatID::NOAA19, "NOAA 19"},
+        { SatID::MeteorM2, "METEOR-M 2"},
         { SatID::MeteorM22, "METEOR-M2 2"},
         { SatID::FengYun3A, "FENGYUN 3A"},
         { SatID::FengYun3B, "FENGYUN 3B"},

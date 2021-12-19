@@ -29,15 +29,15 @@
 #include <ctime>
 
 // http://planet.iitp.ru/index.php?lang=en&page_type=spacecraft&page=meteor_m_n2_structure_1
-class MeteorDecoder : public Decoder {
+class MeteorHRPTDecoder : public Decoder {
     public:
-        MeteorDecoder() : MSUMRDeframer(9, false) {
+        MeteorHRPTDecoder() : MSUMRDeframer(9, false) {
             frame = new uint8_t[1024];
             msumrBuffer = new uint8_t[948];
             msumrFrame = new uint8_t[11850];
             images[Imager::MSUMR] = new RawImage(1572, 6, 4);
         }
-        ~MeteorDecoder() {
+        ~MeteorHRPTDecoder() {
             delete[] frame;
             delete[] msumrBuffer;
             delete[] msumrFrame;

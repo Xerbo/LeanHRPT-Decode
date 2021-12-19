@@ -23,6 +23,15 @@
 #include <string>
 #include <vector>
 
+enum class Protocol {
+    Unkonwn,
+    LRPT,
+    HRPT,
+    AHRPT,
+    MeteorHRPT,
+    FengYunHRPT
+};
+
 enum Mission {
     POES,
     MeteorM,
@@ -40,7 +49,7 @@ enum SatID {
     NOAA15,
     NOAA18,
     NOAA19,
-    MeteorM2, // Not used
+    MeteorM2,
     MeteorM22,
     Unknown
 };
@@ -52,11 +61,12 @@ enum Imager {
     MHS
 };
 
-enum Format {
-    UnknownF,
+enum class Format {
+    Unknown,
     DegreeC,
     Percent,
-    Raw
+    Raw10,
+    Raw16
 };
 
 struct FormatInfo {
@@ -66,10 +76,11 @@ struct FormatInfo {
 };
 
 const std::map<Format, FormatInfo> format_info = {
-    { UnknownF, FormatInfo { "?", 100.0/(double)UINT16_MAX, 0.0 }},
-    { DegreeC, FormatInfo { "°C", 160.0/(double)UINT16_MAX, -80.0 }},
-    { Percent, FormatInfo { "%", 100.0/(double)UINT16_MAX, 0.0 }},
-    { Raw, FormatInfo { "counts", 1.0, 0.0 }}
+    { Format::Unknown, FormatInfo { "?", 100.0/(double)UINT16_MAX, 0.0 }},
+    { Format::DegreeC, FormatInfo { "°C", 160.0/(double)UINT16_MAX, -80.0 }},
+    { Format::Percent, FormatInfo { "%", 100.0/(double)UINT16_MAX, 0.0 }},
+    { Format::Raw10, FormatInfo { "counts", 1.0/64.0, 0.0 }},
+    { Format::Raw16, FormatInfo { "counts", 1.0, 0.0 }}
 };
 
 struct ChannelInfo {
@@ -80,25 +91,25 @@ struct ChannelInfo {
 
 const std::map<Imager, std::vector<ChannelInfo>> channels = {
     {Imager::AVHRR, {
-        ChannelInfo { 0.630, "µm", Percent },
-        ChannelInfo { 0.862, "µm", Percent },
-        ChannelInfo { -1.0,  "?",  UnknownF }, // Fucking channel 3A/3B
-        ChannelInfo { 10.80, "µm", Raw },
-        ChannelInfo { 12.00, "µm", Raw },
+        ChannelInfo { 0.630, "µm", Format::Percent },
+        ChannelInfo { 0.862, "µm", Format::Percent },
+        ChannelInfo { -1.0,  "?",  Format::Unknown }, // Fucking channel 3A/3B
+        ChannelInfo { 10.80, "µm", Format::Raw10 },
+        ChannelInfo { 12.00, "µm", Format::Raw10 },
     }},
     {Imager::MHS, {
-        ChannelInfo { 89.0,    "GHz (V)", Raw },
-        ChannelInfo { 157.0,   "GHz (V)", Raw },
-        ChannelInfo { 183.331, "GHz (H)", Raw },
-        ChannelInfo { 183.331, "GHz (H)", Raw },
-        ChannelInfo { 190.331, "GHz (V)", Raw },
+        ChannelInfo { 89.0,    "GHz (V)", Format::Raw16 },
+        ChannelInfo { 157.0,   "GHz (V)", Format::Raw16 },
+        ChannelInfo { 183.331, "GHz (H)", Format::Raw16 },
+        ChannelInfo { 183.331, "GHz (H)", Format::Raw16 },
+        ChannelInfo { 190.331, "GHz (V)", Format::Raw16 },
     }}
 };
 
 struct SensorInfo {
     std::string name;
-    float swath; // in km/px
-    float resolution; // in km
+    float swath; // in km
+    float resolution; // in km/px
     size_t width;
 };
 

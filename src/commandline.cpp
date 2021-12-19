@@ -20,7 +20,8 @@
 #include "satinfo.h"
 #include "fingerprint.h"
 #include "imagecompositor.h"
-#include "decoders/meteor.h"
+#include "decoders/meteor_hrpt.h"
+#include "decoders/meteor_lrpt.h"
 #include "decoders/noaa.h"
 #include "decoders/fengyun.h"
 #include "decoders/metop.h"
@@ -53,27 +54,30 @@ int parseCommandLine(QCommandLineParser &parser) {
 
     std::cout << "Fingerprinting \"" << filename.toStdString() << "\"" << std::endl;
 
-    std::pair<SatID, FileType> info = Fingerprint().file(filename.toStdString());
-    SatID sat = info.first;
+    SatID sat;
+    FileType type;
+    Protocol protocol;
+    std::tie(sat, type, protocol) = Fingerprint().file(filename.toStdString());
+
     if (sat == SatID::Unknown) {
         std::cout << "Unable to identify satellite" << std::endl;
         return 1;
     } else {
         std::cout << "Satellite is " << satellite_info.at(sat).name << std::endl;
     }
-    Mission mission = satellite_info.at(sat).mission;
 
     Decoder *decoder;
-    switch (mission) {
-        case Mission::FengYun3: decoder = new FengyunDecoder(sat); break;
-        case Mission::MeteorM:  decoder = new MeteorDecoder; break;
-        case Mission::MetOp:    decoder = new MetOpDecoder; break;
-        case Mission::POES:     decoder = new NOAADecoder; break;
-        default: throw std::runtime_error("invalid value in enum `Mission`");
+    switch (protocol) {
+        case Protocol::LRPT:        decoder = new MeteorLRPTDecoder; break;
+        case Protocol::HRPT:        decoder = new NOAADecoder; break;
+        case Protocol::AHRPT:       decoder = new MetOpDecoder; break;
+        case Protocol::MeteorHRPT:  decoder = new MeteorHRPTDecoder; break;
+        case Protocol::FengYunHRPT: decoder = new FengyunDecoder(sat); break;
+        default: throw std::runtime_error("invalid value in enum `Protocol`");
     }
 
     std::cout << "Decoding" << std::endl;;
-    decoder->decodeFile(filename.toStdString(), info.second);
+    decoder->decodeFile(filename.toStdString(), type);
     Data data = decoder->get();
     std::cout << "Finished decoding" << std::endl;
 
