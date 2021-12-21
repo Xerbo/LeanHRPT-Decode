@@ -8,174 +8,219 @@
 #include "ccsds/deframer.h"
 #include "generic/deframer.h"
 
-class CCSDSFingerprint {
+// Finds the most common value of T
+template<typename T>
+class Scoreboard {
     public:
-        CCSDSFingerprint() : telemetry_deframer(9, false) { };
-        SatID processFrame(uint8_t *frame) {
-            uint8_t telemetry_buffer[8];
-            uint8_t telemetry_frame[74];
-            std::memcpy(&telemetry_buffer[0], &frame[  5-1], 2);
-            std::memcpy(&telemetry_buffer[2], &frame[261-1], 2);
-            std::memcpy(&telemetry_buffer[4], &frame[517-1], 2);
-            std::memcpy(&telemetry_buffer[6], &frame[773-1], 2);
+        Scoreboard(size_t threshold = 100) : d_threshold(threshold) { }
 
-            if (telemetry_deframer.work(telemetry_buffer, telemetry_frame, 8)) {
-                sats[SatID::MeteorM22]++;
+        void add(T id, size_t weight = 1) {
+            ids[id] += weight;
+        }
+        T max() {
+            auto largest = std::max_element(ids.begin(), ids.end(), [](const auto& p1, const auto& p2) { return p1.second < p2.second; });
+            if (ids.size() != 0 && largest->second > d_threshold) {
+                return largest->first;
             } else {
-                // List of SCIDs here (excluding FY) https://sanaregistry.org/r/spacecraftid/
-                uint8_t SCID = ((uint16_t)frame[4] << 8 | frame[5]) >> 6;
-                switch (SCID) {
-                    case 0x00: sats[SatID::MeteorM2]++;  break; // Meteor M2 LRPT (actual satid is in APID 70???)
-                    case 0x0B: sats[SatID::MetOpB]++;    break; // MetOp 1
-                    case 0x0C: sats[SatID::MetOpA]++;    break; // MetOp 2
-                    case 0x0D: sats[SatID::MetOpC]++;    break; // MetOp 3
-                    case 0x31: sats[SatID::FengYun3C]++; break;
-                    case 0x32: sats[SatID::FengYun3B]++; break;
-                    case 0x33: sats[SatID::FengYun3C]++; break;
-                    default:                             break;
-                }
+                return T::Unknown;
             }
-
-            auto pair = std::max_element(sats.begin(), sats.end(), [](const std::pair<SatID, size_t>& p1, const std::pair<SatID, size_t>& p2) {
-                return p1.second < p2.second;
-            });
-            if (pair->second > 100 && sats.size() != 0) {
-                return pair->first;
-            }
-
-            return SatID::Unknown;
         }
     private:
-        ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 74 * 8> telemetry_deframer;
-
-        std::map<SatID, size_t> sats;
+        const size_t d_threshold;
+        std::map<T, size_t> ids;
 };
 
-SatID Fingerprint::fingerprint_ccsds(std::istream &stream) {
-    CCSDSFingerprint fingerprint;
+std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
+    std::filebuf file;
+    if (!file.open(filename, std::ios::in | std::ios::binary)) {
+        return {SatID::Unknown, FileType::Unknown, Protocol::Unknown};
+    }
+    std::istream stream(&file);
+
+    std::string extension = QFileInfo(QString::fromStdString(filename)).suffix().toLower().toStdString();
+    FileType filetype = FileType::Unknown;
+
+    // Try and guess the filetype based off extension and (if failing that, the) header
+    if (known_extensions.count(extension)) {
+        filetype = known_extensions.at(extension);
+    } else {
+        filetype = id_magic(stream);
+    }
+
+    switch (filetype) {
+        case FileType::CADU:
+        case FileType::VCDU: {
+            SatID id = fingerprint_ccsds(stream, filetype);
+            file.close();
+            return {id, filetype, *ccsds_downlinks(id).begin() };
+        }
+        case FileType::raw16:
+        case FileType::HRP: {
+            SatID id = fingerprint_noaa(stream, filetype);
+            file.close();
+            return {id, filetype, Protocol::HRPT};
+        }
+        default: break;
+    }
+
+    // Brute force until we find meteor frames or noaa frames
+    switch (fingerprint_raw(stream)) {
+        case Protocol::HRPT: {
+            SatID id = fingerprint_noaa(stream, FileType::Raw);
+            file.close();
+            return {id, FileType::Raw, Protocol::HRPT};
+        }
+        case Protocol::MeteorHRPT: {
+            SatID id = fingerprint_meteor(stream, FileType::Raw);
+            file.close();
+            return {id, FileType::Raw, Protocol::MeteorHRPT};
+        }
+        default: break;
+    }
+
+    file.close();
+    return {SatID::Unknown, FileType::Unknown, Protocol::Unknown};
+}
+
+SatID Fingerprint::fingerprint_ccsds(std::istream &stream, FileType type) {
+    Scoreboard<SatID> s;
     uint8_t frame[1024];
 
     while (is_running && !stream.eof()) {
-        stream.read(reinterpret_cast<char *>(frame), 1024);
-
-        SatID id = fingerprint.processFrame(frame);
-        if (id != SatID::Unknown) {
-            return id;
+        if (type == FileType::VCDU) {
+            stream.read((char *)&frame[4], 892);
+        } else if (type == FileType::CADU) {
+            stream.read(reinterpret_cast<char *>(frame), 1024);
         }
+
+        uint8_t SCID = ((uint16_t)frame[4] << 8 | frame[5]) >> 6;
+        switch (SCID) {
+            case 0x00: s.add(SatID::MeteorM2);  break; // This is fine until the launch of Meteor-M23
+            case 0x0B: s.add(SatID::MetOpB);    break; // MetOp 1
+            case 0x0C: s.add(SatID::MetOpA);    break; // MetOp 2
+            case 0x0D: s.add(SatID::MetOpC);    break; // MetOp 3
+            case 0x31: s.add(SatID::FengYun3A); break;
+            case 0x32: s.add(SatID::FengYun3B); break;
+            case 0x33: s.add(SatID::FengYun3C); break;
+            default:                            break;
+        }
+
+        if (s.max() != SatID::Unknown) return s.max();
     }
 
     return SatID::Unknown;
 }
 
-SatID Fingerprint::fingerprint_vcdu(std::istream &stream) {
-    CCSDSFingerprint fingerprint;
-    uint8_t frame[1024];
-
-    while (is_running && !stream.eof()) {
-        stream.read((char *)&frame[4], 892);
-
-        SatID id = fingerprint.processFrame(frame);
-        if (id != SatID::Unknown) {
-            return id;
-        }
-    }
-
-    return SatID::Unknown;
-}
-
-bool Fingerprint::is_noaa(std::istream &stream) {
+Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
     uint8_t buffer[1024];
-    ccsds::Deframer deframer;
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer2(8, true);
-    std::vector<uint8_t> ccsds_frame(1024);
-    std::vector<uint8_t> noaa_frame((11090*10) / 8);
-
-    size_t noaa_frames = 0;
-    size_t ccsds_frames = 0;
+    ccsds::Deframer ccsds_deframer;
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> noaa_deframer(8, true);
+    std::vector<uint8_t> out((11090*10) / 8);
+    Scoreboard<Protocol> s;
 
     while (is_running && !stream.eof()) {
         stream.read(reinterpret_cast<char *>(buffer), 1024);
-        if (deframer.work(buffer, ccsds_frame.data(), 1024)) {
-            if (ccsds_frames++ > 200) {
-                return false;
-            }
+        if (ccsds_deframer.work(buffer, out.data(), 1024)) {
+            s.add(Protocol::MeteorHRPT);
         }
-        if (deframer2.work(buffer, noaa_frame.data(), 1024)) {
-            if (noaa_frames++ > 10) {
-                return true;
-            }
+        if (noaa_deframer.work(buffer, out.data(), 1024)) {
+            s.add(Protocol::HRPT, 14);
         }
+
+        if (s.max() != Protocol::Unknown) return s.max();
     }
 
-    return false;
+    return Protocol::Unknown;
 }
 
-SatID Fingerprint::id_noaa(std::istream &stream, bool hrp) {
-    std::vector<uint16_t> repacked(11090);
-    std::map<SatID, size_t> sats;
-    
-    while (is_running && !stream.eof()) {
-        stream.read(reinterpret_cast<char *>(repacked.data()), 11090*2);
-
-        if (hrp) {
-            for (size_t i = 0; i < 11090; i++) {
-                uint16_t x = repacked[i];
-                repacked[i] = (x & 0xFF) << 8 | (x >> 8);
-            }
-        }
-
-        uint8_t address = ((repacked[6] & 0x078) >> 3) & 0x000F;
-        switch (address) {
-            case 7:  sats[SatID::NOAA15]++; break;
-            case 13: sats[SatID::NOAA18]++; break;
-            case 15: sats[SatID::NOAA19]++; break;
-            default:                        break;
-        }
-
-        auto pair = std::max_element(sats.begin(), sats.end(), [](const std::pair<SatID, size_t>& p1, const std::pair<SatID, size_t>& p2) {
-            return p1.second < p2.second;
-        });
-        if (pair->second > 20) {
-            return pair->first;
-        }
-    }
-
-    return SatID::Unknown;
-}
-
-SatID Fingerprint::id_noaa_raw(std::istream &stream) {
-    uint8_t buffer[1024];
-    std::vector<uint8_t> frame((11090*10) / 8);
-    std::vector<uint16_t> repacked(11090);
+SatID Fingerprint::fingerprint_noaa(std::istream &stream, FileType type) {
+    std::vector<uint16_t> frame(11090);
+    Scoreboard<SatID> s;
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer(8, true);
 
-    std::map<SatID, size_t> sats;
+    while (is_running && !stream.eof()) {
+        bool have_frame = false;
+
+        if (type == FileType::raw16) {
+            stream.read((char *)frame.data(), 11090 * sizeof(uint16_t));
+            have_frame = true;
+        } else if (type == FileType::HRP) {
+            stream.read((char *)frame.data(), 11090 * sizeof(uint16_t));
+            have_frame = true;
+
+            // Flip endianness
+            for (size_t i = 0; i < 11090; i++) {
+                uint16_t x = frame[i];
+                frame[i] = (x & 0xFF) << 8 | (x >> 8);
+            }
+        } else if (type == FileType::Raw) {
+            std::vector<uint8_t> buffer(1024);
+            std::vector<uint8_t> raw((11090*10)/8);
+
+            stream.read((char *)buffer.data(), 1024);
+            if (deframer.work(buffer.data(), raw.data(), 1024)) {
+                size_t j = 0;
+                for (size_t i = 0; i < 11090-3; i += 4) {
+                    frame[i + 0] =  (raw[j + 0] << 2)       | (raw[j + 1] >> 6);
+                    frame[i + 1] = ((raw[j + 1] % 64) << 4) | (raw[j + 2] >> 4);
+                    frame[i + 2] = ((raw[j + 2] % 16) << 6) | (raw[j + 3] >> 2);
+                    frame[i + 3] = ((raw[j + 3] % 4 ) << 8) |  raw[j + 4];
+                    j += 5;
+                }
+
+                have_frame = true;
+            }
+        }
+
+        if (have_frame) {
+            uint8_t address = (frame[6] >> 3) & 0b1111;
+            switch (address) {
+                case 7:  s.add(SatID::NOAA15); break;
+                case 13: s.add(SatID::NOAA18); break;
+                case 15: s.add(SatID::NOAA19); break;
+                default:                       break;
+            }
+
+            if (s.max() != SatID::Unknown) return s.max();
+        }
+    }
+
+    return SatID::Unknown;
+}
+
+SatID Fingerprint::fingerprint_meteor(std::istream &stream, FileType type) {
+    Scoreboard<SatID> s;
+    ccsds::Deframer deframer;
+    std::vector<uint8_t> frame(1024);
+    ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8> msumr_deframer;
 
     while (is_running && !stream.eof()) {
-        stream.read(reinterpret_cast<char *>(buffer), 1024);
-        if (deframer.work(buffer, frame.data(), 1024)) {
-            size_t j = 0;
-            for (size_t i = 0; i < 11090-3; i += 4) {
-                repacked[i + 0] =  (frame[j + 0] << 2)       | (frame[j + 1] >> 6);
-                repacked[i + 1] = ((frame[j + 1] % 64) << 4) | (frame[j + 2] >> 4);
-                repacked[i + 2] = ((frame[j + 2] % 16) << 6) | (frame[j + 3] >> 2);
-                repacked[i + 3] = ((frame[j + 3] % 4 ) << 8) |  frame[j + 4];
-                j += 5;
-            }
+        bool have_frame = false;
 
-            uint8_t address = ((repacked[6] & 0x078) >> 3) & 0x000F;
-            switch (address) {
-                case 7:  sats[SatID::NOAA15]++; break;
-                case 13: sats[SatID::NOAA18]++; break;
-                case 15: sats[SatID::NOAA19]++; break;
-                default:                        break;
-            }
+        if (type == FileType::Raw) {
+            std::vector<uint8_t> buffer(1024);
+            stream.read((char *)buffer.data(), 1024);
 
-            auto pair = std::max_element(sats.begin(), sats.end(), [](const std::pair<SatID, size_t>& p1, const std::pair<SatID, size_t>& p2) {
-                return p1.second < p2.second;
-            });
-            if (pair->second > 20) {
-                return pair->first;
+            if (deframer.work(buffer.data(), frame.data(), 1024)) {
+                have_frame = true;
+            }
+        }
+
+        if (have_frame) {
+            uint8_t msumr_buffer[948];
+            std::vector<uint8_t> msumr_frame(11850);
+            std::memcpy(&msumr_buffer[238*0], &frame[ 23-1], 238);
+            std::memcpy(&msumr_buffer[238*1], &frame[279-1], 238);
+            std::memcpy(&msumr_buffer[238*2], &frame[535-1], 238);
+            std::memcpy(&msumr_buffer[238*3], &frame[791-1], 234);
+            if (msumr_deframer.work(msumr_buffer, msumr_frame.data(), 948)) {
+                switch (msumr_frame[12] >> 4) {
+                    case 0: s.add(SatID::MeteorM2);  break;
+                    case 2: s.add(SatID::MeteorM22); break;
+                    default:                         break;
+                }
+
+                if (s.max() != SatID::Unknown) return s.max();
             }
         }
     }
@@ -183,86 +228,16 @@ SatID Fingerprint::id_noaa_raw(std::istream &stream) {
     return SatID::Unknown;
 }
 
-std::set<Protocol> downlinks(SatID id) {
-    if (satellite_info.count(id) == 0) return { Protocol::Unkonwn };
+std::set<Protocol> Fingerprint::ccsds_downlinks(SatID id) {
+    if (satellite_info.count(id) == 0) {
+        return { Protocol::Unknown };
+    }
 
     switch (satellite_info.at(id).mission) {
         case POES:     return { Protocol::HRPT };
         case FengYun3: return { Protocol::FengYunHRPT };
         case MetOp:    return { Protocol::AHRPT/*, Protocol::LRPT*/ };
-        case MeteorM:  return { Protocol::MeteorHRPT, id == SatID::MeteorM2 ? Protocol::LRPT : Protocol::MeteorHRPT };
-        default:       return { Protocol::Unkonwn };
+        case MeteorM:  return { /*Protocol::MeteorHRPT,*/ Protocol::LRPT };
+        default:       return { Protocol::Unknown };
     }
-}
-
-std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
-    std::filebuf file;
-    if (!file.open(filename, std::ios::in | std::ios::binary)) {
-        return {SatID::Unknown, FileType::Unknown, Protocol::Unkonwn};
-    }
-    std::istream stream(&file);
-
-    std::string extension = filename.substr(filename.find(".")+1);
-    if (extension == "cadu") {
-        SatID id = fingerprint_ccsds(stream);
-        file.close();
-        std::set<Protocol> a = downlinks(id);
-        if (a.size() == 1) {
-            return {id, FileType::CADU, *a.begin() };
-        } else {
-            // Bad bad bad
-            return {id, FileType::CADU, id == SatID::MeteorM2 ? Protocol::LRPT : Protocol::MeteorHRPT };
-        }
-    } else if (extension == "vcdu") {
-        SatID id = fingerprint_vcdu(stream);
-        file.close();
-        std::set<Protocol> a = downlinks(id);
-        if (a.size() == 1) {
-            return {id, FileType::VCDU, *a.begin() };
-        } else {
-            // Bad bad bad
-            return {id, FileType::VCDU, id == SatID::MeteorM2 ? Protocol::LRPT : Protocol::MeteorHRPT };
-        }
-    } else if (extension == "raw16") {
-        SatID id = id_noaa(stream);
-        file.close();
-        return {id, FileType::raw16, Protocol::HRPT };
-    } else if (extension == "hrp") {
-        SatID id = id_noaa(stream, true);
-        file.close();
-        return {id, FileType::HRP, Protocol::HRPT };
-    }
-
-    if (is_ccsds(stream)) {
-        SatID id = fingerprint_ccsds(stream);
-        file.close();
-        std::set<Protocol> a = downlinks(id);
-        if (a.size() == 1) {
-            return {id, FileType::CADU, *a.begin() };
-        } else {
-            // Bad bad bad
-            return {id, FileType::CADU, id == SatID::MeteorM2 ? Protocol::LRPT : Protocol::MeteorHRPT };
-        }
-    }
-
-    if (is_raw16(stream)) {
-        SatID id = id_noaa(stream);
-        file.close();
-        return {id, FileType::raw16, Protocol::HRPT};
-    }
-
-    if (is_hrp(stream)) {
-        SatID id = id_noaa(stream, true);
-        file.close();
-        return {id, FileType::HRP, Protocol::HRPT};
-    }
-
-    if (is_noaa(stream)) {
-        SatID id = id_noaa_raw(stream);
-        file.close();
-        return {id, FileType::Raw, Protocol::HRPT};
-    }
-
-    file.close();
-    return {SatID::Unknown, FileType::Unknown, Protocol::Unkonwn};
 }

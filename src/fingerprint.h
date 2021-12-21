@@ -6,6 +6,14 @@
 #include <fstream>
 #include <string>
 #include <atomic>
+#include <set>
+
+const std::map<std::string, FileType> known_extensions = {
+    { "cadu",  FileType::CADU },
+    { "vcdu",  FileType::VCDU },
+    { "raw16", FileType::raw16 },
+    { "hrp",   FileType::HRP },
+};
 
 class Fingerprint {
     public:
@@ -16,30 +24,22 @@ class Fingerprint {
             is_running = false;
         }
     private:
-        SatID fingerprint_vcdu(std::istream &strema);
-        SatID fingerprint_ccsds(std::istream &stream);
-        bool is_noaa(std::istream &stream);
-        SatID id_noaa_raw(std::istream &stream);
-        SatID id_noaa(std::istream &stream, bool hrp = false);
+        SatID fingerprint_ccsds(std::istream &stream, FileType type);
+        SatID fingerprint_noaa(std::istream &stream, FileType type);
+        SatID fingerprint_meteor(std::istream &stream, FileType type);
 
-        static bool is_ccsds(std::istream &stream) {
+        Protocol fingerprint_raw(std::istream &stream);
+        std::set<Protocol> ccsds_downlinks(SatID id);
+
+        static FileType id_magic(std::istream &stream) {
             uint8_t header[4];
             stream.read((char *)&header, 4);
             stream.seekg(stream.beg);
-            return (header[0] == 0x1A && header[1] == 0xCF && header[2] == 0xFC && header[3] == 0x1D);  
-        };
-        static bool is_raw16(std::istream &stream) {
-            uint8_t header[4];
-            stream.read((char *)&header, 4);
-            stream.seekg(stream.beg);
-            return (header[0] == 0x84 && header[1] == 0x02 && header[2] && 0x6F && header[3] == 0x01);  
-        };
-        static bool is_hrp(std::istream &stream) {
-            uint8_t header[4];
-            stream.read((char *)&header, 4);
-            stream.seekg(stream.beg);
-            return (header[0] == 0x02 && header[1] == 0x84 && header[2] && 0x01 && header[3] == 0x6F);  
-        };
+            if (header[0] == 0x1A && header[1] == 0xCF && header[2] == 0xFC && header[3] == 0x1D) return FileType::CADU;
+            if (header[0] == 0x84 && header[1] == 0x02 && header[2] && 0x6F && header[3] == 0x01) return FileType::raw16;
+            if (header[0] == 0x02 && header[1] == 0x84 && header[2] && 0x01 && header[3] == 0x6F) return FileType::HRP;
+            return FileType::Unknown;
+        }
 
         std::atomic<bool> is_running;
 };

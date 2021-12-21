@@ -24,7 +24,7 @@
 #include <vector>
 
 enum class Protocol {
-    Unkonwn,
+    Unknown,
     LRPT,
     HRPT,
     AHRPT,
