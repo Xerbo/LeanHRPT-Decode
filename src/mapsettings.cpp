@@ -104,16 +104,17 @@ void MapSettings::on_startButton_clicked() {
 }
 
 void MapSettings::start(size_t width, size_t height) {
+    createGcps();
+
 #ifdef _WIN32
     QString program = "C:\\OSGeo4W\\bin\\ogr2ogr.exe";
 #else
     QString program = "ogr2ogr";
 #endif
     QStringList arguments;
-    arguments << "-tps" << "-nlt" << "LINESTRING" << "--optfile" << (QString::fromStdString(get_temp_dir()) + "/gcp.opt") << (QString::fromStdString(get_temp_dir()) + "/map.shp") << shapefileFilename;
+    arguments << "-clipsrc" << QString::number(minx) << QString::number(miny) << QString::number(maxx) << QString::number(maxy) << "-tps" << "-nlt" << "LINESTRING" << "--optfile" << (QString::fromStdString(get_temp_dir()) + "/gcp.opt") << (QString::fromStdString(get_temp_dir()) + "/map.shp") << shapefileFilename;
     history = "Command: " + program + " " + arguments.join(" ") + "\n";
     ui->logWindow->setPlainText(history);
-    createGcps();
 
     _width = width;
     _height = height;
@@ -153,6 +154,9 @@ void MapSettings::createGcps() {
     out.open(get_temp_dir() + "/gcp.opt", std::ios::out);
     std::ostream ostream(&out);
 
+    minx = miny = 180;
+    maxx = maxy = -180;
+
     for (std::string str; std::getline(stream, str); ) {
         if (str.substr(0, 5) == "<GCP ") {
             double line = str2double(get_tag(str, "Line"));
@@ -161,6 +165,10 @@ void MapSettings::createGcps() {
             double y = str2double(get_tag(str, "Y"));
 
             ostream << "-gcp ";
+            minx = std::min(minx, x);
+            maxx = std::max(maxx, x);
+            miny = std::min(miny, y);
+            maxy = std::max(maxy, y);
             ostream << x << " ";
             ostream << y << " ";
             ostream << pixel << " ";

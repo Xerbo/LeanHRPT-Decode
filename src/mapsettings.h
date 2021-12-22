@@ -50,6 +50,9 @@ class MapSettings : public QDialog {
         size_t _width;
         size_t _height;
 
+        double minx, miny;
+        double maxx, maxy;
+
         QColorDialog *color_dialog;
 
         void set_enabled(bool enabled);
