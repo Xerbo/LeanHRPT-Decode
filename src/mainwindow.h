@@ -38,7 +38,7 @@
 #include "imagecompositor.h"
 #include "preset.h"
 #include "satinfo.h"
-#include "tle.h"
+#include "network.h"
 #include "projection.h"
 
 QT_BEGIN_NAMESPACE

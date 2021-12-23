@@ -52,7 +52,7 @@ jobs:
       run: 'mkdir $TEMP_PATH'
 
     - name: Install Qt
-      run: 'aqt install 5.14.2 linux desktop &&
+      run: 'aqt install-qt linux desktop 5.14.2 &&
             cp -r 5.14.2/gcc_64/* $TEMP_PATH'
 
     - name: Install libpredict
@@ -140,8 +140,9 @@ jobs:
       run: 'mkdir $TEMP_PATH && mkdir $WIN_TEMP_PATH'
 
     - name: Install Qt
-      run: 'aqt install 5.14.2 linux desktop &&
-            aqt install 5.14.2 windows desktop win64_mingw73 || true &&
+      run: 'aqt install-qt linux desktop 5.14.2 &&
+            aqt install-qt windows desktop 5.14.2 win64_mingw73 &&
+            aqt install-tool windows desktop tools_openssl_x64 &&
             cp -r 5.14.2/gcc_64/* $TEMP_PATH &&
             cp -r 5.14.2/mingw73_64/* $WIN_TEMP_PATH'
 
@@ -198,6 +199,8 @@ jobs:
             cp $WIN_TEMP_PATH/bin/libstdc++-6.dll                      LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libwinpthread-1.dll                  LeanHRPT-Decode/ &&
             cp /usr/lib/gcc/x86_64-w64-mingw32/9.3-win32/libgomp-1.dll LeanHRPT-Decode/ &&
+            cp openssl/libssl-1_1-x64.dll                              LeanHRPT-Decode/ &&
+            cp openssl/libcrypto-1_1-x64.dll                           LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/plugins/styles/qwindowsvistastyle.dll      LeanHRPT-Decode/plugins/styles/ &&
             cp $WIN_TEMP_PATH/plugins/imageformats/q{jpeg,webp,tiff}.dll LeanHRPT-Decode/plugins/imageformats/ &&
             cp $WIN_TEMP_PATH/plugins/platforms/qwindows.dll           LeanHRPT-Decode/platforms/ &&

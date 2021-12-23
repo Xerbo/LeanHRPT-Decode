@@ -16,12 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "tle.h"
+#include "network.h"
 
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkReply>
 #include <QFileInfo>
 #include <QDateTime>
+#include <QJsonDocument>
+#include <QJsonArray>
 
 TLEManager::TLEManager() {
     quint64 time = QDateTime::currentSecsSinceEpoch();
@@ -44,7 +46,10 @@ TLEManager::TLEManager() {
             parse("weather.txt");
         });
 
-        manager->get(QNetworkRequest(QUrl(TLE_URL)));
+        QNetworkRequest request;
+        request.setUrl(QUrl(TLE_URL));
+        request.setRawHeader("User-Agent", USER_AGENT);
+        manager->get(request);
     } else {
         parse("weather.txt");
     }
@@ -61,4 +66,26 @@ void TLEManager::parse(std::string filename) {
 
         catalog.insert({name, {line1, line2}});
     }
+}
+
+UpdateChecker::UpdateChecker() {
+    if (std::string(VERSION).find("-") != std::string::npos) return;
+
+    QNetworkAccessManager *manager = new QNetworkAccessManager();
+    QNetworkAccessManager::connect(manager, &QNetworkAccessManager::finished, [this](QNetworkReply *reply) {
+        if (reply->error() != QNetworkReply::NoError) {
+            return;
+        }
+
+        QJsonArray tags = QJsonDocument::fromJson(reply->readAll()).array();
+        QString latest_version = tags.at(0)["name"].toString();
+        if (latest_version != VERSION) {
+            updateAvailable(QString("https://github.com/Xerbo/LeanHRPT-Decode/releases/tag/%1").arg(latest_version));
+        }
+    });
+
+    QNetworkRequest request;
+    request.setUrl(QUrl(TAG_URL));
+    request.setRawHeader("User-Agent", USER_AGENT);
+    manager->get(request);
 }

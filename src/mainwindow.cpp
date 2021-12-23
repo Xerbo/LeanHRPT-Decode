@@ -55,6 +55,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     // Status bar
     status = new QLabel();
+    QLabel::connect(status, &QLabel::linkActivated, [this](const QString &link) {
+        QDesktopServices::openUrl(QUrl(link));
+    });
     ui->statusbar->addPermanentWidget(status, 1);
     QProgressBar * _progressBar = new QProgressBar();
     _progressBar->setRange(0, 100);
@@ -161,6 +164,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         ui->actionEnable_Overlay->setEnabled(true);
         ui->actionEnable_Overlay->setChecked(true);
         updateDisplay();
+    });
+
+    UpdateChecker *update_checker = new UpdateChecker();
+    UpdateChecker::connect(update_checker, &UpdateChecker::updateAvailable, [this](QString url) {
+        status->setText(QString("<a href=\"%1\">A new version is available, click here to get it</a>").arg(url));
     });
 }
 
