@@ -112,7 +112,7 @@ void MapSettings::start(size_t width, size_t height) {
     QString program = "ogr2ogr";
 #endif
     QStringList arguments;
-    arguments << "-clipsrc" << QString::number(minx) << QString::number(miny) << QString::number(maxx) << QString::number(maxy) << "-tps" << "-nlt" << "LINESTRING" << "--optfile" << (QString::fromStdString(get_temp_dir()) + "/gcp.opt") << (QString::fromStdString(get_temp_dir()) + "/map.shp") << shapefileFilename;
+    arguments << "-clipsrc" << QString::number(minx-3.0) << QString::number(miny-3.0) << QString::number(maxx+3.0) << QString::number(maxy+3.0) << "-tps" << "-nlt" << "LINESTRING" << "--optfile" << (QString::fromStdString(get_temp_dir()) + "/gcp.opt") << (QString::fromStdString(get_temp_dir()) + "/map.shp") << shapefileFilename;
     history = "Command: " + program + " " + arguments.join(" ") + "\n";
     ui->logWindow->setPlainText(history);
 
