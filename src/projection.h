@@ -42,6 +42,7 @@ class Projector {
             : predictor(tle) { }
 
         void save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename);
+        std::vector<float> calculate_sunz(const std::vector<double> &timestamps, Imager sensor, SatID sat);
     private:
         std::vector<std::pair<double, Geodetic>> calculate_scan(const Geodetic &position, double azimuth, double fov, double roll, double pitch, size_t n);
 

@@ -93,6 +93,72 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
     file.close();
 }
 
+std::vector<float> Projector::calculate_sunz(const std::vector<double> &timestamps, Imager sensor, SatID sat) {
+    if (timestamps.size() == 0) {
+        return { };
+    }
+
+    size_t width = sensor_info.at(sensor).width;
+    size_t height = timestamps.size();
+    const size_t pointsx = 21;
+    const size_t pointsy = 41;
+    std::vector<float> sunz(pointsy * pointsx);
+    
+    Config proj_info("projection.ini");
+    auto params = proj_info.sections.at(satellite_info.at(sat).name + "_" + sensor_info.at(sensor).name);
+    double fov = str2double(params["fov"]);
+    double yaw = str2double(params["yaw"]);
+    double roll = str2double(params["roll"]);
+    double pitch = str2double(params["pitch"]);
+    double toffset = str2double(params["toffset"]);
+    d_sensor = sensor_info.at(sensor);
+
+    for (size_t i = 0; i < pointsy; i++) {
+        double timestamp = timestamps[round(i * (double)height/(double)pointsy)] + toffset;
+        struct predict_position orbit = predictor.predict(timestamp);
+
+        double azimuth;
+        {
+            struct predict_position a = predictor.predict(timestamp);
+            struct predict_position b = predictor.predict(timestamp+0.1);
+            azimuth = deg2rad(90) - calculateBearingAngle(Geodetic(a), Geodetic(b));
+            if (azimuth > M_PI) {
+                azimuth += deg2rad(yaw);
+            } else {
+                azimuth -= deg2rad(yaw);
+            }
+        }
+
+        auto scan = calculate_scan(Geodetic(orbit), azimuth, fov, roll, pitch, pointsx);
+        for (size_t j = 0; j < pointsx; j++) {
+            // UNIX to Julian date
+            predict_julian_date_t prediction_time = (timestamp / 86400.0) - 3651.0;
+            predict_observer_t observer = { "", scan[j].second.latitude, scan[j].second.longitude, 0 };
+
+            struct predict_observation observation;
+            predict_observe_sun(&observer, prediction_time, &observation);
+
+            // Elevation to zenith angle
+            sunz[i*pointsx + j] = deg2rad(90.0) - observation.elevation;
+        }
+    }
+
+    // Interpolate points to the full image size
+    std::vector<float> full_sunz(height * width);
+    for (size_t y = 0; y < height; y++) {
+        for (size_t x = 0; x < width; x++) {
+            double y2 = (double)y/(double)height * (pointsy-1);
+            double x2 = (double)x/(double)width * (pointsx-1);
+
+            float a = lerp(sunz[floor(y2)*pointsx + floor(x2)], sunz[floor(y2)*pointsx + ceil(x2)], fmodf(x2, 1.0));
+            float b = lerp(sunz[ceil(y2) *pointsx + floor(x2)], sunz[ceil(y2) *pointsx + ceil(x2)], fmodf(x2, 1.0));
+            full_sunz[y*width + x] = lerp(a, b, fmodf(y2, 1.0));
+        }
+    }
+
+    return full_sunz;
+}
+
 std::vector<std::pair<double, Geodetic>> Projector::calculate_scan(const Geodetic &position, double azimuth, double fov, double roll, double pitch, size_t n) {
     std::vector<std::pair<double, Geodetic>> scan;
 

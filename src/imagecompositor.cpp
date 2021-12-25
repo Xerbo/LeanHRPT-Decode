@@ -193,11 +193,12 @@ void ImageCompositor::getExpression(QImage &image, std::string experssion) {
     std::tuple<QRgba64 *, quint16 *> bits = std::make_tuple(
         reinterpret_cast<QRgba64 *>(image.bits()),
         reinterpret_cast<quint16 *>(image.bits())
-    );    
+    );
 
     #pragma omp parallel
     {
         std::vector<double> ch(m_channels);
+        double sunz_val = 0.0;
         mu::Parser p;
 
         try {
@@ -212,6 +213,7 @@ void ImageCompositor::getExpression(QImage &image, std::string experssion) {
             }
             p.DefineVar("NIR", &ch[1]);
             p.DefineVar("RED", &ch[0]);
+            p.DefineVar("sunz", &sunz_val);
 
             p.SetExpr(experssion);
         } catch (mu::Parser::exception_type &e) {
@@ -226,6 +228,7 @@ void ImageCompositor::getExpression(QImage &image, std::string experssion) {
                 for (size_t i = 0; i < m_channels; i++) {
                     ch[i] = (double)rawbits[i][y*m_width + x] / (double)UINT16_MAX;
                 }
+                sunz_val = sunz[y*m_width + x];
 
                 int channels;
                 double *rgb = p.Eval(channels);

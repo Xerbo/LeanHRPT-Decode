@@ -359,6 +359,10 @@ void MainWindow::startDecode(std::string filename) {
         }
     }
 
+    for (auto &sensor : timestamps) {
+        compositors[sensor.first]->sunz = proj->calculate_sunz(sensor.second, sensor.first, sat);
+    }
+    
     delete decoder;
     decoder = nullptr;
 }

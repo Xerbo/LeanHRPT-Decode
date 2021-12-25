@@ -22,8 +22,10 @@
 #include <vector>
 #include <QImage>
 #include <QPainter>
+#include <cmath>
 #include "generic/rawimage.h"
 #include "satinfo.h"
+#include "math.h"
 
 enum Equalization {
     None,
@@ -50,6 +52,7 @@ class ImageCompositor {
         QImage map;
         bool enable_map = false;
         QColor map_color;
+        std::vector<float> sunz;
 
         void load_map(QString filename) {
             map = QImage(filename).convertToFormat(QImage::Format_ARGB32);
