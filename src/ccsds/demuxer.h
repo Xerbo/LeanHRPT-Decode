@@ -21,15 +21,18 @@
 
 #include <cstdint>
 #include <vector>
+#include <cstddef>
 
 namespace ccsds {
     struct CPPDUHeader {
         uint16_t apid;
+        uint8_t sequence_flag;
         uint16_t counter;
         uint16_t length;
 
         CPPDUHeader(const uint8_t *header) {
             apid = (header[0] << 8 | header[1]) & 0b11111111111;
+            sequence_flag = (header[2] << 8 | header[3]) >> 14;
             counter = (header[2] << 8 | header[3]) & 0b11111111111111;
             length = (header[4] << 8 | header[5]) + 1;
         }

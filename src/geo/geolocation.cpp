@@ -27,6 +27,7 @@
 
 #include "geolocation.h"
 #include "math.h"
+#include <limits>
 
 Vector locationToVector(const Geodetic &location)
 {

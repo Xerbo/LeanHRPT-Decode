@@ -82,7 +82,7 @@ class MeteorLRPTDecoder : public Decoder {
                 if (!lrpt::decode_packet(pixels, &packet[6+14], q, header.length-6)) continue;
 
                 // Handle counter overflow
-                if (last_counter > header.counter+8192) {
+                if (last_counter > (size_t)header.counter+8192) {
                     counter_offset += 16384; // 2^14
                 }
 
