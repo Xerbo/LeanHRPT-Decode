@@ -160,6 +160,7 @@ class MainWindow : public QMainWindow {
         void on_actionMap_Settings_triggered() { mapsettings_dialog->show(); };
         // menuOptions
         void on_actionFlip_triggered();
+        void on_actionIR_Blend_triggered();
         // menuHelp
         void on_actionDocumentation_triggered()  { QDesktopServices::openUrl(QUrl("https://github.com/Xerbo/LeanHRPT-Decode/wiki")); };
         void on_actionIssue_Tracker_triggered()  { QDesktopServices::openUrl(QUrl("https://github.com/Xerbo/LeanHRPT-Decode/issues")); };

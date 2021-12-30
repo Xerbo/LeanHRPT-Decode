@@ -51,6 +51,7 @@ public:
     QAction *actionGeoprojector;
     QAction *actionEnable_Overlay;
     QAction *actionMap_Settings;
+    QAction *actionIR_Blend;
     QWidget *centralwidget;
     QHBoxLayout *horizontalLayout;
     QWidget *optionsSidebar;
@@ -148,6 +149,9 @@ public:
         actionEnable_Overlay->setEnabled(false);
         actionMap_Settings = new QAction(MainWindow);
         actionMap_Settings->setObjectName(QString::fromUtf8("actionMap_Settings"));
+        actionIR_Blend = new QAction(MainWindow);
+        actionIR_Blend->setObjectName(QString::fromUtf8("actionIR_Blend"));
+        actionIR_Blend->setCheckable(true);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         horizontalLayout = new QHBoxLayout(centralwidget);
@@ -428,6 +432,7 @@ public:
         menuFile->addAction(actionSave_All_Channels);
         menuFile->addAction(actionSave_GCP_File);
         menuOptions->addAction(actionFlip);
+        menuOptions->addAction(actionIR_Blend);
         menuHelp->addAction(actionDocumentation);
         menuHelp->addAction(actionIssue_Tracker);
         menuHelp->addSeparator();
@@ -467,6 +472,7 @@ public:
         actionGeoprojector->setText(QCoreApplication::translate("MainWindow", "Geoprojector", nullptr));
         actionEnable_Overlay->setText(QCoreApplication::translate("MainWindow", "Enable Overlay", nullptr));
         actionMap_Settings->setText(QCoreApplication::translate("MainWindow", "Map Settings", nullptr));
+        actionIR_Blend->setText(QCoreApplication::translate("MainWindow", "IR Blend", nullptr));
         channelSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Channel Selector", nullptr));
         compoisteSelectorBox->setTitle(QCoreApplication::translate("MainWindow", "Composite Channel Selector", nullptr));
         redLabel->setText(QCoreApplication::translate("MainWindow", "Red", nullptr));

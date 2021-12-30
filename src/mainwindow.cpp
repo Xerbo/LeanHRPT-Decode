@@ -387,6 +387,8 @@ void MainWindow::decodeFinished() {
     setState(WindowState::Finished);
     ui->actionFlip->setChecked(false);
     ui->actionEnable_Overlay->setChecked(false);
+    ui->actionIR_Blend->setChecked(false);
+    ui->actionIR_Blend->setEnabled(compositors.at(sensor)->sunz.size() != 0 && sensor != Imager::MHS);
 
     // Load satellite specific presets
     reloadPresets();
@@ -460,6 +462,11 @@ void MainWindow::setEqualization(Equalization type) {
 
 void MainWindow::on_actionFlip_triggered() {
     compositors.at(sensor)->setFlipped(ui->actionFlip->isChecked());
+    updateDisplay();
+}
+
+void MainWindow::on_actionIR_Blend_triggered() {
+    compositors.at(sensor)->enableIRBlend(ui->actionIR_Blend->isChecked());
     updateDisplay();
 }
 

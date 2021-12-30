@@ -472,6 +472,7 @@
      <string>Options</string>
     </property>
     <addaction name="actionFlip"/>
+    <addaction name="actionIR_Blend"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -584,6 +585,14 @@
   <action name="actionMap_Settings">
    <property name="text">
     <string>Map Settings</string>
+   </property>
+  </action>
+  <action name="actionIR_Blend">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>IR Blend</string>
    </property>
   </action>
  </widget>

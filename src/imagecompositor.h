@@ -33,6 +33,15 @@ enum Equalization {
     Stretch
 };
 
+inline QRgba64 lerp(QRgba64 a, QRgba64 b, float x) {
+    return QRgba64::fromRgba64(
+        a.red()  *(1.0f-x) + b.red()  *x,
+        a.green()*(1.0f-x) + b.green()*x,
+        a.blue() *(1.0f-x) + b.blue() *x,
+        UINT16_MAX
+    );
+}
+
 class ImageCompositor {
     public:
         void import(RawImage *image, SatID satellite, Imager sensor, std::map<std::string, double> caldata);
@@ -69,6 +78,31 @@ class ImageCompositor {
         }
 
         void overlay_map(QImage &image) {
+            if (ir_blend) {
+                QImage copy(m_channels == 6 ? rawChannels[4] : rawChannels[3]);
+                equalise(copy, Equalization::Histogram, 0.7f, false);
+                if (m_isFlipped) copy = copy.mirrored(true, true);
+
+                uint16_t *ir = (uint16_t *)copy.bits();
+                std::tuple<QRgba64 *, quint16 *> bits = std::make_tuple(
+                    reinterpret_cast<QRgba64 *>(image.bits()),
+                    reinterpret_cast<quint16 *>(image.bits())
+                );
+
+                for (size_t i = 0; i < m_height*m_width; i++) {
+                    float irval = m_channels == 6 ? (UINT16_MAX - ir[i]) : ir[i];
+
+                    float _sunz = m_isFlipped ? sunz[m_width*m_height - i] : sunz[i];
+                    float x = clamp(_sunz*10.0f-14.8f, 0.0f, 1.0f);
+
+                    if (image.format() == QImage::Format_RGBX64) {
+                        std::get<0>(bits)[i] = lerp(std::get<0>(bits)[i], QRgba64::fromRgba64(irval, irval, irval, UINT16_MAX), x);
+                    } else {
+                        std::get<1>(bits)[i] = lerp<float>(std::get<1>(bits)[i], irval, x);
+                    }
+                }
+            }
+
             if (!map.isNull() && enable_map) {
                 image = image.convertToFormat(QImage::Format_RGBX64);
                 QPainter painter(&image);
@@ -80,6 +114,10 @@ class ImageCompositor {
             }
         }
 
+        void enableIRBlend(bool enable) {
+            ir_blend = enable;
+        }
+
         static void equalise(QImage &image, Equalization equalization, float clipLimit, bool brightness_only);
     private:
         size_t m_width;
@@ -88,6 +126,7 @@ class ImageCompositor {
         bool m_isFlipped;
         std::vector<QImage> rawChannels;
         std::map<std::string, double> d_caldata;
+        bool ir_blend = false;
 
         void calibrate_avhrr(QImage &image, double a1, double b1, double a2, double b2, double c);
         void calibrate_linear(QImage &image, double a, double b);

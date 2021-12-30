@@ -228,7 +228,7 @@ void ImageCompositor::getExpression(QImage &image, std::string experssion) {
                 for (size_t i = 0; i < m_channels; i++) {
                     ch[i] = (double)rawbits[i][y*m_width + x] / (double)UINT16_MAX;
                 }
-                sunz_val = sunz[y*m_width + x];
+                if(sunz.size() != 0) sunz_val = sunz[y*m_width + x];
 
                 int channels;
                 double *rgb = p.Eval(channels);
