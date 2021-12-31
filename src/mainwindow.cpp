@@ -385,7 +385,8 @@ void MainWindow::decodeFinished() {
     populateChannelSelectors(compositors.at(sensor)->channels());
     status->setText(QString("%1 - %2: %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(compositors.at(sensor)->height()));
     setState(WindowState::Finished);
-    ui->actionFlip->setChecked(false);
+    ui->actionFlip->setChecked(proj->is_northbound(timestamps.at(satellite_info.at(sat).default_imager)));
+    on_actionFlip_triggered();
     ui->actionEnable_Overlay->setChecked(false);
     ui->actionIR_Blend->setChecked(false);
     ui->actionIR_Blend->setEnabled(compositors.at(sensor)->sunz.size() != 0 && sensor != Imager::MHS);

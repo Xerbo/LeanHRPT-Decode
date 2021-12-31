@@ -69,7 +69,7 @@ void TLEManager::parse(std::string filename) {
 }
 
 UpdateChecker::UpdateChecker() {
-    if (std::string(VERSION).find("-") != std::string::npos) return;
+    if (std::string(VERSION).find("-") != std::string::npos || std::string(VERSION) == "Unknown") return;
 
     QNetworkAccessManager *manager = new QNetworkAccessManager();
     QNetworkAccessManager::connect(manager, &QNetworkAccessManager::finished, [this](QNetworkReply *reply) {
