@@ -165,7 +165,7 @@ void ProjectDialog::start(Imager sensor) {
     QString program = "gdalwarp";
 #endif
     QStringList arguments;
-    arguments << "-overwrite" << "-r" << interpolation << "-tps" << "-t_srs" << epsg << (QString::fromStdString(get_temp_dir()) + "/image.vrt") << outputFilename;
+    arguments << "-multi" << "-wm" << "512" << "-wo" << "NUM_THREADS=ALL_CPUS" << "-overwrite" << "-r" << interpolation << "-tps" << "-t_srs" << epsg << (QString::fromStdString(get_temp_dir()) + "/image.vrt") << outputFilename;
 
     history = "Command: " + program + " " + arguments.join(" ") + "\n";
 
