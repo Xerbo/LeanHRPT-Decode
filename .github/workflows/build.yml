@@ -40,8 +40,8 @@ jobs:
       run: 'mkdir $TEMP_PATH'
 
     - name: Install Qt
-      run: 'aqt install-qt linux desktop 5.14.2 &&
-            cp -r 5.14.2/gcc_64/* $TEMP_PATH'
+      run: 'aqt install-qt linux desktop 5.15.2 &&
+            cp -r 5.15.2/gcc_64/* $TEMP_PATH'
 
     - name: Install libpredict
       run: 'git clone https://github.com/la1k/libpredict &&
@@ -122,11 +122,11 @@ jobs:
       run: 'mkdir $TEMP_PATH && mkdir $WIN_TEMP_PATH'
 
     - name: Install Qt
-      run: 'aqt install-qt linux desktop 5.14.2 &&
-            aqt install-qt windows desktop 5.14.2 win64_mingw73 &&
+      run: 'aqt install-qt linux desktop 5.15.2 &&
+            aqt install-qt windows desktop 5.15.2 win64_mingw81 &&
             aqt install-tool windows desktop tools_openssl_x64 &&
-            cp -r 5.14.2/gcc_64/* $TEMP_PATH &&
-            cp -r 5.14.2/mingw73_64/* $WIN_TEMP_PATH'
+            cp -r 5.15.2/gcc_64/* $TEMP_PATH &&
+            cp -r 5.15.2/mingw81_64/* $WIN_TEMP_PATH'
 
     - name: Patch Qt
       run: 'rm $WIN_TEMP_PATH/bin/moc.exe &&

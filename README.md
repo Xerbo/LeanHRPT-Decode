@@ -26,9 +26,9 @@ You may also wish to symlink the configuration files into the build directory:
 
 ```sh
 # Assuming you are in LeanHRPT-Decode/build
-ln -s ../presets.ini ..
-ln -s ../calibration.ini ..
-ln -s ../projection.ini ..
+ln -s ../presets.ini
+ln -s ../calibration.ini
+ln -s ../projection.ini
 ```
 
 And then run the resulting binary.
