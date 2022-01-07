@@ -124,9 +124,12 @@ jobs:
     - name: Install Qt
       run: 'aqt install-qt linux desktop 5.15.2 &&
             aqt install-qt windows desktop 5.15.2 win64_mingw81 &&
-            aqt install-tool windows desktop tools_openssl_x64 &&
             cp -r 5.15.2/gcc_64/* $TEMP_PATH &&
             cp -r 5.15.2/mingw81_64/* $WIN_TEMP_PATH'
+
+    - name: Install OpenSSL
+      run: 'wget https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-openssl-1.1.1.g-1-any.pkg.tar.xz &&
+            tar -xf mingw-w64-x86_64-openssl-1.1.1.g-1-any.pkg.tar.xz'
 
     - name: Patch Qt
       run: 'rm $WIN_TEMP_PATH/bin/moc.exe &&
@@ -186,8 +189,8 @@ jobs:
             cp $WIN_TEMP_PATH/plugins/platforms/qwindows.dll           LeanHRPT-Decode/platforms/ &&
             find LeanHRPT-Decode/ -name "*.dll" -exec x86_64-w64-mingw32-strip {} \; &&
             find LeanHRPT-Decode/ -name "*.exe" -exec x86_64-w64-mingw32-strip {} \; &&
-            cp Tools/OpenSSL/Win_x64/bin/libssl-1_1-x64.dll            LeanHRPT-Decode/ &&
-            cp Tools/OpenSSL/Win_x64/bin/libcrypto-1_1-x64.dll         LeanHRPT-Decode/ &&
+            cp mingw64/bin/libssl-1_1-x64.dll                          LeanHRPT-Decode/ &&
+            cp mingw64/bin/libcrypto-1_1-x64.dll                       LeanHRPT-Decode/ &&
             zip -r LeanHRPT-Decode.zip LeanHRPT-Decode/'
 
     - uses: actions/upload-artifact@v2
