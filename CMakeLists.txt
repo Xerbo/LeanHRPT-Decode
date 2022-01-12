@@ -50,10 +50,45 @@ if(OpenMP_CXX_FOUND)
     target_link_libraries(LeanHRPT-Decode PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
+# Get version from git
 find_package(Git)
 if (GIT_FOUND)
     execute_process(COMMAND ${GIT_EXECUTABLE} describe --tag WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR} OUTPUT_VARIABLE GIT_TAG OUTPUT_STRIP_TRAILING_WHITESPACE)
-    target_compile_definitions(LeanHRPT-Decode PRIVATE "VERSION=\"${GIT_TAG}\"")
+    set(VERSION "${GIT_TAG}")
 else()
-    target_compile_definitions(LeanHRPT-Decode PRIVATE "VERSION=\"Unknown\"")
+    set(VERSION "Unknown")
+endif()
+target_compile_definitions(LeanHRPT-Decode PRIVATE "VERSION=\"${VERSION}\"")
+
+# Binaries
+install(TARGETS LeanHRPT-Decode)
+#install(FILES /usr/lib/x86_64-linux-gnu/libpredict.so DESTINATION lib/x86_64-linux-gnu)
+#install(FILES /usr/lib/x86_64-linux-gnu/libpredict.so.2 DESTINATION lib/x86_64-linux-gnu)
+#install(FILES /usr/lib/x86_64-linux-gnu/libpredict.so.2.0.0 DESTINATION lib/x86_64-linux-gnu)
+# Desktop file and icon
+configure_file(${CMAKE_SOURCE_DIR}/LeanHRPT-Decode.desktop ${CMAKE_CURRENT_BINARY_DIR}/LeanHRPT-Decode.desktop)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/LeanHRPT-Decode.desktop DESTINATION share/applications)   
+install(FILES ${CMAKE_SOURCE_DIR}/logo128.png DESTINATION share/icons RENAME LeanHRPT-Decode.png)
+# Config files
+install(FILES ${CMAKE_SOURCE_DIR}/projection.ini DESTINATION share/leanhrpt)
+install(FILES ${CMAKE_SOURCE_DIR}/calibration.ini DESTINATION share/leanhrpt)
+install(FILES ${CMAKE_SOURCE_DIR}/presets.ini DESTINATION share/leanhrpt)
+
+# Package information
+string(SUBSTRING ${VERSION} 1 -1 CPACK_PACKAGE_VERSION)
+set(CPACK_PACKAGE_NAME "LeanHRPT-Decode")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "An easy to use HRPT decoder")
+set(CPACK_PACKAGE_DESCRIPTION "LeanHRPT is an easy to use and powerful tool for the manipulation of Level 0 HRPT data.")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/Xerbo/LeanHRPT-Decode")
+set(CPACK_PACKAGE_CONTACT "Xerbo (xerbo@protonmail.com)")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}")
+# Debian
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "gdal-bin")
+
+# Only allow packaging if we know what we are packaging
+if (NOT VERSION STREQUAL "Unknown")
+    include(CPack)
 endif()

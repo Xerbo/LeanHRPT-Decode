@@ -24,10 +24,11 @@
 #include <QDateTime>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include "projectdialog.h"
 
 TLEManager::TLEManager() {
     quint64 time = QDateTime::currentSecsSinceEpoch();
-    quint64 modified = QFileInfo("weather.txt").lastModified().toSecsSinceEpoch();
+    quint64 modified = QFileInfo(QString::fromStdString(get_temp_dir() + "/weather.txt")).lastModified().toSecsSinceEpoch();
 
     if (time - modified > 24*60*60) {
         QNetworkAccessManager *manager = new QNetworkAccessManager();
@@ -36,14 +37,14 @@ TLEManager::TLEManager() {
                 return;
             }
 
-            QFile tle("weather.txt");
+            QFile tle(QString::fromStdString(get_temp_dir() + "/weather.txt"));
             tle.open(QIODevice::WriteOnly | QIODevice::Text);
             while (!reply->atEnd()) {
                 tle.write(reply->read(1024));
             }
             tle.close();
 
-            parse("weather.txt");
+            parse(get_temp_dir() + "/weather.txt");
         });
 
         QNetworkRequest request;
@@ -51,7 +52,7 @@ TLEManager::TLEManager() {
         request.setRawHeader("User-Agent", USER_AGENT);
         manager->get(request);
     } else {
-        parse("weather.txt");
+        parse(get_temp_dir() + "/weather.txt");
     }
 }
 

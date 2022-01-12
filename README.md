@@ -2,11 +2,17 @@
 
 [![Build](https://github.com/Xerbo/LeanHRPT-Decode/actions/workflows/build.yml/badge.svg)](https://github.com/Xerbo/LeanHRPT-Decode/actions/workflows/build.yml)
 
-A high quality, easy to use HRPT decoder. Also see [LeanHRPT Demod](https://github.com/Xerbo/LeanHRPT-Demod).
+LeanHRPT is an easy to use and powerful tool for the manipulation of Level 0 HRPT data. Also see [LeanHRPT Demod](https://github.com/Xerbo/LeanHRPT-Demod).
 
 ## Usage
 
 See the [wiki](https://github.com/Xerbo/LeanHRPT-Decode/wiki).
+
+## FAQ
+
+### Map overlays don't work
+
+See [the wiki](https://github.com/Xerbo/LeanHRPT-Decode/wiki/Geomanipulation#installing-gdal)
 
 ## Installation
 
@@ -31,7 +37,11 @@ ln -s ../calibration.ini
 ln -s ../projection.ini
 ```
 
-And then run the resulting binary.
+And then run the resulting binary. Alternatively, to install system wide:
+
+```
+sudo make install
+```
 
 ## Example results
 
@@ -44,10 +54,10 @@ And then run the resulting binary.
 
 Input files should be:
 
- - NOAA - raw data, bi-phase/manchester decoded or raw16
- - Meteor - raw data, bi-phase/manchester decoded or CADUs (deframed)
- - MetOp - output from viterbi, CADUs (deframed, derandomized with RS applied) or VCDUs
- - FengYun - output from viterbi, CADUs (deframed, derandomized with RS applied) or VCDUs
+ - NOAA - raw data, raw16 or HRP
+ - Meteor - raw data
+ - MetOp - CADUs or VCDUs
+ - FengYun - CADUs or VCDUs
 
 ## Credits
 

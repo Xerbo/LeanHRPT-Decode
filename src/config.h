@@ -43,6 +43,15 @@ class Config : public inipp::Ini<char> {
                 return;
             }
 
+#ifndef _WIN32
+            if (file.open("/usr/share/leanhrpt/" + filename, std::ios::in)) {
+                std::istream stream(&file);
+                parse(stream);
+                file.close();
+                return;
+            }
+#endif
+
             std::cerr << "Could not open " << filename << std::endl;
         }
     private:

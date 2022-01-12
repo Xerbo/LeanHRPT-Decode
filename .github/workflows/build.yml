@@ -64,7 +64,7 @@ jobs:
     - name: Compile LeanHRPT
       run: 'mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=$TEMP_PATH -DWAR_CRIMES=1 .. &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=/usr -DWAR_CRIMES=1 .. &&
             make -j4'
 
     - name: Package
@@ -74,9 +74,11 @@ jobs:
             mkdir LeanHRPT-Decode.AppDir/usr/lib &&
             mkdir LeanHRPT-Decode.AppDir/usr/plugins &&
             mkdir LeanHRPT-Decode.AppDir/usr/plugins/imageformats &&
+            mkdir LeanHRPT-Decode.AppDir/usr/share &&
+            mkdir LeanHRPT-Decode.AppDir/usr/share/icons &&
             cp AppRun                            LeanHRPT-Decode.AppDir/ &&
-            cp LeanHRPT-Decode.desktop           LeanHRPT-Decode.AppDir/ &&
-            cp logo128.png                       LeanHRPT-Decode.AppDir/ &&
+            cp build/LeanHRPT-Decode.desktop     LeanHRPT-Decode.AppDir/ &&
+            cp logo128.png                       LeanHRPT-Decode.AppDir/usr/share/icon/LeanHRPT-Decode.png &&
             cp presets.ini                       LeanHRPT-Decode.AppDir/ &&
             cp calibration.ini                   LeanHRPT-Decode.AppDir/ &&
             cp projection.ini                    LeanHRPT-Decode.AppDir/ &&
