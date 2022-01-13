@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.0.0)
 project(LeanHRPT-Decode CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -36,14 +36,9 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Network REQUIRED)
 target_link_libraries(LeanHRPT-Decode PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(LeanHRPT-Decode PRIVATE Qt${QT_VERSION_MAJOR}::Network)
 
-# Bodge fix for GitHub Actions
-if (WAR_CRIMES)
-    target_link_directories(LeanHRPT-Decode PRIVATE /tmp/build/lib)
-    target_link_directories(LeanHRPT-Decode PRIVATE /tmp/winbuild/lib)
-endif()
-
 target_link_libraries(LeanHRPT-Decode PUBLIC muparser)
-target_link_libraries(LeanHRPT-Decode PUBLIC predict)
+find_library(LIBPREDICT_PATH NAMES predict)
+target_link_libraries(LeanHRPT-Decode PUBLIC ${LIBPREDICT_PATH})
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)

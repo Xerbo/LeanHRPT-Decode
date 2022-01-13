@@ -4,6 +4,8 @@
 
 LeanHRPT is an easy to use and powerful tool for the manipulation of Level 0 HRPT data. Also see [LeanHRPT Demod](https://github.com/Xerbo/LeanHRPT-Demod).
 
+![Screenshot of LeanHRPT's GUI](images/gui.webp)
+
 ## Usage
 
 See the [wiki](https://github.com/Xerbo/LeanHRPT-Decode/wiki).
