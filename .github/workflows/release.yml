@@ -90,7 +90,7 @@ jobs:
             mkdir LeanHRPT-Decode.AppDir/usr/share/icons &&
             cp AppRun                            LeanHRPT-Decode.AppDir/ &&
             cp build/LeanHRPT-Decode.desktop     LeanHRPT-Decode.AppDir/ &&
-            cp logo128.png                       LeanHRPT-Decode.AppDir/usr/share/icon/LeanHRPT-Decode.png &&
+            cp logo128.png                       LeanHRPT-Decode.AppDir/usr/share/icons/LeanHRPT-Decode.png &&
             cp presets.ini                       LeanHRPT-Decode.AppDir/ &&
             cp calibration.ini                   LeanHRPT-Decode.AppDir/ &&
             cp projection.ini                    LeanHRPT-Decode.AppDir/ &&
@@ -180,7 +180,7 @@ jobs:
     - name: Compile LeanHRPT
       run: 'mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH -DCMAKE_PREFIX_PATH=/tmp/winbuild .. &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_PREFIX_PATH=$WIN_TEMP_PATH -DLIBPREDICT_PATH=$WIN_TEMP_PATH/lib/libpredict.dll.a -DMUPARSER_PATH=$WIN_TEMP_PATH/lib/libmuparser.dll.a .. &&
             make -j4'
 
     - name: Package

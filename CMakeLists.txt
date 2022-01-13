@@ -36,8 +36,9 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Network REQUIRED)
 target_link_libraries(LeanHRPT-Decode PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(LeanHRPT-Decode PRIVATE Qt${QT_VERSION_MAJOR}::Network)
 
-target_link_libraries(LeanHRPT-Decode PUBLIC muparser)
-find_library(LIBPREDICT_PATH NAMES predict)
+find_library(MUPARSER_PATH NAMES muparser NO_CACHE)
+target_link_libraries(LeanHRPT-Decode PUBLIC ${MUPARSER_PATH})
+find_library(LIBPREDICT_PATH NAMES predict NO_CACHE)
 target_link_libraries(LeanHRPT-Decode PUBLIC ${LIBPREDICT_PATH})
 
 find_package(OpenMP)
@@ -62,7 +63,7 @@ install(TARGETS LeanHRPT-Decode)
 #install(FILES /usr/lib/x86_64-linux-gnu/libpredict.so.2.0.0 DESTINATION lib/x86_64-linux-gnu)
 # Desktop file and icon
 configure_file(${CMAKE_SOURCE_DIR}/LeanHRPT-Decode.desktop ${CMAKE_CURRENT_BINARY_DIR}/LeanHRPT-Decode.desktop)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/LeanHRPT-Decode.desktop DESTINATION share/applications)   
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/LeanHRPT-Decode.desktop DESTINATION share/applications)
 install(FILES ${CMAKE_SOURCE_DIR}/logo128.png DESTINATION share/icons RENAME LeanHRPT-Decode.png)
 # Config files
 install(FILES ${CMAKE_SOURCE_DIR}/projection.ini DESTINATION share/leanhrpt)
