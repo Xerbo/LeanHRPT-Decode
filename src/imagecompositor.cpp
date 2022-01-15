@@ -262,7 +262,7 @@ std::vector<size_t> ImageCompositor::create_histogram(QImage &image, float clip_
 
     // Skip every other pixel for speed (this is a bodge but helps a lot)
     for (size_t i = 0; i < (size_t)image.width() * (size_t)image.height(); i += 2) {
-        histogram[bits[i*A + B]] += 2;
+        if (bits[i*A + B] != 0) histogram[bits[i*A + B]]++;
     }
 
     clip_histogram(histogram, clip_limit);
@@ -275,9 +275,11 @@ std::vector<size_t> ImageCompositor::create_rgb_histogram(QImage &image, float c
     T *bits = (T *)image.bits();
 
     for (size_t i = 0; i < (size_t)image.width() * (size_t)image.height(); i += 3) {
-        histogram[bits[i*4+0]]++;
-        histogram[bits[i*4+1]]++;
-        histogram[bits[i*4+2]]++;
+        if (std::min({bits[i*4+0], bits[i*4+1], bits[i*4+2]}) != 0) {
+            histogram[bits[i*4+0]]++;
+            histogram[bits[i*4+1]]++;
+            histogram[bits[i*4+2]]++;
+        }
     }
 
     clip_histogram(histogram, clip_limit);
@@ -289,13 +291,14 @@ void ImageCompositor::_equalise(QImage &image, Equalization equalization, std::v
     if (equalization == Equalization::None) return;
 
     size_t max = std::numeric_limits<T>::max();
+    size_t histogram_count = std::accumulate(histogram.begin(), histogram.end(), 0);
 
     // Calculate cumulative frequency
 	size_t sum = 0;
     std::vector<size_t> cf(histogram.size());
 	for(size_t i = 0; i < cf.size(); i++){
 		sum += histogram[i];
-		cf[i] = (sum*max) / (image.width()*image.height());
+		cf[i] = (sum*max) / histogram_count;
 	}
 
     quint16 *bits = reinterpret_cast<quint16 *>(image.bits());
