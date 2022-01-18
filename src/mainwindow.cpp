@@ -26,6 +26,8 @@
 #include <QScrollBar>
 #include <QProgressBar>
 #include <QCloseEvent>
+#include <QDropEvent>
+#include <QMimeData>
 
 #include "geometry.h"
 #include "math.h"
@@ -170,6 +172,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     UpdateChecker::connect(update_checker, &UpdateChecker::updateAvailable, [this](QString url) {
         status->setText(QString("<a href=\"%1\">A new version is available, click here to get it</a>").arg(url));
     });
+
+    setAcceptDrops(true);
 }
 
 MainWindow::~MainWindow() {
@@ -572,4 +576,17 @@ void MainWindow::on_presetSelector_activated(QString text) {
     ui->presetCategory->setText(QString::fromStdString(preset.category));
 
     updateDisplay();
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent* e) {
+    if (e->mimeData()->urls().size() == 1) {
+        e->acceptProposedAction();
+    }
+}
+
+void MainWindow::dropEvent(QDropEvent* e) {
+    for (const QUrl &url : e->mimeData()->urls()) {
+        QString filename = url.toLocalFile();
+        decodeWatcher->setFuture(QtConcurrent::run(this, &MainWindow::startDecode, filename.toStdString()));
+    }
 }

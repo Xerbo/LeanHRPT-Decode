@@ -146,6 +146,9 @@ class MainWindow : public QMainWindow {
         // GCP Saving
         void save_gcp();
         std::map<Imager, std::vector<double>> timestamps;
+    protected:
+        void dragEnterEvent(QDragEnterEvent *e);
+        void dropEvent(QDropEvent *e);
     private slots:
         // menuFile
         void on_actionOpen_triggered();
