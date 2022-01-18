@@ -46,7 +46,7 @@ class Projector {
 
         bool is_northbound(const std::vector<double> &timestampts);
     private:
-        std::vector<std::pair<double, Geodetic>> calculate_scan(const Geodetic &position, double azimuth, double fov, double roll, double pitch, size_t n);
+        std::vector<std::pair<double, Geodetic>> calculate_scan(const Geodetic &position, double azimuth, double fov, double roll, double pitch, double pitchscale, bool curved, size_t n);
 
         OrbitPredictor predictor;
         SensorInfo d_sensor;

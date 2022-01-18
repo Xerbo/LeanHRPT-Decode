@@ -127,7 +127,7 @@ template class ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8>;
 // Meteor Telemetry
 template class ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 74 * 8>;
 // Meteor MTVZA
-//template class ArbitraryDeframer<uint32_t, 0xFB386A45, 32, 248 * 8>;
+template class ArbitraryDeframer<uint32_t, 0xFB386A45, 32, 248 * 8>;
 
 // NOAA HRPT
 template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900>;

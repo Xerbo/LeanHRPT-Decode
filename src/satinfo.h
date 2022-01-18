@@ -58,7 +58,8 @@ enum Imager {
     AVHRR,
     VIRR,
     MSUMR,
-    MHS
+    MHS,
+    MTVZA
 };
 
 enum class Format {
@@ -117,7 +118,8 @@ const std::map<Imager, SensorInfo> sensor_info = {
     { Imager::AVHRR, SensorInfo {"AVHRR",  2900.0f, 1.1f,  2048 } },
     { Imager::VIRR,  SensorInfo {"VIRR",   2800.0f, 1.1f,  2048 } },
     { Imager::MSUMR, SensorInfo {"MSU-MR", 2800.0f, 1.0f,  1572 } },
-    { Imager::MHS,   SensorInfo {"MHS",    2180.0f, 16.0f, 90   } }
+    { Imager::MHS,   SensorInfo {"MHS",    2180.0f, 16.0f, 90   } },
+    { Imager::MTVZA, SensorInfo {"MTVZA",  1500.0f, 16.0f, 50   } },
 };
 
 const std::map<std::string, Imager> sensors = {
@@ -125,6 +127,7 @@ const std::map<std::string, Imager> sensors = {
     { "VIRR",   Imager::VIRR },
     { "MSU-MR", Imager::MSUMR },
     { "MHS",    Imager::MHS },
+    { "MTVZA",  Imager::MTVZA }
 };
 
 struct SatelliteInfo {

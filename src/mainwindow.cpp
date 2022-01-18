@@ -393,7 +393,7 @@ void MainWindow::decodeFinished() {
     on_actionFlip_triggered();
     ui->actionEnable_Overlay->setChecked(false);
     ui->actionIR_Blend->setChecked(false);
-    ui->actionIR_Blend->setEnabled(compositors.at(sensor)->sunz.size() != 0 && sensor != Imager::MHS);
+    ui->actionIR_Blend->setEnabled(compositors.at(sensor)->sunz.size() != 0 && sensor != Imager::MHS && sensor != Imager::MTVZA);
 
     // Load satellite specific presets
     reloadPresets();
@@ -408,7 +408,11 @@ void MainWindow::reloadPresets() {
     }
 
     if (selected_presets.size() == 0) {
-        Preset preset = { "", "", "", { AVHRR, VIRR, MSUMR, MHS }, "bw(0)" };
+        std::set<Imager> sensors;
+        for (const auto &sensor : sensor_info) {
+            sensors.insert(sensor.first);
+        }
+        Preset preset = { "", "", "", sensors, "1" };
         selected_presets.insert({"Unable to load presets", preset});
     }
 

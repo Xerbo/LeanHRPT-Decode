@@ -49,7 +49,9 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
     double yaw = str2double(params["yaw"]);
     double roll = str2double(params["roll"]);
     double pitch = str2double(params["pitch"]);
+    double pitchscale = str2double(params["pitchscale"]);
     double toffset = str2double(params["toffset"]);
+    bool curved = params["curved"] == "true";
 
     d_sensor = sensor_info.at(sensor);
 
@@ -80,7 +82,7 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
                 }
             }
 
-            auto scan = calculate_scan(Geodetic(orbit), azimuth, fov, roll, pitch, pointsx);
+            auto scan = calculate_scan(Geodetic(orbit), azimuth, fov, roll, pitch, pitchscale, curved, pointsx);
             for (auto &point : scan) {
                 stream << "<GCP Id=\"" << n << "\" Pixel=\"" << point.first << "\" Line=\"" << i << "\" X=\"" << (point.second.longitude*RAD2DEG) << "\" Y=\"" << (point.second.latitude*180.0/M_PI) << "\" />\n";
                 n++;
@@ -110,7 +112,9 @@ std::vector<float> Projector::calculate_sunz(const std::vector<double> &timestam
     double yaw = str2double(params["yaw"]);
     double roll = str2double(params["roll"]);
     double pitch = str2double(params["pitch"]);
+    double pitchscale = str2double(params["pitchscale"]);
     double toffset = str2double(params["toffset"]);
+    bool curved = params["curved"] == "true";
     d_sensor = sensor_info.at(sensor);
 
     for (size_t i = 0; i < pointsy; i++) {
@@ -129,7 +133,7 @@ std::vector<float> Projector::calculate_sunz(const std::vector<double> &timestam
             }
         }
 
-        auto scan = calculate_scan(Geodetic(orbit), azimuth, fov, roll, pitch, pointsx);
+        auto scan = calculate_scan(Geodetic(orbit), azimuth, fov, roll, pitch, pitchscale, curved, pointsx);
         for (size_t j = 0; j < pointsx; j++) {
             // UNIX to Julian date
             predict_julian_date_t prediction_time = (timestamp / 86400.0) - 3651.0;
@@ -159,16 +163,20 @@ std::vector<float> Projector::calculate_sunz(const std::vector<double> &timestam
     return full_sunz;
 }
 
-std::vector<std::pair<double, Geodetic>> Projector::calculate_scan(const Geodetic &position, double azimuth, double fov, double roll, double pitch, size_t n) {
+std::vector<std::pair<double, Geodetic>> Projector::calculate_scan(const Geodetic &position, double azimuth, double fov, double roll, double pitch, double pitchscale, bool curved, size_t n) {
     std::vector<std::pair<double, Geodetic>> scan;
 
     for (size_t i = 0; i < n; i++) {
         // The angle that the sensor is pointing at
         double sensor_angle = (double)i/double(n-1)*2.0 - 1.0;
+        double _pitch = pitch;
+        if (curved) {
+            _pitch *= sqrt(1.0 - pow(sensor_angle*pitchscale, 2.0));
+        }
         sensor_angle *= fov*DEG2RAD;
 
         // The position that the sensor is looking at
-        Geodetic point = los_to_earth(position, sensor_angle + deg2rad(roll), deg2rad(pitch), azimuth);
+        Geodetic point = los_to_earth(position, sensor_angle + deg2rad(roll), deg2rad(_pitch), azimuth);
 
         // Create a list of points and their respective coordinates
         scan.push_back({(double)i/double(n-1) * (double)d_sensor.width, point});

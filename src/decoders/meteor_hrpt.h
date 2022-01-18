@@ -31,11 +31,12 @@
 // http://planet.iitp.ru/index.php?lang=en&page_type=spacecraft&page=meteor_m_n2_structure_1
 class MeteorHRPTDecoder : public Decoder {
     public:
-        MeteorHRPTDecoder() : MSUMRDeframer(9, false) {
+        MeteorHRPTDecoder() : MSUMRDeframer(9, false), mtvza_deframer(4, false) {
             frame = new uint8_t[1024];
             msumrBuffer = new uint8_t[948];
             msumrFrame = new uint8_t[11850];
             images[Imager::MSUMR] = new RawImage(1572, 6, 4);
+            images[Imager::MTVZA] = new RawImage(50, 29);
         }
         ~MeteorHRPTDecoder() {
             delete[] frame;
@@ -46,6 +47,8 @@ class MeteorHRPTDecoder : public Decoder {
         uint8_t *frame, *msumrBuffer, *msumrFrame;
         ccsds::Deframer deframer;
         ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8> MSUMRDeframer;
+        ArbitraryDeframer<uint32_t, 0xFB386A45, 32, 248 * 8> mtvza_deframer;
+        double msumr_timestamp = 0.0;
 
         void work(std::istream &stream) {
             if (d_filetype == FileType::CADU) {
@@ -75,12 +78,50 @@ class MeteorHRPTDecoder : public Decoder {
 
                 if (hours < 24 || minutes < 60 || seconds < 60) {
                     time_t day = created/86400 * 86400;
-                    timestamps[Imager::MSUMR].push_back((double)day + (double)hours*3600.0 + (double)minutes*60.0 + (double)seconds + (double)delay/255.0);
+                    msumr_timestamp = (double)day + (double)hours*3600.0 + (double)minutes*60.0 + (double)seconds + (double)delay/255.0;
                 } else {
-                    timestamps[Imager::MSUMR].push_back(0.0);
+                    msumr_timestamp = 0.0;
                 }
+                timestamps[Imager::MSUMR].push_back(msumr_timestamp);
 
                 images[Imager::MSUMR]->push10Bit(&msumrFrame[50], 0);
+            }
+
+            uint8_t mtvza_buffer[32];
+            uint8_t mtvza_frame[248];
+            std::memcpy(&mtvza_buffer[8*0], &ptr[ 15-1], 8);
+            std::memcpy(&mtvza_buffer[8*1], &ptr[271-1], 8);
+            std::memcpy(&mtvza_buffer[8*2], &ptr[527-1], 8);
+            std::memcpy(&mtvza_buffer[8*3], &ptr[783-1], 8);
+
+            if (mtvza_deframer.work(mtvza_buffer, mtvza_frame, 32)) {
+                // Frame type, only type 255 contains imagery
+                if (mtvza_frame[4] != 255) return;
+
+                // X position
+                uint8_t x = mtvza_frame[5]-2;
+                if (x > 24) return;
+
+                for (size_t i = 0; i < 29; i++) {
+                    uint8_t *data = &mtvza_frame[8];
+                    unsigned short *channel = images[Imager::MTVZA]->getChannel(i);
+
+                    int16_t val = data[i*2+1] << 8 | data[i*2];
+                    channel[images[Imager::MTVZA]->rows()*images[Imager::MTVZA]->width() + x*2] = val+32768;
+                }
+                for (size_t i = 0; i < 29; i++) {
+                    uint8_t *data = &mtvza_frame[128];
+                    unsigned short *channel = images[Imager::MTVZA]->getChannel(i);
+
+                    int16_t val = data[i*2+1] << 8 | data[i*2];
+                    channel[images[Imager::MTVZA]->rows()*images[Imager::MTVZA]->width() + x*2 + 1] = val+32768;
+                }
+
+                // End of a line
+                if (x == 24) {
+                    images[Imager::MTVZA]->set_height(images[Imager::MTVZA]->rows() + 1);
+                    timestamps[Imager::MTVZA].push_back(msumr_timestamp);
+                }
             }
         }
 };
