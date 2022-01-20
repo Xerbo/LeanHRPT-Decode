@@ -122,6 +122,35 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
 
+  build_debian:
+    strategy:
+      matrix:
+        distro: [debian_bullseye, ubuntu_hirsute, ubuntu_impish]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Build and run docker image
+      run: 'cd docker/ &&
+            docker build -f $DISTRO/Dockerfile . --tag build &&
+            docker run -v $GITHUB_WORKSPACE:/root/LeanHRPT-Decode build /root/build.sh'
+      env:
+        DISTRO: ${{ matrix.distro }}
+
+    - name: Upload Package
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ needs.prepare_release.outputs.upload_url }}
+        asset_path: build/LeanHRPT-Decode_amd64.deb
+        asset_name: ${{ matrix.distro }}_amd64.deb
+        asset_content_type: application/vnd.debian.binary-package
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
   build_windows:
     runs-on: ubuntu-latest
     needs: [prepare_release]

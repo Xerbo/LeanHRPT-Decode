@@ -58,9 +58,6 @@ target_compile_definitions(LeanHRPT-Decode PRIVATE "VERSION=\"${VERSION}\"")
 
 # Binaries
 install(TARGETS LeanHRPT-Decode)
-#install(FILES /usr/lib/x86_64-linux-gnu/libpredict.so DESTINATION lib/x86_64-linux-gnu)
-#install(FILES /usr/lib/x86_64-linux-gnu/libpredict.so.2 DESTINATION lib/x86_64-linux-gnu)
-#install(FILES /usr/lib/x86_64-linux-gnu/libpredict.so.2.0.0 DESTINATION lib/x86_64-linux-gnu)
 # Desktop file and icon
 configure_file(${CMAKE_SOURCE_DIR}/LeanHRPT-Decode.desktop ${CMAKE_CURRENT_BINARY_DIR}/LeanHRPT-Decode.desktop)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/LeanHRPT-Decode.desktop DESTINATION share/applications)
@@ -77,12 +74,13 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "An easy to use HRPT decoder")
 set(CPACK_PACKAGE_DESCRIPTION "LeanHRPT is an easy to use and powerful tool for the manipulation of Level 0 HRPT data.")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/Xerbo/LeanHRPT-Decode")
 set(CPACK_PACKAGE_CONTACT "Xerbo (xerbo@protonmail.com)")
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}")
 # Debian
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "gdal-bin")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libpredict")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 
 # Only allow packaging if we know what we are packaging
 if (NOT VERSION STREQUAL "Unknown")
