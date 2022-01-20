@@ -34,7 +34,7 @@
 
 #include "decoders/meteor_hrpt.h"
 #include "decoders/meteor_lrpt.h"
-#include "decoders/noaa.h"
+#include "decoders/noaa_hrpt.h"
 #include "decoders/fengyun.h"
 #include "decoders/metop.h"
 
@@ -393,7 +393,7 @@ void MainWindow::decodeFinished() {
     on_actionFlip_triggered();
     ui->actionEnable_Overlay->setChecked(false);
     ui->actionIR_Blend->setChecked(false);
-    ui->actionIR_Blend->setEnabled(compositors.at(sensor)->sunz.size() != 0 && sensor != Imager::MHS && sensor != Imager::MTVZA);
+    ui->actionIR_Blend->setEnabled(compositors.at(sensor)->sunz.size() != 0 && sensor != Imager::MHS && sensor != Imager::MTVZA && sensor != Imager::HIRS);
 
     // Load satellite specific presets
     reloadPresets();

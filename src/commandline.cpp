@@ -22,7 +22,7 @@
 #include "imagecompositor.h"
 #include "decoders/meteor_hrpt.h"
 #include "decoders/meteor_lrpt.h"
-#include "decoders/noaa.h"
+#include "decoders/noaa_hrpt.h"
 #include "decoders/fengyun.h"
 #include "decoders/metop.h"
 #include "preset.h"
