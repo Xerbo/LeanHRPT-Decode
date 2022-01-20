@@ -127,6 +127,7 @@ jobs:
       matrix:
         distro: [debian_bullseye, ubuntu_hirsute, ubuntu_impish]
     runs-on: ubuntu-latest
+    needs: [prepare_release]
 
     steps:
     - name: Checkout code
