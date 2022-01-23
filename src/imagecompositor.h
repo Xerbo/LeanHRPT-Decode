@@ -92,7 +92,7 @@ class ImageCompositor {
                 for (size_t i = 0; i < m_height*m_width; i++) {
                     float irval = m_channels == 6 ? (UINT16_MAX - ir[i]) : ir[i];
 
-                    float _sunz = m_isFlipped ? sunz[m_width*m_height - i] : sunz[i];
+                    float _sunz = m_isFlipped ? sunz[(m_width*m_height-1) - i] : sunz[i];
                     float x = clamp(_sunz*10.0f-14.8f, 0.0f, 1.0f);
 
                     if (image.format() == QImage::Format_RGBX64) {

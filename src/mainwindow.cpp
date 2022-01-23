@@ -241,7 +241,7 @@ void MainWindow::setState(WindowState state) {
     ui->actionSave_All_Channels->setEnabled(state == WindowState::Finished);
     ui->actionSave_Current_Image->setEnabled(state == WindowState::Finished);
     ui->actionSave_Current_Image_Corrected->setEnabled(state == WindowState::Finished);
-    ui->actionSave_GCP_File->setEnabled(state == WindowState::Finished);
+    ui->actionSave_GCP_File->setEnabled(state == WindowState::Finished && have_tles);
     zoomIn->setEnabled(state == WindowState::Finished);
     zoomOut->setEnabled(state == WindowState::Finished);
 }
@@ -343,6 +343,7 @@ void MainWindow::startDecode(std::string filename) {
     if (tle_manager.catalog.count(tle_names[sat])) {
         proj = new Projector(tle_manager.catalog[tle_names[sat]]);
     }
+    have_tles = tle_manager.catalog.count(tle_names[sat]);
 
     timestamps = data.timestamps;
 
@@ -364,7 +365,7 @@ void MainWindow::startDecode(std::string filename) {
     }
 
     for (auto &sensor : timestamps) {
-        compositors[sensor.first]->sunz = proj->calculate_sunz(sensor.second, sensor.first, sat);
+        if (have_tles) compositors[sensor.first]->sunz = proj->calculate_sunz(sensor.second, sensor.first, sat);
     }
     
     delete decoder;
@@ -386,17 +387,16 @@ void MainWindow::decodeFinished() {
     display = QImage(compositors.at(sensor)->width(), compositors.at(sensor)->height(), QImage::Format_RGBX64);
 
     // Prepare the UI
+    reloadPresets();
+    setChannel(1);
     populateChannelSelectors(compositors.at(sensor)->channels());
     status->setText(QString("%1 - %2: %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(compositors.at(sensor)->height()));
     setState(WindowState::Finished);
-    ui->actionFlip->setChecked(proj->is_northbound(timestamps.at(satellite_info.at(sat).default_imager)));
+    if (have_tles) ui->actionFlip->setChecked(proj->is_northbound(timestamps.at(satellite_info.at(sat).default_imager)));
     on_actionFlip_triggered();
     ui->actionEnable_Overlay->setChecked(false);
     ui->actionIR_Blend->setChecked(false);
     ui->actionIR_Blend->setEnabled(compositors.at(sensor)->sunz.size() != 0 && sensor != Imager::MHS && sensor != Imager::MTVZA && sensor != Imager::HIRS);
-
-    // Load satellite specific presets
-    reloadPresets();
 }
 
 void MainWindow::reloadPresets() {

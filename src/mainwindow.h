@@ -100,6 +100,7 @@ class MainWindow : public QMainWindow {
         MapSettings *mapsettings_dialog;
         TLEManager tle_manager;
         Projector *proj;
+        bool have_tles;
 
         // Sensor selection
         Imager sensor;

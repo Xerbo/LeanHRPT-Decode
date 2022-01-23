@@ -81,7 +81,7 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
         }
     }
 
-    if (sensor == Imager::MHS) {
+    if (sensor == Imager::MHS || sensor == Imager::HIRS) {
         for(size_t i = 0; i < m_channels; i++) {
             rawChannels[i] = rawChannels[i].mirrored(true, false);
         }
@@ -291,7 +291,7 @@ void ImageCompositor::_equalise(QImage &image, Equalization equalization, std::v
     if (equalization == Equalization::None) return;
 
     size_t max = std::numeric_limits<T>::max();
-    size_t histogram_count = std::accumulate(histogram.begin(), histogram.end(), 0);
+    size_t histogram_count = std::accumulate(histogram.begin(), histogram.end(), 0)+1;
 
     // Calculate cumulative frequency
 	size_t sum = 0;

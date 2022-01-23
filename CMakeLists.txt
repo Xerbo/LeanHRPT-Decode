@@ -23,7 +23,7 @@ target_include_directories(LeanHRPT-Decode PUBLIC src)
 target_compile_options(LeanHRPT-Decode PRIVATE -Wall -Wextra -Wpedantic)
 
 if (USE_ADDRESS_SANITIZER)
-    target_compile_options(LeanHRPT-Decode PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+    target_compile_options(LeanHRPT-Decode PRIVATE -fsanitize=address -fno-omit-frame-pointer -g)
     target_link_options(LeanHRPT-Decode PRIVATE -fsanitize=address)
 endif()
 
