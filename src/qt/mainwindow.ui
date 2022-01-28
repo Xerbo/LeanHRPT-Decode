@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1200</width>
-    <height>600</height>
+    <height>660</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -236,6 +236,28 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="gradientBox">
+         <property name="title">
+          <string>Gradient</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_9">
+          <item>
+           <widget class="QComboBox" name="gradient"/>
+          </item>
+          <item>
+           <widget class="QPaletteView" name="gradientView" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>30</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox">
@@ -596,6 +618,14 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QPaletteView</class>
+   <extends>QWidget</extends>
+   <header>qt/qpaletteview.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

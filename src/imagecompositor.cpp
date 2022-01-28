@@ -27,7 +27,7 @@
 #include <muParser.h>
 #include <QLocale>
 
-#include "config.h"
+#include "config/config.h"
 #include "math.h"
 
 static double str2double(std::string str) {
@@ -84,6 +84,59 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
     if (sensor == Imager::MHS || sensor == Imager::HIRS) {
         for(size_t i = 0; i < m_channels; i++) {
             rawChannels[i] = rawChannels[i].mirrored(true, false);
+        }
+    }
+}
+
+void ImageCompositor::postprocess(QImage &image) {
+    if (image.format() == QImage::Format_Grayscale16 && stops.size() != 0) {
+        QImage copy(image);
+        image = QImage(image.width(), image.height(), QImage::Format_RGB32);
+
+        uint16_t *bits = (uint16_t *)copy.bits();
+        QRgb *color_bits = (QRgb *)image.bits();
+
+        #pragma omp parallel for
+        for (size_t i = 0; i < m_height*m_width; i++) {
+            double x = (double)bits[i]/(double)UINT16_MAX * (stops.size()-1);
+
+            QColor color = lerp(stops[floor(x)], stops[ceil(x)], fmod(x, 1.0));
+            color_bits[i] = color.rgb();
+        }
+    }
+
+    if (ir_blend) {
+        QImage copy(m_channels == 6 ? rawChannels[4] : rawChannels[3]);
+        equalise(copy, Equalization::Histogram, 0.7f, false);
+        if (m_isFlipped) copy = copy.mirrored(true, true);
+
+        uint16_t *ir = (uint16_t *)copy.bits();
+        std::tuple<QRgba64 *, quint16 *> bits = std::make_tuple(
+            reinterpret_cast<QRgba64 *>(image.bits()),
+            reinterpret_cast<quint16 *>(image.bits())
+        );
+
+        for (size_t i = 0; i < m_height*m_width; i++) {
+            float irval = m_channels == 6 ? (UINT16_MAX - ir[i]) : ir[i];
+
+            float _sunz = m_isFlipped ? sunz[(m_width*m_height-1) - i] : sunz[i];
+            float x = clamp(_sunz*10.0f-14.8f, 0.0f, 1.0f);
+
+            if (image.format() == QImage::Format_RGBX64) {
+                std::get<0>(bits)[i] = lerp(std::get<0>(bits)[i], QRgba64::fromRgba64(irval, irval, irval, UINT16_MAX), x);
+            } else {
+                std::get<1>(bits)[i] = lerp<float>(std::get<1>(bits)[i], irval, x);
+            }
+        }
+    }
+
+    if (!map.isNull() && enable_map) {
+        image = image.convertToFormat(QImage::Format_RGBX64);
+        QPainter painter(&image);
+        if (m_isFlipped) {
+            painter.drawImage(0, 0, map.mirrored(true, true));
+        } else {
+            painter.drawImage(0, 0, map);
         }
     }
 }

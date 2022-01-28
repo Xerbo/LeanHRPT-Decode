@@ -66,6 +66,7 @@ install(FILES ${CMAKE_SOURCE_DIR}/logo128.png DESTINATION share/icons RENAME Lea
 install(FILES ${CMAKE_SOURCE_DIR}/projection.ini DESTINATION share/leanhrpt)
 install(FILES ${CMAKE_SOURCE_DIR}/calibration.ini DESTINATION share/leanhrpt)
 install(FILES ${CMAKE_SOURCE_DIR}/presets.ini DESTINATION share/leanhrpt)
+install(FILES ${CMAKE_SOURCE_DIR}/gradients.ini DESTINATION share/leanhrpt)
 
 # Package information
 string(SUBSTRING ${VERSION} 1 -1 CPACK_PACKAGE_VERSION)

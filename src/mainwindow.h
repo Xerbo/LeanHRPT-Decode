@@ -36,7 +36,8 @@
 #include "fingerprint.h"
 #include "decoders/decoder.h"
 #include "imagecompositor.h"
-#include "preset.h"
+#include "config/preset.h"
+#include "config/gradient.h"
 #include "satinfo.h"
 #include "network.h"
 #include "projection.h"
@@ -115,6 +116,9 @@ class MainWindow : public QMainWindow {
         QPushButton *cancel_button;
         bool clean_up = false;
 
+        // Gradients
+        GradientManager *gradient_manager;
+
         // Internal
         void incrementZoom(int amount);
         void startDecode(std::string filename);
@@ -186,6 +190,7 @@ class MainWindow : public QMainWindow {
         void on_imageTabs_currentChanged(int index);
         void on_presetSelector_activated(QString text);
         void on_presetReload_clicked() { manager.reload(); reloadPresets(); };
+        void on_gradient_textActivated(const QString &text);
 
         // https://www.desmos.com/calculator/ercsdr9hrq
         void on_contrastLimit_valueChanged(int value) {

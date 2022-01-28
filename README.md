@@ -37,6 +37,7 @@ You may also wish to symlink the configuration files into the build directory:
 ln -s ../presets.ini
 ln -s ../calibration.ini
 ln -s ../projection.ini
+ln -s ../gradients.ini
 ln -s ../logo128.png
 ```
 

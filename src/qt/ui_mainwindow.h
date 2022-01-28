@@ -32,6 +32,7 @@
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
+#include "qt/qpaletteview.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -82,6 +83,10 @@ public:
     QLabel *presetAuthor;
     QLabel *presetCategory;
     QSpacerItem *verticalSpacer;
+    QGroupBox *gradientBox;
+    QVBoxLayout *verticalLayout_9;
+    QComboBox *gradient;
+    QPaletteView *gradientView;
     QGroupBox *groupBox;
     QVBoxLayout *verticalLayout;
     QRadioButton *equalisationNone;
@@ -116,7 +121,7 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(1200, 600);
+        MainWindow->resize(1200, 660);
         QIcon icon;
         icon.addFile(QString::fromUtf8("logo128.png"), QSize(), QIcon::Normal, QIcon::Off);
         MainWindow->setWindowIcon(icon);
@@ -288,6 +293,24 @@ public:
         verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
         options->addItem(verticalSpacer);
+
+        gradientBox = new QGroupBox(optionsSidebar);
+        gradientBox->setObjectName(QString::fromUtf8("gradientBox"));
+        verticalLayout_9 = new QVBoxLayout(gradientBox);
+        verticalLayout_9->setObjectName(QString::fromUtf8("verticalLayout_9"));
+        gradient = new QComboBox(gradientBox);
+        gradient->setObjectName(QString::fromUtf8("gradient"));
+
+        verticalLayout_9->addWidget(gradient);
+
+        gradientView = new QPaletteView(gradientBox);
+        gradientView->setObjectName(QString::fromUtf8("gradientView"));
+        gradientView->setMinimumSize(QSize(0, 30));
+
+        verticalLayout_9->addWidget(gradientView);
+
+
+        options->addWidget(gradientBox);
 
         groupBox = new QGroupBox(optionsSidebar);
         groupBox->setObjectName(QString::fromUtf8("groupBox"));
@@ -483,6 +506,7 @@ public:
         presetReload->setText(QCoreApplication::translate("MainWindow", "Reload", nullptr));
         presetAuthor->setText(QString());
         presetCategory->setText(QString());
+        gradientBox->setTitle(QCoreApplication::translate("MainWindow", "Gradient", nullptr));
         groupBox->setTitle(QCoreApplication::translate("MainWindow", "Equalisation", nullptr));
         equalisationNone->setText(QCoreApplication::translate("MainWindow", "None", nullptr));
         equalisationStretch->setText(QCoreApplication::translate("MainWindow", "Stretch", nullptr));

@@ -17,7 +17,7 @@
  */
 
 #include "projection.h"
-#include "config.h"
+#include "config/config.h"
 #include "math.h"
 #include "geo/geolocation.h"
 

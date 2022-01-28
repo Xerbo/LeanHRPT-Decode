@@ -20,7 +20,7 @@
 #define LEANHRPT_CONFIG_H
 
 #include <fstream>
-#include <inipp.h>
+#include <config/inipp.h>
 #include <iostream>
 
 // Load a config file, first try looking in the current directory and then the config path

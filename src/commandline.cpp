@@ -25,7 +25,7 @@
 #include "decoders/noaa_hrpt.h"
 #include "decoders/fengyun.h"
 #include "decoders/metop.h"
-#include "preset.h"
+#include "config/preset.h"
 #include "geometry.h"
 
 #include <QLocale>

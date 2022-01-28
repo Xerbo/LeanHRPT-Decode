@@ -19,15 +19,8 @@
 #include "geometry.h"
 
 #include "projection.h"
+#include "math.h"
 #include <cmath>
-
-QColor lerp(QColor a, QColor b, double n) {
-    return QColor::fromRgbF(
-        a.redF()  *(1.0-n) + b.redF()  *n,
-        a.greenF()*(1.0-n) + b.greenF()*n,
-        a.blueF() *(1.0-n) + b.blueF() *n
-    );
-}
 
 // Based off https://github.com/Xerbo/meteor_corrector
 QImage correct_geometry(QImage image, SatID satellite, Imager sensor) {

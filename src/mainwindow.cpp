@@ -119,7 +119,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
                 copy = copy.mirrored(true, true);
             }
             ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
-            compositors[sensor]->overlay_map(copy);
+            compositors[sensor]->postprocess(copy);
             copy.save(QString::fromStdString(get_temp_dir()) + "/viewport.png", nullptr, 100);
         } else {
             ImageCompositor *c = compositors[sensor];
@@ -172,6 +172,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     UpdateChecker::connect(update_checker, &UpdateChecker::updateAvailable, [this](QString url) {
         status->setText(QString("<a href=\"%1\">A new version is available, click here to get it</a>").arg(url));
     });
+
+    gradient_manager = new GradientManager();
+    ui->gradient->addItem("None");
+    for (const auto &i : gradient_manager->gradients) {
+        ui->gradient->addItem(QString::fromStdString(i.first));
+    }
 
     setAcceptDrops(true);
 }
@@ -230,7 +236,7 @@ void MainWindow::incrementZoom(int amount) {
 }
 
 void MainWindow::setState(WindowState state) {
-    QWidget *items[] = { ui->groupBox, ui->menuTools, ui->menuMap, ui->menuOptions, ui->menuSensor, ui->stackedOptions, ui->zoomSelectorBox, ui->imageTabs };
+    QWidget *items[] = { ui->groupBox, ui->menuTools, ui->menuMap, ui->menuOptions, ui->menuSensor, ui->stackedOptions, ui->zoomSelectorBox, ui->imageTabs, ui->gradientBox };
 
     for (QWidget *item : items) {
         item->setEnabled(state == WindowState::Finished);
@@ -389,6 +395,10 @@ void MainWindow::decodeFinished() {
     // Prepare the UI
     reloadPresets();
     setChannel(1);
+    ui->gradient->setCurrentIndex(0);
+    compositors[sensor]->stops = {};
+    ui->gradientView->stops = {};
+    ui->gradientView->repaint();
     populateChannelSelectors(compositors.at(sensor)->channels());
     status->setText(QString("%1 - %2: %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(compositors.at(sensor)->height()));
     setState(WindowState::Finished);
@@ -423,6 +433,8 @@ void MainWindow::reloadPresets() {
     }
     if (index != -1) {
         ui->presetSelector->setCurrentIndex(index);
+    } else {
+        ui->presetSelector->setCurrentIndex(0);
     }
     on_presetSelector_activated(ui->presetSelector->currentText());
 }
@@ -459,12 +471,12 @@ void MainWindow::setEqualization(Equalization type) {
     selectedEqualization = type;
     if (selectedEqualization == None) {
         QImage copy(display);
-        compositors[sensor]->overlay_map(copy);
+        compositors[sensor]->postprocess(copy);
         displayQImage(scene, copy);
     } else {
         QImage copy(display);
         ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
-        compositors[sensor]->overlay_map(copy);
+        compositors[sensor]->postprocess(copy);
         displayQImage(scene, copy);
     }
 }
@@ -498,14 +510,16 @@ void MainWindow::updateDisplay() {
 
     if (selectedEqualization == None) {
         QImage copy(display);
-        compositors[sensor]->overlay_map(copy);
+        compositors[sensor]->postprocess(copy);
         displayQImage(scene, copy);
     } else {
         QImage copy(display);
         ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
-        compositors[sensor]->overlay_map(copy);
+        compositors[sensor]->postprocess(copy);
         displayQImage(scene, copy);
     }
+
+    ui->gradient->setEnabled(display.format() == QImage::Format_Grayscale16);
 }
 
 void MainWindow::saveCurrentImage(bool corrected) {
@@ -530,7 +544,7 @@ void MainWindow::saveCurrentImage(bool corrected) {
     QtConcurrent::run([this](QString filename, bool corrected) {
         QImage copy(display);
         ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
-        compositors[sensor]->overlay_map(copy);
+        compositors[sensor]->postprocess(copy);
         if (corrected) {
             correct_geometry(copy, sat, sensor).save(filename);
         } else {
@@ -593,4 +607,17 @@ void MainWindow::dropEvent(QDropEvent* e) {
         QString filename = url.toLocalFile();
         decodeWatcher->setFuture(QtConcurrent::run(this, &MainWindow::startDecode, filename.toStdString()));
     }
+}
+
+void MainWindow::on_gradient_textActivated(const QString &text) {
+    std::vector<QColor> gradient;
+    if (text != "None") {
+        gradient = gradient_manager->gradients.at(text.toStdString()).stops;
+    }
+
+    ui->gradientView->stops = gradient;
+    ui->gradientView->repaint();
+    compositors[sensor]->stops = gradient;
+
+    updateDisplay();
 }
