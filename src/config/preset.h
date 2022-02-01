@@ -32,6 +32,7 @@ struct Preset {
     std::string author;
     std::set<Imager> imagers;
     std::string expression;
+    std::map<Imager, std::string> overrides;
 };
 
 class PresetManager {
@@ -45,12 +46,21 @@ class PresetManager {
 
             for (auto &i : ini.sections) {
                 try {
+                    std::map<Imager, std::string> overrides;
+                    for (const auto &x : i.second) {
+                        size_t y = x.first.find(":");
+                        if (y != std::string::npos) {
+                            overrides.insert(std::pair<Imager, std::string>(sensors.at(x.first.substr(y+1)), x.second));
+                        }
+                    }
+
                     presets.insert(std::pair<std::string, Preset>(i.first, Preset {
                         i.second["description"],
                         i.second["category"],
                         i.second["author"],
                         parse_imagers(i.second["imagers"]),
-                        i.second["expression"]
+                        i.second["expression"],
+                        overrides
                     }));
                 } catch (std::out_of_range &e) {
                     std::cerr << "Syntax error in preset \"" << i.first << "\"" << std::endl;

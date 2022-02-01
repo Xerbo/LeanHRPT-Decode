@@ -422,7 +422,7 @@ void MainWindow::reloadPresets() {
         for (const auto &sensor : sensor_info) {
             sensors.insert(sensor.first);
         }
-        Preset preset = { "", "", "", sensors, "1" };
+        Preset preset = { "", "", "", sensors, "1", {}};
         selected_presets.insert({"Unable to load presets", preset});
     }
 
@@ -504,7 +504,16 @@ void MainWindow::updateDisplay() {
     switch (ui->imageTabs->currentIndex()) {
         case 0: compositors.at(sensor)->getChannel(display, selectedChannel); break;
         case 1: compositors.at(sensor)->getComposite(display, selectedComposite); break;
-        case 2: compositors.at(sensor)->getExpression(display, selected_presets.at(ui->presetSelector->currentText().toStdString()).expression); break;
+        case 2: {
+            Preset preset = selected_presets.at(ui->presetSelector->currentText().toStdString());
+
+            std::string expression = preset.expression;
+            if (preset.overrides.count(sensor)) {
+                expression = preset.overrides.at(sensor);
+            }
+            compositors.at(sensor)->getExpression(display, expression);
+            break;
+        }
         default: throw std::runtime_error("invalid tab index");
     }
 

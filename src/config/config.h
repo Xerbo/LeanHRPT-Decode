@@ -32,6 +32,7 @@ class Config : public inipp::Ini<char> {
             if (file.open(filename, std::ios::in)) {
                 std::istream stream(&file);
                 parse(stream);
+                interpolate();
                 file.close();
                 return;
             }
@@ -39,6 +40,7 @@ class Config : public inipp::Ini<char> {
             if (file.open(get_config_prefix() + filename, std::ios::in)) {
                 std::istream stream(&file);
                 parse(stream);
+                interpolate();
                 file.close();
                 return;
             }
@@ -47,6 +49,7 @@ class Config : public inipp::Ini<char> {
             if (file.open("/usr/share/leanhrpt/" + filename, std::ios::in)) {
                 std::istream stream(&file);
                 parse(stream);
+                interpolate();
                 file.close();
                 return;
             }
