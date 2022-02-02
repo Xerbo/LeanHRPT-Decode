@@ -22,8 +22,8 @@
 #include <cstdint>
 
 #include "decoder.h"
-#include "ccsds/deframer.h"
-#include "generic/deframer.h"
+#include "protocol/ccsds/deframer.h"
+#include "protocol/deframer.h"
 
 // http://planet.iitp.ru/retro/index.php?lang=en&page_type=spacecraft&page=meteor_m_n2_structure_1
 class MeteorHRPTDecoder : public Decoder {

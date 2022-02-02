@@ -22,7 +22,7 @@
 #include <cstdint>
 
 #include "decoder.h"
-#include "ccsds/demuxer.h"
+#include "protocol/ccsds/demuxer.h"
 
 class MetopHRPTDecoder : public Decoder {
     public:

@@ -21,7 +21,7 @@
 
 #include "decoder.h"
 
-#include "ccsds/demuxer.h"
+#include "protocol/ccsds/demuxer.h"
 
 // http://planet.iitp.ru/retro/index.php?lang=en&page_type=spacecraft&page=meteor_m_n2_structure_2
 class MeteorLRPTDecoder : public Decoder {

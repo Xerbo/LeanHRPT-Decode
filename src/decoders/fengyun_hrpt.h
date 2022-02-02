@@ -22,7 +22,7 @@
 #include <cstdint>
 
 #include "decoder.h"
-#include "generic/deframer.h"
+#include "protocol/deframer.h"
 
 class FengyunHRPTDecoder : public Decoder {
     public:

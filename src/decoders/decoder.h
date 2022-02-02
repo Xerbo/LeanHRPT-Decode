@@ -26,7 +26,7 @@
 #include <QDateTime>
 
 #include "satinfo.h"
-#include "generic/rawimage.h"
+#include "protocol/rawimage.h"
 
 #define BUFFER_SIZE 1024
 

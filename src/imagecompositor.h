@@ -23,7 +23,7 @@
 #include <QImage>
 #include <QPainter>
 #include <cmath>
-#include "generic/rawimage.h"
+#include "protocol/rawimage.h"
 #include "satinfo.h"
 #include "math.h"
 

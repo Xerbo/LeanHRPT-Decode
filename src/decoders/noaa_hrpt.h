@@ -20,7 +20,7 @@
 #define LEANHRPT_DECODERS_NOAA_H
 
 #include "decoder.h"
-#include "generic/deframer.h"
+#include "protocol/deframer.h"
 
 class NOAAHRPTDecoder : public Decoder {
     public:

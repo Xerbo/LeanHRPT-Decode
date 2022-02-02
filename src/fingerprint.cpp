@@ -5,8 +5,8 @@
 #include <cstring>
 #include <set>
 
-#include "ccsds/deframer.h"
-#include "generic/deframer.h"
+#include "protocol/ccsds/deframer.h"
+#include "protocol/deframer.h"
 
 // Finds the most common value of T
 template<typename T>

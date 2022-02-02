@@ -18,7 +18,7 @@
 
 #include "meteor_lrpt.h"
 
-#include "lrpt/packet.h"
+#include "protocol/lrpt/packet.h"
 #include <cstring>
 #include <cmath>
 
