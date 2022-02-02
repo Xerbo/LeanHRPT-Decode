@@ -23,8 +23,8 @@
 #include "decoders/meteor_hrpt.h"
 #include "decoders/meteor_lrpt.h"
 #include "decoders/noaa_hrpt.h"
-#include "decoders/fengyun.h"
-#include "decoders/metop.h"
+#include "decoders/fengyun_hrpt.h"
+#include "decoders/metop_hrpt.h"
 #include "config/preset.h"
 #include "geometry.h"
 
@@ -69,10 +69,10 @@ int parseCommandLine(QCommandLineParser &parser) {
     Decoder *decoder;
     switch (protocol) {
         case Protocol::LRPT:        decoder = new MeteorLRPTDecoder; break;
-        case Protocol::HRPT:        decoder = new NOAADecoder; break;
-        case Protocol::AHRPT:       decoder = new MetOpDecoder; break;
+        case Protocol::HRPT:        decoder = new NOAAHRPTDecoder; break;
+        case Protocol::AHRPT:       decoder = new MetopHRPTDecoder; break;
         case Protocol::MeteorHRPT:  decoder = new MeteorHRPTDecoder; break;
-        case Protocol::FengYunHRPT: decoder = new FengyunDecoder(sat); break;
+        case Protocol::FengYunHRPT: decoder = new FengyunHRPTDecoder(sat); break;
         default: throw std::runtime_error("invalid value in enum `Protocol`");
     }
 

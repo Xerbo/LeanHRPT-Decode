@@ -120,7 +120,7 @@ const std::map<Imager, SensorInfo> sensor_info = {
     { Imager::VIRR,  SensorInfo {"VIRR",   2800.0f, 1.1f,  2048 } },
     { Imager::MSUMR, SensorInfo {"MSU-MR", 2800.0f, 1.0f,  1572 } },
     { Imager::MHS,   SensorInfo {"MHS",    2180.0f, 16.0f, 90   } },
-    { Imager::MTVZA, SensorInfo {"MTVZA",  1500.0f, 16.0f, 50   } },
+    { Imager::MTVZA, SensorInfo {"MTVZA",  1500.0f, 4.0f,  200  } },
     { Imager::HIRS,  SensorInfo {"HIRS",   2160.0f, 40.0f, 56   } },
 };
 

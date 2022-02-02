@@ -16,31 +16,30 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef DECODERS_METEOR_LRPT_H
-#define DECODERS_METEOR_LRPT_H
+#ifndef LEANHRPT_DECODERS_METOP_H
+#define LEANHRPT_DECODERS_METOP_H
+
+#include <cstdint>
 
 #include "decoder.h"
-
 #include "ccsds/demuxer.h"
 
-// http://planet.iitp.ru/retro/index.php?lang=en&page_type=spacecraft&page=meteor_m_n2_structure_2
-class MeteorLRPTDecoder : public Decoder {
+class MetopHRPTDecoder : public Decoder {
     public:
-        MeteorLRPTDecoder() {
-            // Allocate all 6 channels for correct channel labeling
-            images[Imager::MSUMR] = new RawImage(1568, 6);
-            timestamps[Imager::MSUMR].resize(10000);
+        MetopHRPTDecoder() : demux(882), mhs_demux(882) {
+            images[Imager::AVHRR] = new RawImage(2048, 5);
+            images[Imager::MHS] = new RawImage(90, 6);
+            frame = new uint8_t[1024];
+        }
+        ~MetopHRPTDecoder() {
+            delete[] frame;
         }
     private:
-        uint8_t frame[1024];
-        ccsds::Demuxer demux;
-
-        size_t counter_offset = 0;
-        size_t start_offset = 0;
-        size_t last_counter = 0;
+        uint8_t *frame;
+        ccsds::SimpleDemuxer demux, mhs_demux;
 
         void work(std::istream &stream);
-        void frame_work();
+        void frame_work(uint8_t *ptr);
 };
 
 #endif

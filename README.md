@@ -14,7 +14,7 @@ See the [wiki](https://github.com/Xerbo/LeanHRPT-Decode/wiki).
 
 ### Map overlays don't work
 
-See [the wiki](https://github.com/Xerbo/LeanHRPT-Decode/wiki/Geomanipulation#installing-gdal)
+You need GDAL installed, see the [wiki](https://github.com/Xerbo/LeanHRPT-Decode/wiki/Geomanipulation#installing-gdal)
 
 ## Installation
 

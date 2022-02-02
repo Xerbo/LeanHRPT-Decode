@@ -26,7 +26,7 @@
 #include <bitset>
 #include "protocol/repack.h"
 
-void NOAADecoder::work(std::istream &stream) {
+void NOAAHRPTDecoder::work(std::istream &stream) {
     if (d_filetype == FileType::raw16) {
         stream.read(reinterpret_cast<char *>(repacked), 11090*2);
         frame_work(repacked);
@@ -53,7 +53,7 @@ void NOAADecoder::work(std::istream &stream) {
     }
 }
 
-void NOAADecoder::frame_work(uint16_t *ptr) {
+void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
     uint16_t *data = &ptr[103];
     bool line_ok = true;
 
@@ -129,7 +129,7 @@ void NOAADecoder::frame_work(uint16_t *ptr) {
     images[Imager::AVHRR]->push16Bit(ptr, 750);
 }
 
-void NOAADecoder::aip_work(const uint8_t *frame) {
+void NOAAHRPTDecoder::aip_work(const uint8_t *frame) {
     uint8_t mhs_status = frame[7];
     if (mhs_status > 80) return;
 
@@ -142,7 +142,7 @@ void NOAADecoder::aip_work(const uint8_t *frame) {
     }
 }
 
-void NOAADecoder::tip_work(const uint8_t *frame) {
+void NOAAHRPTDecoder::tip_work(const uint8_t *frame) {
     // These are taken from the NOAA KLM Users Guide
     const size_t offsets[36] = { 16, 17, 22, 23, 26, 27, 30, 31, 34, 35, 38, 39, 42, 43, 54, 55, 58, 59, 62, 63, 66, 67, 70, 71, 74, 75, 78, 79, 82, 83, 84, 85, 88, 89, 92, 93 };
     const size_t channels[20] = { 1, 17, 2, 3, 13, 4, 18, 11, 19, 7, 8, 20, 10, 14, 6, 5, 15, 12, 16, 9 };

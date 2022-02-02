@@ -22,9 +22,9 @@
 #include "decoder.h"
 #include "generic/deframer.h"
 
-class NOAADecoder : public Decoder {
+class NOAAHRPTDecoder : public Decoder {
     public:
-        NOAADecoder() : deframer(8, true) {
+        NOAAHRPTDecoder() : deframer(8, true) {
             frame = new uint8_t[(11090*10) / 8];
             repacked = new uint16_t[11090];
             images[Imager::AVHRR] = new RawImage(2048, 5);
@@ -42,7 +42,7 @@ class NOAADecoder : public Decoder {
             caldata["ch4_cal"] = 0.0;
             caldata["ch5_cal"] = 0.0;
         }
-        ~NOAADecoder() {
+        ~NOAAHRPTDecoder() {
             delete[] frame;
             delete[] repacked;
         }
