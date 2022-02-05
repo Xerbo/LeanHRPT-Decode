@@ -25,6 +25,7 @@
 #include "decoders/noaa_hrpt.h"
 #include "decoders/fengyun_hrpt.h"
 #include "decoders/metop_hrpt.h"
+#include "decoders/noaa_gac.h"
 #include "config/preset.h"
 #include "geometry.h"
 
@@ -73,6 +74,7 @@ int parseCommandLine(QCommandLineParser &parser) {
         case Protocol::AHRPT:       decoder = new MetopHRPTDecoder; break;
         case Protocol::MeteorHRPT:  decoder = new MeteorHRPTDecoder; break;
         case Protocol::FengYunHRPT: decoder = new FengyunHRPTDecoder(sat); break;
+        case Protocol::GAC:         decoder = new NOAAGACDecoder; break;
         default: throw std::runtime_error("invalid value in enum `Protocol`");
     }
 
@@ -171,7 +173,7 @@ int parseCommandLine(QCommandLineParser &parser) {
             }
 
             if (corrected == "true") {
-                image = correct_geometry(image, sat, imager);
+                image = correct_geometry(image, sat, imager, image.width());
             }
 
             std::cout << "Writing \"" << filename.toStdString() << "\"" << std::endl;

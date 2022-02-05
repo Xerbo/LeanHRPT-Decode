@@ -31,7 +31,7 @@ static double str2double(std::string str) {
     return l.toDouble(QString::fromStdString(str));
 }
 
-void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename) {
+void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename, size_t width) {
     if (timestamps.size() == 0) {
         return;
     }
@@ -56,18 +56,13 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
     d_sensor = sensor_info.at(sensor);
 
     size_t n = 0;
-    size_t need = 0;
-    for (size_t i = 0; i < timestamps.size(); i++) {
-        bool line_ok = false;
+    double last_timestamp = 0.0;
+    for (size_t j = 0; j < pointsy; j++) {
+        size_t i = (double)j/double(pointsy-1) * double(timestamps.size()-1);
+        double timestamp = timestamps[i];
 
-        need++;
-        if (need > timestamps.size()/pointsy && timestamps[i] != 0.0) {
-            line_ok = true;
-            need = 0;
-        }
-
-        if (line_ok) {
-            double timestamp = timestamps[i] + toffset;
+        if (timestamp != 0.0 && timestamp != last_timestamp) {
+            timestamp += toffset;
             struct predict_position orbit = predictor.predict(timestamp);
 
             double azimuth;
@@ -84,10 +79,11 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
 
             auto scan = calculate_scan(Geodetic(orbit), azimuth, fov, roll, pitch, pitchscale, curved, pointsx);
             for (auto &point : scan) {
-                stream << "<GCP Id=\"" << n << "\" Pixel=\"" << point.first << "\" Line=\"" << i << "\" X=\"" << (point.second.longitude*RAD2DEG) << "\" Y=\"" << (point.second.latitude*180.0/M_PI) << "\" />\n";
+                stream << "<GCP Id=\"" << n << "\" Pixel=\"" << (point.first*(double)width) << "\" Line=\"" << i << "\" X=\"" << (point.second.longitude*RAD2DEG) << "\" Y=\"" << (point.second.latitude*180.0/M_PI) << "\" />\n";
                 n++;
             }
         }
+        last_timestamp = timestamp;
     }
 
     stream << "</GCPList>\n";
@@ -95,15 +91,14 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
     file.close();
 }
 
-std::vector<float> Projector::calculate_sunz(const std::vector<double> &timestamps, Imager sensor, SatID sat) {
+std::vector<float> Projector::calculate_sunz(const std::vector<double> &timestamps, Imager sensor, SatID sat, size_t width) {
     if (timestamps.size() == 0) {
         return { };
     }
 
-    size_t width = sensor_info.at(sensor).width;
     size_t height = timestamps.size();
     const size_t pointsx = 21;
-    const size_t pointsy = 41;
+    const size_t pointsy = timestamps.size()/(double)width * 21.0;
     std::vector<float> sunz(pointsy * pointsx);
     
     Config proj_info("projection.ini");
@@ -179,7 +174,7 @@ std::vector<std::pair<double, Geodetic>> Projector::calculate_scan(const Geodeti
         Geodetic point = los_to_earth(position, sensor_angle + deg2rad(roll), deg2rad(_pitch), azimuth);
 
         // Create a list of points and their respective coordinates
-        scan.push_back({(double)i/double(n-1) * (double)d_sensor.width, point});
+        scan.push_back({(double)i/double(n-1), point});
     }
 
     return scan;

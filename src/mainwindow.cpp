@@ -37,6 +37,7 @@
 #include "decoders/noaa_hrpt.h"
 #include "decoders/fengyun_hrpt.h"
 #include "decoders/metop_hrpt.h"
+#include "decoders/noaa_gac.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ui = new Ui::MainWindow;
@@ -141,7 +142,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             }
             double width = compositors[sensor]->width();
             double height = compositors[sensor]->height();
-            proj->save_gcp_file(timestamps[sensor], height/width * 21.0, 21, sensor, sat, get_temp_dir() + "/image.gcp");
+            proj->save_gcp_file(timestamps[sensor], (double)height/(double)width * 21.0, 21, sensor, sat, get_temp_dir() + "/image.gcp", width);
         }
 
         project_diag->start(sensor);
@@ -155,7 +156,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         }
         double width = compositors[sensor]->width();
         double height = compositors[sensor]->height();
-        proj->save_gcp_file(timestamps[sensor], height/width * 31.0, 31, sensor, sat, get_temp_dir() + "/image.gcp");
+        proj->save_gcp_file(timestamps[sensor], (double)height/(double)width * 21.0, 21, sensor, sat, get_temp_dir() + "/image.gcp", width);
 
         mapsettings_dialog->start(compositors[sensor]->width(), compositors[sensor]->height());
     });
@@ -299,6 +300,7 @@ void MainWindow::startDecode(std::string filename) {
         case Protocol::AHRPT:       decoder = new MetopHRPTDecoder; break;
         case Protocol::MeteorHRPT:  decoder = new MeteorHRPTDecoder; break;
         case Protocol::FengYunHRPT: decoder = new FengyunHRPTDecoder(sat); break;
+        case Protocol::GAC:         decoder = new NOAAGACDecoder; break;
         default: throw std::runtime_error("invalid value in enum `Protocol`");
     }
     decoder->decodeFile(filename, type);
@@ -364,14 +366,32 @@ void MainWindow::startDecode(std::string filename) {
         }
 
         for (size_t i = 0; i < sensor.second.size()-1; i++) {
-            if (fabs(sensor.second[i] - median) > 600.0) {
+            if (fabs(sensor.second[i] - median) > 3600.0) {
                 sensor.second[i] = 0;
+            }
+        }
+
+        // Find first (valid) timestamp
+        double timestamp = 0.0;
+        for (size_t i = 0; i < sensor.second.size(); i++) {
+            if (sensor.second[i] != 0.0) {
+                timestamp = sensor.second[i];
+                break;
+            }
+        }
+
+        // Replace missing timestamps
+        for (size_t i = 0; i < sensor.second.size(); i++) {
+            if (sensor.second[i] == 0.0) {
+                sensor.second[i] = timestamp;
+            } else {
+                timestamp = sensor.second[i];
             }
         }
     }
 
     for (auto &sensor : timestamps) {
-        if (have_tles) compositors[sensor.first]->sunz = proj->calculate_sunz(sensor.second, sensor.first, sat);
+        if (have_tles) compositors[sensor.first]->sunz = proj->calculate_sunz(sensor.second, sensor.first, sat, compositors[sensor.first]->width());
     }
     
     delete decoder;
@@ -555,7 +575,7 @@ void MainWindow::saveCurrentImage(bool corrected) {
         ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
         compositors[sensor]->postprocess(copy);
         if (corrected) {
-            correct_geometry(copy, sat, sensor).save(filename);
+            correct_geometry(copy, sat, sensor, compositors[sensor]->width()).save(filename);
         } else {
             copy.save(filename);
         }
@@ -593,7 +613,7 @@ void MainWindow::save_gcp() {
     if (filename.isEmpty()) return;
     double width = compositors[sensor]->width();
     double height = compositors[sensor]->height();
-    proj->save_gcp_file(timestamps[sensor], height/width * 21.0, 21, sensor, sat, filename.toStdString());
+    proj->save_gcp_file(timestamps[sensor], (double)height/(double)width * 21.0, 21, sensor, sat, filename.toStdString(), width);
 }
 
 void MainWindow::on_presetSelector_activated(QString text) {

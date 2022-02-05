@@ -75,6 +75,7 @@ void MeteorLRPTDecoder::frame_work() {
 
                     if (y == 0) {
                         time_t day = created/86400 * 86400;
+                        timestamps[Imager::MSUMR].resize(y1+1);
                         timestamps[Imager::MSUMR][y1] = (double)day + (double)timestamp/1000.0 - 10800.0;
                     }
                     images[Imager::MSUMR]->set_height(y1+1);

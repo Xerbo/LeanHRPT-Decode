@@ -75,6 +75,11 @@ std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
             file.close();
             return {id, FileType::Raw, Protocol::MeteorHRPT};
         }
+        case Protocol::GAC: {
+            SatID id = fingerprint_gac(stream);
+            file.close();
+            return {id, FileType::Raw, Protocol::GAC};
+        }
         default: break;
     }
 
@@ -115,6 +120,7 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
     uint8_t buffer[1024];
     ccsds::Deframer ccsds_deframer;
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> noaa_deframer(8, true);
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> gac_deframer(8, true);
     std::vector<uint8_t> out((11090*10) / 8);
     Scoreboard<Protocol> s;
 
@@ -124,13 +130,21 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
             s.add(Protocol::MeteorHRPT);
         }
         if (noaa_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::HRPT, 14);
+            s.add(Protocol::HRPT, 8);
+        }
+        if (gac_deframer.work(buffer, out.data(), 1024)) {
+            s.add(Protocol::GAC, 25);
         }
 
         if (s.max() != Protocol::Unknown) return s.max();
     }
 
     return Protocol::Unknown;
+}
+
+SatID Fingerprint::fingerprint_gac(std::istream &stream) {
+    // TODO: NOAA-18 identification
+    return SatID::NOAA19;
 }
 
 SatID Fingerprint::fingerprint_noaa(std::istream &stream, FileType type) {

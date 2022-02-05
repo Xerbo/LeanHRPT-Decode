@@ -41,8 +41,8 @@ class Projector {
         Projector(std::pair<std::string, std::string> tle)
             : predictor(tle) { }
 
-        void save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename);
-        std::vector<float> calculate_sunz(const std::vector<double> &timestamps, Imager sensor, SatID sat);
+        void save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename, size_t width);
+        std::vector<float> calculate_sunz(const std::vector<double> &timestamps, Imager sensor, SatID sat, size_t width);
 
         bool is_northbound(const std::vector<double> &timestampts);
     private:

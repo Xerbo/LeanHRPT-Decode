@@ -29,7 +29,8 @@ enum class Protocol {
     HRPT,
     AHRPT,
     MeteorHRPT,
-    FengYunHRPT
+    FengYunHRPT,
+    GAC
 };
 
 enum Mission {
