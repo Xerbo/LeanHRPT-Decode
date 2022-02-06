@@ -24,6 +24,7 @@
 #include <iostream>
 #include <cstdint>
 #include <bitset>
+#include "common/tip.h"
 #include "protocol/repack.h"
 
 void NOAAHRPTDecoder::work(std::istream &stream) {
@@ -81,7 +82,7 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
 
         uint8_t frame_type = (ptr[6] >> 7) & 0b11;
         switch (frame_type) {
-            case 1: tip_work(frame); break;
+            case 1: tip_work(images, frame); break;
             case 3: aip_work(frame); break;
             default:                 break;
         }
@@ -139,39 +140,5 @@ void NOAAHRPTDecoder::aip_work(const uint8_t *frame) {
         images[Imager::MHS]->push16Bit((uint16_t *)&mhsline[1432], 0);
         images[Imager::MHS]->push16Bit((uint16_t *)&mhsline[2764], 0);
         std::memset(mhsline, 0, 80*50);
-    }
-}
-
-void NOAAHRPTDecoder::tip_work(const uint8_t *frame) {
-    // These are taken from the NOAA KLM Users Guide
-    const size_t offsets[36] = { 16, 17, 22, 23, 26, 27, 30, 31, 34, 35, 38, 39, 42, 43, 54, 55, 58, 59, 62, 63, 66, 67, 70, 71, 74, 75, 78, 79, 82, 83, 84, 85, 88, 89, 92, 93 };
-    const size_t channels[20] = { 1, 17, 2, 3, 13, 4, 18, 11, 19, 7, 8, 20, 10, 14, 6, 5, 15, 12, 16, 9 };
-
-    // Extract HIRS/4 data
-    uint8_t packet[36];
-    for (size_t i = 0; i < 36; i++) {
-        packet[i] = frame[offsets[i]];
-    }
-
-    // Repack into 13 bit words
-    uint16_t words[22];
-    arbitrary_repack<uint16_t, 13>(packet, words, 22);
-
-    uint8_t element_number = (words[1] >> 1) & 0b111111;
-    if (element_number > 55) return;
-
-    for (size_t j = 0; j < 20; j++) {
-        unsigned short *channel = images[Imager::HIRS]->getChannel(channels[j]-1);
-
-        bool sign_bit = words[j+2] >> 12;
-        int16_t val = words[j+2] & 0b111111111111;
-        val = sign_bit ? val : -val;
-
-        channel[images[Imager::HIRS]->rows()*images[Imager::HIRS]->width() + element_number] = val*8 + 32768;
-    }
-
-    // New line
-    if (element_number == 55) {
-        images[Imager::HIRS]->set_height(images[Imager::HIRS]->rows() + 1);
     }
 }

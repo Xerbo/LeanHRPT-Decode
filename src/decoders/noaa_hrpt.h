@@ -55,7 +55,6 @@ class NOAAHRPTDecoder : public Decoder {
         void work(std::istream &stream);
         void frame_work(uint16_t *ptr);
         void cal_data(uint16_t *ptr);
-        void tip_work(const uint8_t *frame);
         void aip_work(const uint8_t *frame);
 };
 
