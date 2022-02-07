@@ -143,8 +143,42 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
 }
 
 SatID Fingerprint::fingerprint_gac(std::istream &stream) {
-    // TODO: NOAA-18 identification
-    return SatID::NOAA19;
+    uint8_t pn[20] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x74, 0x0c, 0x92, 0x94, 0x25, 0xee, 0xea, 0x8e, 0xe2, 0xc2, 0xfb, 0x1f };
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> deframer(8, true);
+    std::vector<uint8_t> buffer(1024);
+    std::vector<uint8_t> raw(4159);
+    std::vector<uint16_t> frame(3327);
+    Scoreboard<SatID> s;
+
+    while (is_running && !stream.eof()) {
+        stream.read((char *)buffer.data(), 1024);
+        if (deframer.work(buffer.data(), raw.data(), 1024)) {
+            for (size_t i = 0; i < 20; i++) {
+				raw[i] ^= pn[i];
+			}
+
+            size_t j = 0;
+            for (size_t i = 0; i < 3327-3; i += 4) {
+                frame[i + 0] =  (raw[j + 0] << 2)       | (raw[j + 1] >> 6);
+                frame[i + 1] = ((raw[j + 1] % 64) << 4) | (raw[j + 2] >> 4);
+                frame[i + 2] = ((raw[j + 2] % 16) << 6) | (raw[j + 3] >> 2);
+                frame[i + 3] = ((raw[j + 3] % 4 ) << 8) |  raw[j + 4];
+                j += 5;
+            }
+
+            uint8_t address = (frame[6] >> 3) & 0b1111;
+            switch (address) {
+                case 7:  s.add(SatID::NOAA15); break;
+                case 13: s.add(SatID::NOAA18); break;
+                case 15: s.add(SatID::NOAA19); break;
+                default:                       break;
+            }
+
+            if (s.max() != SatID::Unknown) return s.max();
+        }
+    }
+
+    return SatID::Unknown;
 }
 
 SatID Fingerprint::fingerprint_noaa(std::istream &stream, FileType type) {
