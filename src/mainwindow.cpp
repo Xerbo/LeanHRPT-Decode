@@ -414,7 +414,7 @@ void MainWindow::decodeFinished() {
 
     // Prepare the UI
     reloadPresets();
-    setChannel(1);
+    setChannel(0);
     ui->gradient->setCurrentIndex(0);
     compositors[sensor]->stops = {};
     ui->gradientView->stops = {};
@@ -446,11 +446,13 @@ void MainWindow::reloadPresets() {
         selected_presets.insert({"Unable to load presets", preset});
     }
 
-    int index = ui->presetSelector->currentIndex();
+    QString text = ui->presetSelector->currentText();
     ui->presetSelector->clear();
     for (auto item : selected_presets) {
         ui->presetSelector->addItem(QString::fromStdString(item.first));
     }
+
+    int index = ui->presetSelector->findText(text);
     if (index != -1) {
         ui->presetSelector->setCurrentIndex(index);
     } else {
