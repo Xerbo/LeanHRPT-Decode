@@ -413,13 +413,13 @@ void MainWindow::decodeFinished() {
     display = QImage(compositors.at(sensor)->width(), compositors.at(sensor)->height(), QImage::Format_RGBX64);
 
     // Prepare the UI
+    selectedChannel = 1;
+    populateChannelSelectors(compositors.at(sensor)->channels());
     reloadPresets();
-    setChannel(0);
     ui->gradient->setCurrentIndex(0);
     compositors[sensor]->stops = {};
     ui->gradientView->stops = {};
     ui->gradientView->repaint();
-    populateChannelSelectors(compositors.at(sensor)->channels());
     status->setText(QString("%1 - %2: %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(compositors.at(sensor)->height()));
     setState(WindowState::Finished);
     if (have_tles) ui->actionFlip->setChecked(proj->is_northbound(timestamps.at(satellite_info.at(sat).default_imager)));
