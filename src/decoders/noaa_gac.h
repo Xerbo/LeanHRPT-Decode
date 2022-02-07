@@ -25,7 +25,7 @@
 class NOAAGACDecoder : public Decoder {
     public:
         NOAAGACDecoder() : deframer(8, true) {
-            images[Imager::AVHRR] = new RawImage(408, 5);
+            images[Imager::AVHRR] = new RawImage(409, 5);
             images[Imager::HIRS] = new RawImage(56, 20);
             init_xor();
         }
