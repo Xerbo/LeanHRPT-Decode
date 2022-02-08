@@ -23,11 +23,12 @@
 #include <cmath>
 
 // Based off https://github.com/Xerbo/meteor_corrector
-QImage correct_geometry(QImage image, SatID satellite, Imager sensor) {
+QImage correct_geometry(QImage image, SatID satellite, Imager sensor, size_t width) {
     const SatelliteInfo satinfo = satellite_info.at(satellite);
     const SensorInfo sensorinfo = sensor_info.at(sensor);
 
-    const size_t output_width = sensorinfo.swath/sensorinfo.resolution;
+    double ratio = (double)width/(double)sensorinfo.width;
+    const size_t output_width = sensorinfo.swath/sensorinfo.resolution * ratio;
     std::vector<float> lut(output_width);
 
     float view_angle = sensorinfo.swath / EARTH_RADIUS;

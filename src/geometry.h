@@ -23,6 +23,6 @@
 
 #include "satinfo.h"
 
-QImage correct_geometry(QImage image, SatID satellite, Imager sensor);
+QImage correct_geometry(QImage image, SatID satellite, Imager sensor, size_t width);
 
 #endif

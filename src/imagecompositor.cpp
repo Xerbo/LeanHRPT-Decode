@@ -46,7 +46,9 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
     rawChannels.resize(m_channels);
     for(size_t i = 0; i < m_channels; i++) {
         rawChannels[i] = QImage(m_width, m_height, QImage::Format_Grayscale16);
-        std::memcpy(rawChannels[i].bits(), image->getChannel(i), m_width * m_height * sizeof(uint16_t));
+        for (size_t y = 0; y < m_height; y++) {
+            std::memcpy(rawChannels[i].scanLine(y), &image->getChannel(i)[y*m_width], m_width * sizeof(uint16_t));
+        }
     }
 
     Config ini("calibration.ini");
@@ -89,19 +91,25 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
 }
 
 void ImageCompositor::postprocess(QImage &image) {
-    if (image.format() == QImage::Format_Grayscale16 && stops.size() != 0) {
+    if (m_isFlipped) {
+        image = image.mirrored(true, true);
+    }
+
+    if (image.format() == QImage::Format_Grayscale16 && stops.size() > 1) {
         QImage copy(image);
-        image = QImage(image.width(), image.height(), QImage::Format_RGB32);
+        image = QImage(image.width(), image.height(), QImage::Format_RGBX64);
 
-        uint16_t *bits = (uint16_t *)copy.bits();
-        QRgb *color_bits = (QRgb *)image.bits();
+        for (size_t i = 0; i < m_height; i++) {
+            uint16_t *bits = (uint16_t *)copy.scanLine(i);
+            QRgba64 *color_bits = (QRgba64 *)image.scanLine(i);
 
-        #pragma omp parallel for
-        for (size_t i = 0; i < m_height*m_width; i++) {
-            double x = (double)bits[i]/(double)UINT16_MAX * (stops.size()-1);
+            #pragma omp parallel for
+            for (size_t j = 0; j < m_width; j++) {
+                double x = (double)bits[j]/(double)UINT16_MAX * (stops.size()-1);
 
-            QColor color = lerp(stops[floor(x)], stops[ceil(x)], fmod(x, 1.0));
-            color_bits[i] = color.rgb();
+                QColor color = lerp(stops[floor(x)], stops[ceil(x)], fmod(x, 1.0));
+                color_bits[j] = color.rgba64();
+            }
         }
     }
 
@@ -110,22 +118,25 @@ void ImageCompositor::postprocess(QImage &image) {
         equalise(copy, Equalization::Histogram, 0.7f, false);
         if (m_isFlipped) copy = copy.mirrored(true, true);
 
-        uint16_t *ir = (uint16_t *)copy.bits();
-        std::tuple<QRgba64 *, quint16 *> bits = std::make_tuple(
-            reinterpret_cast<QRgba64 *>(image.bits()),
-            reinterpret_cast<quint16 *>(image.bits())
-        );
+        for (size_t i = 0; i < m_height; i++) {
+            uint16_t *ir = (uint16_t *)copy.scanLine(i);
+            std::tuple<QRgba64 *, quint16 *> bits = std::make_tuple(
+                reinterpret_cast<QRgba64 *>(image.scanLine(i)),
+                reinterpret_cast<quint16 *>(image.scanLine(i))
+            );
 
-        for (size_t i = 0; i < m_height*m_width; i++) {
-            float irval = m_channels == 6 ? (UINT16_MAX - ir[i]) : ir[i];
+            #pragma omp parallel for
+            for (size_t j = 0; j < m_width; j++) {
+                float irval = m_channels == 6 ? (UINT16_MAX - ir[j]) : ir[j];
 
-            float _sunz = m_isFlipped ? sunz[(m_width*m_height-1) - i] : sunz[i];
-            float x = clamp(_sunz*10.0f-14.8f, 0.0f, 1.0f);
+                float _sunz = m_isFlipped ? sunz[(m_width*m_height-1) - (i*m_width + j)] : sunz[i*m_width + j];
+                float x = clamp(_sunz*10.0f-14.8f, 0.0f, 1.0f);
 
-            if (image.format() == QImage::Format_RGBX64) {
-                std::get<0>(bits)[i] = lerp(std::get<0>(bits)[i], QRgba64::fromRgba64(irval, irval, irval, UINT16_MAX), x);
-            } else {
-                std::get<1>(bits)[i] = lerp<float>(std::get<1>(bits)[i], irval, x);
+                if (image.format() == QImage::Format_RGBX64) {
+                    std::get<0>(bits)[j] = lerp(std::get<0>(bits)[j], QRgba64::fromRgba64(irval, irval, irval, UINT16_MAX), x);
+                } else {
+                    std::get<1>(bits)[j] = lerp<float>(std::get<1>(bits)[j], irval, x);
+                }
             }
         }
     }
@@ -200,14 +211,7 @@ void ImageCompositor::calibrate_linear(QImage &image, double a, double b) {
 }
 
 void ImageCompositor::getChannel(QImage &image, size_t channel) {
-    if (image.format() != QImage::Format_Grayscale16) {
-        image = QImage(image.width(), image.height(), QImage::Format_Grayscale16);
-    }
-    std::memcpy(image.bits(), rawChannels[channel-1].bits(), sizeof(unsigned short) * m_width * m_height);
-
-    if (m_isFlipped) {
-        image = image.mirrored(true, true);
-    }
+    image = rawChannels[channel-1];
 }
 
 // Composites 3 Grayscale16 images into each channel of a RGB16 image
@@ -215,80 +219,72 @@ void ImageCompositor::getComposite(QImage &image, std::array<size_t, 3> chs) {
     if (image.format() != QImage::Format_RGBX64) {
         image = QImage(image.width(), image.height(), QImage::Format_RGBX64);
     }
-    QRgba64 *bits = reinterpret_cast<QRgba64 *>(image.bits());
 
-    quint16 *chbits[3];
-    for (size_t i = 0; i < 3; i++) {
-        chbits[i] = reinterpret_cast<quint16 *>(rawChannels[chs[i]-1].bits());
-    }
+    for (size_t i = 0; i < m_height; i++) {
+        QRgba64 *line = (QRgba64 *)image.scanLine(i);
+        const uint16_t *r = (const uint16_t *)rawChannels[chs[0]-1].constScanLine(i);
+        const uint16_t *g = (const uint16_t *)rawChannels[chs[1]-1].constScanLine(i);
+        const uint16_t *b = (const uint16_t *)rawChannels[chs[2]-1].constScanLine(i);
 
-    #pragma omp parallel for
-    for (size_t i = 0; i < m_height*m_width; i++) {
-        bits[i] = QRgba64::fromRgba64(chbits[0][i], chbits[1][i], chbits[2][i], UINT16_MAX);
-    }
-
-    if (m_isFlipped) {
-        image = image.mirrored(true, true);
+        #pragma omp parallel for
+        for (size_t x = 0; x < m_width; x++) {
+            line[x] = QRgba64::fromRgba64(r[x], g[x], b[x], UINT16_MAX);
+        }
     }
 }
 
 // Evaluate `expression` and store the results in `image`
-void ImageCompositor::getExpression(QImage &image, std::string experssion) {
-    QImage::Format format = (experssion.find(",") == std::string::npos) ? QImage::Format_Grayscale16 : QImage::Format_RGBX64;
+void ImageCompositor::getExpression(QImage &image, std::string expression) {
+    QImage::Format format = (expression.find(",") == std::string::npos) ? QImage::Format_Grayscale16 : QImage::Format_RGBX64;
     if (image.format() != format) {
         image = QImage(image.width(), image.height(), format);
     }
 
-    std::vector<quint16 *> rawbits(m_channels);
+    std::vector<double> ch(m_channels);
+    double sunz_val = 0.0;
+    mu::Parser p;
+
     for (size_t i = 0; i < m_channels; i++) {
-        rawbits[i] = (quint16 *)rawChannels[i].bits();
+        p.DefineVar("ch" + std::to_string(i+1), &ch[i]);
     }
-    std::tuple<QRgba64 *, quint16 *> bits = std::make_tuple(
-        reinterpret_cast<QRgba64 *>(image.bits()),
-        reinterpret_cast<quint16 *>(image.bits())
-    );
 
-    #pragma omp parallel
-    {
-        std::vector<double> ch(m_channels);
-        double sunz_val = 0.0;
-        mu::Parser p;
+    if (m_channels == 10) {
+        p.DefineVar("SWIR", &ch[5]);
+    } else {
+        p.DefineVar("SWIR", &ch[2]);
+    }
+    p.DefineVar("NIR", &ch[1]);
+    p.DefineVar("RED", &ch[0]);
+    p.DefineVar("sunz", &sunz_val);
 
-        try {
-            for (size_t i = 0; i < m_channels; i++) {
-                p.DefineVar("ch" + std::to_string(i+1), &ch[i]);
-            }
+    p.SetExpr(expression);
 
-            if (m_channels == 10) {
-                p.DefineVar("SWIR", &ch[5]);
-            } else {
-                p.DefineVar("SWIR", &ch[2]);
-            }
-            p.DefineVar("NIR", &ch[1]);
-            p.DefineVar("RED", &ch[0]);
-            p.DefineVar("sunz", &sunz_val);
+    size_t start =  (double)omp_get_thread_num()     /(double)omp_get_num_threads() * (double)m_height;
+    size_t end   = ((double)omp_get_thread_num()+1.0)/(double)omp_get_num_threads() * (double)m_height;
 
-            p.SetExpr(experssion);
-        } catch (mu::Parser::exception_type &e) {
-            std::cout << e.GetMsg() << std::endl;
-        }
-
-        size_t start =  (double)omp_get_thread_num()     /(double)omp_get_num_threads() * (double)m_height;
-        size_t end   = ((double)omp_get_thread_num()+1.0)/(double)omp_get_num_threads() * (double)m_height;
-
+    try {
         for (size_t y = start; y < end; y++) {
+            std::vector<quint16 *> rawbits(m_channels);
+            for (size_t i = 0; i < m_channels; i++) {
+                rawbits[i] = (quint16 *)rawChannels[i].scanLine(y);
+            }
+            std::tuple<QRgba64 *, quint16 *> bits = std::make_tuple(
+                reinterpret_cast<QRgba64 *>(image.scanLine(y)),
+                reinterpret_cast<quint16 *>(image.scanLine(y))
+            );
+
             for (size_t x = 0; x < m_width; x++) {
                 for (size_t i = 0; i < m_channels; i++) {
-                    ch[i] = (double)rawbits[i][y*m_width + x] / (double)UINT16_MAX;
+                    ch[i] = (double)rawbits[i][x] / (double)UINT16_MAX;
                 }
                 if(sunz.size() != 0) sunz_val = sunz[y*m_width + x];
 
                 int channels;
                 double *rgb = p.Eval(channels);
                 if (channels == 1) {
-                    std::get<1>(bits)[y*m_width + x] = clamp(rgb[0], 0.0, 1.0) * (double)UINT16_MAX;
+                    std::get<1>(bits)[x] = clamp(rgb[0], 0.0, 1.0) * (double)UINT16_MAX;
                 } else {
-                    std::get<0>(bits)[y*m_width + x] = QRgba64::fromRgba64(
+                    std::get<0>(bits)[x] = QRgba64::fromRgba64(
                         clamp(rgb[0], 0.0, 1.0) * (double)UINT16_MAX,
                         clamp(rgb[1], 0.0, 1.0) * (double)UINT16_MAX,
                         clamp(rgb[2], 0.0, 1.0) * (double)UINT16_MAX,
@@ -297,10 +293,9 @@ void ImageCompositor::getExpression(QImage &image, std::string experssion) {
                 }
             }
         }
-    }
-
-    if (m_isFlipped) {
-        image = image.mirrored(true, true);
+    } catch (mu::ParserError &e) {
+        std::cout << e.GetMsg() << std::endl;
+        return;
     }
 }
 

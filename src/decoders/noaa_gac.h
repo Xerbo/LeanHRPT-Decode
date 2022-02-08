@@ -16,31 +16,30 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef DECODERS_METEOR_LRPT_H
-#define DECODERS_METEOR_LRPT_H
+#ifndef NOAA_GAC_H
+#define NOAA_GAC_H
 
 #include "decoder.h"
+#include "protocol/deframer.h"
 
-#include "protocol/ccsds/demuxer.h"
-
-// http://planet.iitp.ru/retro/index.php?lang=en&page_type=spacecraft&page=meteor_m_n2_structure_2
-class MeteorLRPTDecoder : public Decoder {
+class NOAAGACDecoder : public Decoder {
     public:
-        MeteorLRPTDecoder() {
-            // Allocate all 6 channels for correct channel labeling
-            images[Imager::MSUMR] = new RawImage(1568, 6);
-            timestamps[Imager::MSUMR].reserve(10000);
+        NOAAGACDecoder() : deframer(8, true) {
+            images[Imager::AVHRR] = new RawImage(409, 5);
+            images[Imager::HIRS] = new RawImage(56, 20);
+            init_xor();
         }
     private:
-        uint8_t frame[1024];
-        ccsds::Demuxer demux;
+        ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> deframer;
 
-        size_t counter_offset = 0;
-        size_t start_offset = 0;
-        size_t last_counter = 0;
+        uint8_t frame[4159];
+        uint16_t repacked[3327];
+
+        uint8_t xor_table[4159];
+        void init_xor();
 
         void work(std::istream &stream);
-        void frame_work();
+        void frame_work(uint16_t *ptr);
 };
 
 #endif

@@ -27,6 +27,7 @@ class Fingerprint {
         SatID fingerprint_ccsds(std::istream &stream, FileType type);
         SatID fingerprint_noaa(std::istream &stream, FileType type);
         SatID fingerprint_meteor(std::istream &stream, FileType type);
+        SatID fingerprint_gac(std::istream &stream);
 
         Protocol fingerprint_raw(std::istream &stream);
         std::set<Protocol> ccsds_downlinks(SatID id);
