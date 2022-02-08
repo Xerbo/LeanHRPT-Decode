@@ -25,9 +25,10 @@
 #include <utility>
 #include <cmath>
 #include <vector>
-#include <QDebug>
+#include "geo/geodetic.h"
 
 const double EARTH_RADIUS = 6371.0;
+using xy = std::pair<double, double>;
 
 namespace geo {
     // Convert from a internal angle of a circle to the viewing angle of a point above the circle.
@@ -41,7 +42,9 @@ class Projector {
         Projector(std::pair<std::string, std::string> tle)
             : predictor(tle) { }
 
-        void save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename, size_t width);
+        std::vector<std::pair<xy, Geodetic>> calculate_gcps(const std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, size_t width);
+
+        void save_gcp_file(const std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename, size_t width);
         std::vector<float> calculate_sunz(const std::vector<double> &timestamps, Imager sensor, SatID sat, size_t width);
 
         bool is_northbound(const std::vector<double> &timestampts);
@@ -49,7 +52,6 @@ class Projector {
         std::vector<std::pair<double, Geodetic>> calculate_scan(const Geodetic &position, double azimuth, double fov, double roll, double pitch, double pitchscale, bool curved, size_t n);
 
         OrbitPredictor predictor;
-        SensorInfo d_sensor;
 };
 
 #endif

@@ -25,23 +25,19 @@
 #include <fstream>
 #include <algorithm>
 #include <map>
+#include <QLocale>
 
 static double str2double(std::string str) {
     QLocale l(QLocale::C);
     return l.toDouble(QString::fromStdString(str));
 }
 
-void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename, size_t width) {
-    if (timestamps.size() == 0) {
-        return;
-    }
+std::vector<std::pair<xy, Geodetic>> Projector::calculate_gcps(const std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, size_t width) {
+    std::vector<std::pair<xy, Geodetic>> gcps;
 
-    std::filebuf file;
-    if (!file.open(filename, std::ios::out)) {
-        return;
+    if (timestamps.size() == 0) {
+        return gcps;
     }
-    std::ostream stream(&file);
-    stream << "<GCPList Projection=\"EPSG:4326\">\n";
 
     Config proj_info("projection.ini");
     auto params = proj_info.sections.at(satellite_info.at(sat).name + "_" + sensor_info.at(sensor).name);
@@ -53,9 +49,6 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
     double toffset = str2double(params["toffset"]);
     bool curved = params["curved"] == "true";
 
-    d_sensor = sensor_info.at(sensor);
-
-    size_t n = 0;
     double last_timestamp = 0.0;
     for (size_t j = 0; j < pointsy; j++) {
         size_t i = (double)j/double(pointsy-1) * double(timestamps.size()-1);
@@ -67,9 +60,8 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
 
             double azimuth;
             {
-                struct predict_position a = predictor.predict(timestamp);
                 struct predict_position b = predictor.predict(timestamp+0.1);
-                azimuth = deg2rad(90) - calculateBearingAngle(Geodetic(a), Geodetic(b));
+                azimuth = deg2rad(90) - calculateBearingAngle(Geodetic(orbit), Geodetic(b));
                 if (azimuth > M_PI) {
                     azimuth += deg2rad(yaw);
                 } else {
@@ -79,75 +71,64 @@ void Projector::save_gcp_file(std::vector<double> &timestamps, size_t pointsy, s
 
             auto scan = calculate_scan(Geodetic(orbit), azimuth, fov, roll, pitch, pitchscale, curved, pointsx);
             for (auto &point : scan) {
-                stream << "<GCP Id=\"" << n << "\" Pixel=\"" << (point.first*(double)width) << "\" Line=\"" << i << "\" X=\"" << (point.second.longitude*RAD2DEG) << "\" Y=\"" << (point.second.latitude*180.0/M_PI) << "\" />\n";
-                n++;
+                gcps.push_back(std::make_pair(std::make_pair(point.first*double(width-1), (double)i), point.second));
             }
         }
         last_timestamp = timestamp;
     }
 
+    return gcps;
+}
+
+void Projector::save_gcp_file(const std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat, std::string filename, size_t width) {
+    auto gcps = calculate_gcps(timestamps, pointsy, pointsx, sensor, sat, width);
+
+    std::filebuf file;
+    if (!file.open(filename, std::ios::out)) return;
+    std::ostream stream(&file);
+
+    stream << "<GCPList Projection=\"EPSG:4326\">\n";
+    for (size_t i = 0; i < gcps.size(); i++) {
+        double x = gcps[i].first.first;
+        double y = gcps[i].first.second;
+        double lon = (gcps[i].second.longitude*RAD2DEG);
+        double lat = (gcps[i].second.latitude*RAD2DEG);
+        stream << "<GCP Id=\"" << i << "\" Pixel=\"" << x << "\" Line=\"" << y << "\" X=\"" << lon << "\" Y=\"" << lat << "\" />\n";
+    }
     stream << "</GCPList>\n";
-    stream.flush();
     file.close();
 }
 
 std::vector<float> Projector::calculate_sunz(const std::vector<double> &timestamps, Imager sensor, SatID sat, size_t width) {
-    if (timestamps.size() == 0) {
-        return { };
-    }
-
-    size_t height = timestamps.size();
     const size_t pointsx = 21;
-    const size_t pointsy = timestamps.size()/(double)width * 21.0;
+    const size_t pointsy = (double)timestamps.size()/(double)width * 21.0;
+    auto gcps = calculate_gcps(timestamps, pointsy, pointsx, sensor, sat, width);
+
     std::vector<float> sunz(pointsy * pointsx);
-    
-    Config proj_info("projection.ini");
-    auto params = proj_info.sections.at(satellite_info.at(sat).name + "_" + sensor_info.at(sensor).name);
-    double fov = str2double(params["fov"]);
-    double yaw = str2double(params["yaw"]);
-    double roll = str2double(params["roll"]);
-    double pitch = str2double(params["pitch"]);
-    double pitchscale = str2double(params["pitchscale"]);
-    double toffset = str2double(params["toffset"]);
-    bool curved = params["curved"] == "true";
-    d_sensor = sensor_info.at(sensor);
+    for (size_t i = 0; i < gcps.size(); i++) {
+        double y = gcps[i].first.second;
+        double lon = gcps[i].second.longitude;
+        double lat = gcps[i].second.latitude;
+        double timestamp = timestamps[y];
 
-    for (size_t i = 0; i < pointsy; i++) {
-        double timestamp = timestamps[round(i * (double)height/(double)pointsy)] + toffset;
-        struct predict_position orbit = predictor.predict(timestamp);
+        // UNIX to Julian date
+        predict_julian_date_t prediction_time = (timestamp / 86400.0) - 3651.0;
+        predict_observer_t observer = { "", lat, lon, 0 };
 
-        double azimuth;
-        {
-            struct predict_position a = predictor.predict(timestamp);
-            struct predict_position b = predictor.predict(timestamp+0.1);
-            azimuth = deg2rad(90) - calculateBearingAngle(Geodetic(a), Geodetic(b));
-            if (azimuth > M_PI) {
-                azimuth += deg2rad(yaw);
-            } else {
-                azimuth -= deg2rad(yaw);
-            }
-        }
+        struct predict_observation observation;
+        predict_observe_sun(&observer, prediction_time, &observation);
 
-        auto scan = calculate_scan(Geodetic(orbit), azimuth, fov, roll, pitch, pitchscale, curved, pointsx);
-        for (size_t j = 0; j < pointsx; j++) {
-            // UNIX to Julian date
-            predict_julian_date_t prediction_time = (timestamp / 86400.0) - 3651.0;
-            predict_observer_t observer = { "", scan[j].second.latitude, scan[j].second.longitude, 0 };
-
-            struct predict_observation observation;
-            predict_observe_sun(&observer, prediction_time, &observation);
-
-            // Elevation to zenith angle
-            sunz[i*pointsx + j] = deg2rad(90.0) - observation.elevation;
-        }
+        // Elevation to zenith
+        sunz[i] = deg2rad(90.0) - observation.elevation;
     }
 
     // Interpolate points to the full image size
+    size_t height = timestamps.size();
     std::vector<float> full_sunz(height * width);
     for (size_t y = 0; y < height; y++) {
         for (size_t x = 0; x < width; x++) {
-            double y2 = (double)y/(double)height * (pointsy-1);
-            double x2 = (double)x/(double)width * (pointsx-1);
+            double y2 = (double)y/double(height-1) * (pointsy-1);
+            double x2 = (double)x/double(width -1) * (pointsx-1);
 
             float a = lerp(sunz[floor(y2)*pointsx + floor(x2)], sunz[floor(y2)*pointsx + ceil(x2)], fmodf(x2, 1.0));
             float b = lerp(sunz[ceil(y2) *pointsx + floor(x2)], sunz[ceil(y2) *pointsx + ceil(x2)], fmodf(x2, 1.0));
