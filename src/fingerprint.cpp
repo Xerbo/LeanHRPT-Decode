@@ -133,7 +133,7 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
             s.add(Protocol::HRPT, 8);
         }
         if (gac_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::GAC, 25);
+            s.add(Protocol::GAC, 4);
         }
 
         if (s.max() != Protocol::Unknown) return s.max();
