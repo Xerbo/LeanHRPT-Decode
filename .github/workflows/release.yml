@@ -88,6 +88,7 @@ jobs:
             mkdir LeanHRPT-Decode.AppDir/usr/plugins/imageformats &&
             mkdir LeanHRPT-Decode.AppDir/usr/share &&
             mkdir LeanHRPT-Decode.AppDir/usr/share/icons &&
+            mkdir LeanHRPT-Decode.AppDir/usr/share/leanhrpt &&
             cp AppRun                            LeanHRPT-Decode.AppDir/ &&
             cp build/LeanHRPT-Decode.desktop     LeanHRPT-Decode.AppDir/ &&
             cp logo128.png                       LeanHRPT-Decode.AppDir/usr/share/icons/LeanHRPT-Decode.png &&
