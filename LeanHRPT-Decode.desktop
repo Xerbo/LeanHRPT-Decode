@@ -3,5 +3,5 @@ Type=Application
 Name=LeanHRPT Decode
 Comment=An easy to use HRPT decoder
 Categories=HamRadio;Science
-Exec=@CMAKE_INSTALL_PREFIX@/bin/LeanHRPT-Decode
+Exec=LeanHRPT-Decode
 Icon=@CMAKE_INSTALL_PREFIX@/share/icons/LeanHRPT-Decode

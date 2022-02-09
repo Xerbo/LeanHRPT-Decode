@@ -91,10 +91,10 @@ jobs:
             cp AppRun                            LeanHRPT-Decode.AppDir/ &&
             cp build/LeanHRPT-Decode.desktop     LeanHRPT-Decode.AppDir/ &&
             cp logo128.png                       LeanHRPT-Decode.AppDir/usr/share/icons/LeanHRPT-Decode.png &&
-            cp presets.ini                       LeanHRPT-Decode.AppDir/ &&
-            cp gradients.ini                     LeanHRPT-Decode.AppDir/ &&
-            cp calibration.ini                   LeanHRPT-Decode.AppDir/ &&
-            cp projection.ini                    LeanHRPT-Decode.AppDir/ &&
+            cp presets.ini                       LeanHRPT-Decode.AppDir/usr/share/leanhrpt/ &&
+            cp gradients.ini                     LeanHRPT-Decode.AppDir/usr/share/leanhrpt/ &&
+            cp calibration.ini                   LeanHRPT-Decode.AppDir/usr/share/leanhrpt/ &&
+            cp projection.ini                    LeanHRPT-Decode.AppDir/usr/share/leanhrpt/ &&
             cp -r $TEMP_PATH/plugins/platforms/                        LeanHRPT-Decode.AppDir/usr/plugins/ &&
             cp $TEMP_PATH/plugins/imageformats/libq{jpeg,webp,tiff}.so LeanHRPT-Decode.AppDir/usr/plugins/imageformats/ &&
             cp $TEMP_PATH/lib/libQt5Gui.so.5     LeanHRPT-Decode.AppDir/usr/lib/ &&
@@ -111,7 +111,7 @@ jobs:
             cp build/LeanHRPT-Decode             LeanHRPT-Decode.AppDir/usr/bin/ &&
             find LeanHRPT-Decode.AppDir/ -name "*.so*" -exec strip {} \; &&
             strip LeanHRPT-Decode.AppDir/usr/bin/LeanHRPT-Decode &&
-            ./appimagetool-x86_64.AppImage --comp xz LeanHRPT-Decode.AppDir'
+            ./appimagetool-x86_64.AppImage LeanHRPT-Decode.AppDir'
 
     - name: Upload AppImage
       uses: actions/upload-release-asset@v1

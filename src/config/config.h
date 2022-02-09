@@ -37,7 +37,7 @@ class Config : public inipp::Ini<char> {
                 return;
             }
 
-            if (file.open(get_config_prefix() + filename, std::ios::in)) {
+            if (file.open(get_local_prefix() + filename, std::ios::in)) {
                 std::istream stream(&file);
                 parse(stream);
                 interpolate();
@@ -46,7 +46,7 @@ class Config : public inipp::Ini<char> {
             }
 
 #ifndef _WIN32
-            if (file.open("/usr/share/leanhrpt/" + filename, std::ios::in)) {
+            if (file.open(get_system_prefix() + "/share/leanhrpt/" + filename, std::ios::in)) {
                 std::istream stream(&file);
                 parse(stream);
                 interpolate();
@@ -58,7 +58,7 @@ class Config : public inipp::Ini<char> {
             std::cerr << "Could not open " << filename << std::endl;
         }
     private:
-        static std::string get_config_prefix() {
+        static std::string get_local_prefix() {
 #ifdef _WIN32
             std::string home = std::getenv("APPDATA");
             return home + "\\LeanHRPT\\";
@@ -67,6 +67,13 @@ class Config : public inipp::Ini<char> {
             return home + "/.config/leanhrpt/";
 #endif
         }
+
+#ifndef _WIN32
+        static std::string get_system_prefix() {
+            char *here = std::getenv("HERE");
+            return here ? here : "/usr";
+        }
+#endif
 };
 
 #endif
