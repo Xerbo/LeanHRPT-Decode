@@ -70,8 +70,8 @@ class Config : public inipp::Ini<char> {
 
 #ifndef _WIN32
         static std::string get_system_prefix() {
-            char *here = std::getenv("HERE");
-            return here ? here : "/usr";
+            std::string here = std::getenv("HERE");
+            return here.empty() ? "/usr" : (here + "/usr");
         }
 #endif
 };
