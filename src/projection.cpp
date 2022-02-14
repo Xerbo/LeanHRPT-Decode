@@ -103,6 +103,7 @@ std::vector<float> Projector::calculate_sunz(const std::vector<double> &timestam
     const size_t pointsx = 21;
     const size_t pointsy = (double)timestamps.size()/(double)width * 21.0;
     auto gcps = calculate_gcps(timestamps, pointsy, pointsx, sensor, sat, width);
+    if (gcps.size() == 0) return { };
 
     std::vector<float> sunz(pointsy * pointsx);
     for (size_t i = 0; i < gcps.size(); i++) {
