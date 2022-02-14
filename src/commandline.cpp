@@ -140,8 +140,11 @@ int parseCommandLine(QCommandLineParser &parser) {
             QImage image(compositors[imager].width(), compositors[imager].height(), QImage::Format_RGBX64);
             if (file.second.count("preset")) {
                 // Preset
-                std::string preset = file.second["preset"];
-                std::string expression = preset_manager.presets.at(preset).expression;
+                Preset preset = preset_manager.presets.at(file.second["preset"]);
+                std::string expression = preset.expression;
+                if (preset.overrides.count(imager)) {
+                    expression = preset.overrides.at(imager);
+                }
                 compositors[imager].getExpression(image, expression);
             } else if (file.second.count("channel")) {
                 // Single channel
