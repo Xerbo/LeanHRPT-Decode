@@ -20,6 +20,7 @@
 #define LEANHRPT_DECODERS_NOAA_H
 
 #include "decoder.h"
+#include "common/aip.h"
 #include "protocol/deframer.h"
 
 class NOAAHRPTDecoder : public Decoder {
@@ -49,13 +50,13 @@ class NOAAHRPTDecoder : public Decoder {
     private:
         uint8_t *frame;
         uint16_t *repacked;
-        uint8_t mhsline[80*50];
         ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer;
 
         void work(std::istream &stream);
         void frame_work(uint16_t *ptr);
         void cal_data(uint16_t *ptr);
-        void aip_work(const uint8_t *frame);
+
+        AIPDecoder aip_decoder;
 };
 
 #endif

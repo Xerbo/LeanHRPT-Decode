@@ -83,7 +83,7 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
         uint8_t frame_type = (ptr[6] >> 7) & 0b11;
         switch (frame_type) {
             case 1: tip_work(images, frame); break;
-            case 3: aip_work(frame); break;
+            case 3: aip_decoder.work(images, frame); break;
             default:                 break;
         }
     }
@@ -130,15 +130,3 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
     images[Imager::AVHRR]->push16Bit(ptr, 750);
 }
 
-void NOAAHRPTDecoder::aip_work(const uint8_t *frame) {
-    uint8_t mhs_status = frame[7];
-    if (mhs_status > 80) return;
-
-    std::memcpy(&mhsline[mhs_status*50], &frame[48], 50);
-    if (mhs_status == 79) {
-        images[Imager::MHS]->push16Bit((uint16_t *)&mhsline[  98], 0);
-        images[Imager::MHS]->push16Bit((uint16_t *)&mhsline[1432], 0);
-        images[Imager::MHS]->push16Bit((uint16_t *)&mhsline[2764], 0);
-        std::memset(mhsline, 0, 80*50);
-    }
-}

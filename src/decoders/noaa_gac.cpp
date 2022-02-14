@@ -79,7 +79,7 @@ void NOAAGACDecoder::frame_work(uint16_t *ptr) {
     bool line_ok = true;
 
     // Parse TIP/AIP frames
-    for (size_t i = 0; i < 5; i++) {
+    for (size_t i = 0; i < 10; i++) {
         uint8_t frame[104];
         bool parity_ok = true;
 
@@ -100,10 +100,10 @@ void NOAAGACDecoder::frame_work(uint16_t *ptr) {
             continue;
         }
 
-        uint8_t frame_type = (ptr[6] >> 7) & 0b11;
-        switch (frame_type) {
-            case 0: tip_work(images, frame); break;
-            default:                 break;
+        if (i < 5) {
+            tip_work(images, frame);
+        } else {
+            aip_decoder.work(images, frame);
         }
     }
 

@@ -20,6 +20,7 @@
 #define NOAA_GAC_H
 
 #include "decoder.h"
+#include "common/aip.h"
 #include "protocol/deframer.h"
 
 class NOAAGACDecoder : public Decoder {
@@ -27,6 +28,7 @@ class NOAAGACDecoder : public Decoder {
         NOAAGACDecoder() : deframer(8, true) {
             images[Imager::AVHRR] = new RawImage(409, 5);
             images[Imager::HIRS] = new RawImage(56, 20);
+            images[Imager::MHS] = new RawImage(90, 6);
             init_xor();
         }
     private:
@@ -40,6 +42,8 @@ class NOAAGACDecoder : public Decoder {
 
         void work(std::istream &stream);
         void frame_work(uint16_t *ptr);
+
+        AIPDecoder aip_decoder;
 };
 
 #endif
