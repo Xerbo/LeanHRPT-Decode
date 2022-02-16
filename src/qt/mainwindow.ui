@@ -511,22 +511,17 @@
      <string>Sensor</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuTools">
+   <widget class="QMenu" name="menuGeo">
     <property name="title">
-     <string>Tools</string>
+     <string>Geo</string>
     </property>
-    <addaction name="actionGeoprojector"/>
-   </widget>
-   <widget class="QMenu" name="menuMap">
-    <property name="title">
-     <string>Map</string>
-    </property>
-    <addaction name="actionEnable_Overlay"/>
+    <addaction name="actionProjector"/>
+    <addaction name="separator"/>
     <addaction name="actionMap_Settings"/>
+    <addaction name="actionEnable_Overlay"/>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuTools"/>
-   <addaction name="menuMap"/>
+   <addaction name="menuGeo"/>
    <addaction name="menuOptions"/>
    <addaction name="menuSensor"/>
    <addaction name="menuHelp"/>
@@ -588,9 +583,9 @@
     <string>Save GCP File</string>
    </property>
   </action>
-  <action name="actionGeoprojector">
+  <action name="actionProjector">
    <property name="text">
-    <string>Geoprojector</string>
+    <string>Projector</string>
    </property>
   </action>
   <action name="actionEnable_Overlay">

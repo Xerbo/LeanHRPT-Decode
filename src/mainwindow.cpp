@@ -237,7 +237,7 @@ void MainWindow::incrementZoom(int amount) {
 }
 
 void MainWindow::setState(WindowState state) {
-    QWidget *items[] = { ui->groupBox, ui->menuTools, ui->menuMap, ui->menuOptions, ui->menuSensor, ui->stackedOptions, ui->zoomSelectorBox, ui->imageTabs, ui->gradientBox };
+    QWidget *items[] = { ui->groupBox, ui->menuGeo, ui->menuGeo, ui->menuOptions, ui->menuSensor, ui->stackedOptions, ui->zoomSelectorBox, ui->imageTabs, ui->gradientBox };
 
     for (QWidget *item : items) {
         item->setEnabled(state == WindowState::Finished);

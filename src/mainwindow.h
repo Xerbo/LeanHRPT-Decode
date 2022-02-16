@@ -161,9 +161,9 @@ class MainWindow : public QMainWindow {
         void on_actionSave_Current_Image_Corrected_triggered() { saveCurrentImage(true); };
         void on_actionSave_All_Channels_triggered()            { saveAllChannels(); };
         void on_actionSave_GCP_File_triggered()                { save_gcp(); };
-        // menuTools
-        void on_actionGeoprojector_triggered() { project_diag->show(); };
-        // menuMap
+        // menuGeo
+        void on_actionProjector_triggered() { project_diag->show(); };
+        // menuGeo
         void on_actionEnable_Overlay_toggled(bool toggled) { compositors[sensor]->enable_map = toggled; updateDisplay(); };
         void on_actionMap_Settings_triggered() { mapsettings_dialog->show(); };
         // menuOptions
