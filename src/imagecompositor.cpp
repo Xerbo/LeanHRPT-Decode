@@ -235,11 +235,6 @@ void ImageCompositor::getComposite(QImage &image, std::array<size_t, 3> chs) {
 
 // Evaluate `expression` and store the results in `image`
 void ImageCompositor::getExpression(QImage &image, std::string expression) {
-    QImage::Format format = (expression.find(",") == std::string::npos) ? QImage::Format_Grayscale16 : QImage::Format_RGBX64;
-    if (image.format() != format) {
-        image = QImage(image.width(), image.height(), format);
-    }
-
     std::vector<double> ch(m_channels);
     double sunz_val = 0.0;
     mu::Parser p;
@@ -256,14 +251,17 @@ void ImageCompositor::getExpression(QImage &image, std::string expression) {
     p.DefineVar("NIR", &ch[1]);
     p.DefineVar("RED", &ch[0]);
     p.DefineVar("sunz", &sunz_val);
-
     p.SetExpr(expression);
 
-    size_t start =  (double)omp_get_thread_num()     /(double)omp_get_num_threads() * (double)m_height;
-    size_t end   = ((double)omp_get_thread_num()+1.0)/(double)omp_get_num_threads() * (double)m_height;
+    int channels;
+    p.Eval(channels);
+    QImage::Format format = channels == 1 ? QImage::Format_Grayscale16 : QImage::Format_RGBX64;
+    if (image.format() != format) {
+        image = QImage(image.width(), image.height(), format);
+    }
 
     try {
-        for (size_t y = start; y < end; y++) {
+        for (size_t y = 0; y < m_height; y++) {
             std::vector<quint16 *> rawbits(m_channels);
             for (size_t i = 0; i < m_channels; i++) {
                 rawbits[i] = (quint16 *)rawChannels[i].scanLine(y);
@@ -279,7 +277,6 @@ void ImageCompositor::getExpression(QImage &image, std::string expression) {
                 }
                 if(sunz.size() != 0) sunz_val = sunz[y*m_width + x];
 
-                int channels;
                 double *rgb = p.Eval(channels);
                 if (channels == 1) {
                     std::get<1>(bits)[x] = clamp(rgb[0], 0.0, 1.0) * (double)UINT16_MAX;
