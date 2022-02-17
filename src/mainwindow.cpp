@@ -393,6 +393,8 @@ void MainWindow::startDecode(std::string filename) {
     for (auto &sensor : timestamps) {
         if (have_tles) compositors[sensor.first]->sunz = proj->calculate_sunz(sensor.second, sensor.first, sat, compositors[sensor.first]->width());
     }
+
+    pass_timestamp = timestamps[sensor][timestamps[sensor].size()/2];
     
     delete decoder;
     decoder = nullptr;
@@ -564,7 +566,7 @@ void MainWindow::saveCurrentImage(bool corrected) {
     }
 
     QString types[3] = { QString::number(selectedChannel), composite, ui->presetSelector->currentText() };
-    QString name = QString("%1_%2_%3.png").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(types[ui->imageTabs->currentIndex()]);
+    QString name = QString("%1_%2_%3_%4.png").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString(Qt::ISODate)).arg(types[ui->imageTabs->currentIndex()]);
     QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", name, "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
 
     if (filename.isEmpty()) {
@@ -596,7 +598,7 @@ void MainWindow::saveAllChannels() {
         for(size_t i = 0; i < compositors.at(sensor)->channels(); i++) {
             status->setText(QString("Saving channel %1...").arg(i + 1));
             compositors.at(sensor)->getChannel(channel, i + 1);
-            channel.save(QString("%1/%2_%3_%4.png").arg(directory).arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(i + 1), "PNG");
+            channel.save(QString("%1/%2_%3_%4_%5.png").arg(directory).arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString(Qt::ISODate)).arg(i + 1), "PNG");
         }
 
         status->setText("Done");
@@ -610,7 +612,7 @@ void MainWindow::save_gcp() {
         return;
     }
 
-    QString name = QString("%1_%2.gcp").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name));
+    QString name = QString("%1_%2_%3.gcp").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString(Qt::ISODate));
     QString filename = QFileDialog::getSaveFileName(this, "Save GCP File", name, "GCP (*.gcp)");
     if (filename.isEmpty()) return;
     double width = compositors[sensor]->width();

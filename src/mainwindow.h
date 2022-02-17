@@ -151,6 +151,7 @@ class MainWindow : public QMainWindow {
         // GCP Saving
         void save_gcp();
         std::map<Imager, std::vector<double>> timestamps;
+        double pass_timestamp;
     protected:
         void dragEnterEvent(QDragEnterEvent *e);
         void dropEvent(QDropEvent *e);
@@ -163,7 +164,6 @@ class MainWindow : public QMainWindow {
         void on_actionSave_GCP_File_triggered()                { save_gcp(); };
         // menuGeo
         void on_actionProjector_triggered() { project_diag->show(); };
-        // menuGeo
         void on_actionEnable_Overlay_toggled(bool toggled) { compositors[sensor]->enable_map = toggled; updateDisplay(); };
         void on_actionMap_Settings_triggered() { mapsettings_dialog->show(); };
         // menuOptions
