@@ -42,11 +42,6 @@ int parseCommandLine(QCommandLineParser &parser) {
     QString filename = parser.positionalArguments().first();
     if (filename.isEmpty()) return 1;
 
-    if (!parser.isSet("ini")) {
-        std::cout << "Missing required argument -i/--ini" << std::endl;
-        return 1;
-    }
-
     QString outdir = parser.value("out");
     if (!outdir.isEmpty() && !QDir(outdir).exists()) {
         std::cout << "Output directory doesn't exist, creating it" << std::endl;
@@ -94,7 +89,7 @@ int parseCommandLine(QCommandLineParser &parser) {
     }
 
     inipp::Ini<char> ini;
-    {
+    if (parser.isSet("ini")) {
         std::ifstream ifs(parser.value("ini").toStdString());
         if (!ifs.is_open()) {
             std::cout << "Could not open composite definition file" << std::endl;
@@ -102,6 +97,26 @@ int parseCommandLine(QCommandLineParser &parser) {
         }
         ini.parse(ifs);
         ifs.close();
+    } else {
+        std::map<std::string, std::string> settings = {
+            { "sensors", "AVHRR|MSU-MR|VIRR|MHS" },
+            { "preset", "Automatic" }
+        };
+        ini.sections["{sat}_{time}_{sensor}_Automatic.png"] = settings;
+        settings["equalization"] = "histogram";
+        ini.sections["{sat}_{time}_{sensor}_Automatic_EQU.png"] = settings;
+        settings["equalization"] = "stretch";
+        ini.sections["{sat}_{time}_{sensor}_Automatic_CONT.png"] = settings;
+
+        settings = {
+            { "sensors", "AVHRR|MSU-MR|VIRR|HIRS" },
+            { "preset", "Thermal" }
+        };
+        ini.sections["{sat}_{time}_{sensor}_Thermal.png"] = settings;
+        settings["equalization"] = "histogram";
+        ini.sections["{sat}_{time}_{sensor}_Thermal_EQU.png"] = settings;
+        settings["equalization"] = "stretch";
+        ini.sections["{sat}_{time}_{sensor}_Thermal_CONT.png"] = settings;
     }
 
     PresetManager preset_manager;
@@ -118,6 +133,7 @@ int parseCommandLine(QCommandLineParser &parser) {
             QString filename = QString::fromStdString(file.first);
             filename = filename.replace("{sat}", QString::fromStdString(satellite_info.at(sat).name));
             filename = filename.replace("{time}", timestamp.toString("yyyy-MM-dd hh:mm:ss"));
+            filename = filename.replace("{sensor}", QString::fromStdString(sensor_info.at(imager).name));
 
             // Parse settings
             std::string sensors;
