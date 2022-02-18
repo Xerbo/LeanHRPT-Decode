@@ -61,14 +61,7 @@ void NOAAGACDecoder::work(std::istream &stream) {
 				frame[i] ^= xor_table[i];
 			}
 
-            size_t j = 0;
-            for (size_t i = 0; i < 3327-3; i += 4) {
-                repacked[i + 0] =  (frame[j + 0] << 2)       | (frame[j + 1] >> 6);
-                repacked[i + 1] = ((frame[j + 1] % 64) << 4) | (frame[j + 2] >> 4);
-                repacked[i + 2] = ((frame[j + 2] % 16) << 6) | (frame[j + 3] >> 2);
-                repacked[i + 3] = ((frame[j + 3] % 4 ) << 8) |  frame[j + 4];
-                j += 5;
-            }
+            repack10(frame, repacked, 3327-3);
             frame_work(repacked);
         }
     }

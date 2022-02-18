@@ -25,4 +25,6 @@
 template<typename T, size_t N>
 void arbitrary_repack(const uint8_t *in, T *out, size_t n);
 
+void repack10(const uint8_t *in, uint16_t *out, size_t n);
+
 #endif

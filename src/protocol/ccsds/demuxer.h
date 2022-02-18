@@ -39,32 +39,39 @@ namespace ccsds {
         CPPDUHeader(const std::vector<uint8_t> &header) : CPPDUHeader(header.data()) { }
     };
 
+    // A (fast) demuxer that can only handle one packet per frame
     class SimpleDemuxer {
         public:
-            SimpleDemuxer(size_t packetDataLength = 882);
+            SimpleDemuxer(bool insert_zone = true)
+                : fhp_offset(insert_zone ? 12 : 10),
+                  mpdu_size(insert_zone ? 882 : 884) { }
             std::vector<uint8_t> work(const uint8_t *in);
         private:
-            size_t dataLength;
-            bool writingData = false;
+            const size_t fhp_offset;
+            const size_t mpdu_size;
 
+            bool writingData = false;
             std::vector<uint8_t> packetBuffer;
-            std::vector<uint8_t> packet;
     };
 
     enum DemuxerState {
         IDLE, HEADER, DATA
     };
-
     enum DemuxerStatus {
         PROCEED, FRAGMENT, PARSED
     };
 
+    // Demuxer that can handle an arbitrary amount of packets per frame
     class Demuxer {
         public:
-            Demuxer(size_t mpdu_size = 882) : d_mpdu_size(mpdu_size), packet(65536) { }
+            Demuxer(bool insert_zone = true)
+                : fhp_offset(insert_zone ? 12 : 10),
+                  mpdu_size(insert_zone ? 882 : 884),
+                  packet(65536) { }
             std::vector<std::vector<uint8_t>> work(const uint8_t *in);
         private:
-            const size_t d_mpdu_size;
+            const size_t fhp_offset;
+            const size_t mpdu_size;
 
             DemuxerState state = IDLE;
             uint16_t offset = 0;

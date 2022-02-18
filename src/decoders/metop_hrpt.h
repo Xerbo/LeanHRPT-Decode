@@ -26,7 +26,7 @@
 
 class MetopHRPTDecoder : public Decoder {
     public:
-        MetopHRPTDecoder() : demux(882), mhs_demux(882) {
+        MetopHRPTDecoder() {
             images[Imager::AVHRR] = new RawImage(2048, 5);
             images[Imager::MHS] = new RawImage(90, 6);
             frame = new uint8_t[1024];

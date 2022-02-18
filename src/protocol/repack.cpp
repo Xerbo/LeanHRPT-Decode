@@ -35,3 +35,14 @@ void arbitrary_repack(const uint8_t *in, T *out, size_t n) {
 
 // HIRS
 template void arbitrary_repack<uint16_t, 13>(const uint8_t *in, uint16_t *out, size_t n);
+
+void repack10(const uint8_t *in, uint16_t *out, size_t n) {
+    size_t j = 0;
+    for (size_t i = 0; i < n; i += 4) {
+        out[i + 0] =  (in[j + 0] << 2)       | (in[j + 1] >> 6);
+        out[i + 1] = ((in[j + 1] % 64) << 4) | (in[j + 2] >> 4);
+        out[i + 2] = ((in[j + 2] % 16) << 6) | (in[j + 3] >> 2);
+        out[i + 3] = ((in[j + 3] % 4 ) << 8) |  in[j + 4];
+        j += 5;
+    }
+}

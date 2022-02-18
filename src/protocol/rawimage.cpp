@@ -17,6 +17,7 @@
  */
 
 #include "rawimage.h"
+#include "protocol/repack.h"
 
 #include <cstring>
 
@@ -42,13 +43,7 @@ void RawImage::push10Bit(const uint8_t *data, int offset) {
     int j = offset/4 * 5; // Offset as close as we can get in just bytes
     int pxoffset = offset % 4; // Numbers of pixels to offset after byte shifting
 
-    for (size_t i = 0; i < m_width*m_channels; i += 4) {
-        rowBuffer[i + 0] =  (data[j + 0] << 2)       | (data[j + 1] >> 6);
-        rowBuffer[i + 1] = ((data[j + 1] % 64) << 4) | (data[j + 2] >> 4);
-        rowBuffer[i + 2] = ((data[j + 2] % 16) << 6) | (data[j + 3] >> 2);
-        rowBuffer[i + 3] = ((data[j + 3] % 4 ) << 8) |  data[j + 4];
-        j += 5;
-    }
+    repack10(&data[j], rowBuffer, m_width*m_channels);
 
     // Scale 10 to 16 bit
     // 2^16 / 2^10 is 64, not 60...

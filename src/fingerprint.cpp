@@ -7,6 +7,7 @@
 
 #include "protocol/ccsds/deframer.h"
 #include "protocol/deframer.h"
+#include "protocol/repack.h"
 
 // Finds the most common value of T
 template<typename T>
@@ -157,14 +158,7 @@ SatID Fingerprint::fingerprint_gac(std::istream &stream) {
 				raw[i] ^= pn[i];
 			}
 
-            size_t j = 0;
-            for (size_t i = 0; i < 3327-3; i += 4) {
-                frame[i + 0] =  (raw[j + 0] << 2)       | (raw[j + 1] >> 6);
-                frame[i + 1] = ((raw[j + 1] % 64) << 4) | (raw[j + 2] >> 4);
-                frame[i + 2] = ((raw[j + 2] % 16) << 6) | (raw[j + 3] >> 2);
-                frame[i + 3] = ((raw[j + 3] % 4 ) << 8) |  raw[j + 4];
-                j += 5;
-            }
+            repack10(raw.data(), frame.data(), 3327-3);
 
             uint8_t address = (frame[6] >> 3) & 0b1111;
             switch (address) {
@@ -207,15 +201,7 @@ SatID Fingerprint::fingerprint_noaa(std::istream &stream, FileType type) {
 
             stream.read((char *)buffer.data(), 1024);
             if (deframer.work(buffer.data(), raw.data(), 1024)) {
-                size_t j = 0;
-                for (size_t i = 0; i < 11090-3; i += 4) {
-                    frame[i + 0] =  (raw[j + 0] << 2)       | (raw[j + 1] >> 6);
-                    frame[i + 1] = ((raw[j + 1] % 64) << 4) | (raw[j + 2] >> 4);
-                    frame[i + 2] = ((raw[j + 2] % 16) << 6) | (raw[j + 3] >> 2);
-                    frame[i + 3] = ((raw[j + 3] % 4 ) << 8) |  raw[j + 4];
-                    j += 5;
-                }
-
+                repack10(raw.data(), frame.data(), 11090-3);
                 have_frame = true;
             }
         }
