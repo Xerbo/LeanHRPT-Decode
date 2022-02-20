@@ -41,7 +41,6 @@ void NOAAHRPTDecoder::work(std::istream &stream) {
     } else if (d_filetype == FileType::Raw) {
         stream.read(reinterpret_cast<char *>(buffer), BUFFER_SIZE);
         if (deframer.work(buffer, frame, BUFFER_SIZE)) {
-            size_t j = 0;
             repack10(frame, repacked, 11090-3);
             frame_work(repacked);
         }

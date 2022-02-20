@@ -112,28 +112,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setState(WindowState::Idle);
 
     project_diag = new ProjectDialog(this);
-    ProjectDialog::connect(project_diag, &ProjectDialog::prepareImage, [this](bool viewport, bool createGcp) {
-        if (viewport) {
-            QImage copy(display);
-            // Very very horrible hack
-            if (compositors[sensor]->flipped()) {
-                copy = copy.mirrored(true, true);
-            }
-            ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
-            compositors[sensor]->postprocess(copy);
-            copy.save(QString::fromStdString(get_temp_dir()) + "/viewport.png", nullptr, 100);
-        } else {
-            ImageCompositor *c = compositors[sensor];
-
-            bool was_flipped = c->flipped();
-            c->setFlipped(false);
-            for (size_t i = 0; i < c->channels(); i++) {
-                QImage channel(c->width(), c->height(), QImage::Format_Grayscale16);
-                c->getChannel(channel, i+1);
-                channel.save(QString::fromStdString(get_temp_dir()) + "/channel-" + QString::number(i+1) + ".png", nullptr, 100);
-            }
-            c->setFlipped(was_flipped);
+    ProjectDialog::connect(project_diag, &ProjectDialog::prepareImage, [this](bool createGcp) {
+        QImage copy(display);
+        // Very very horrible hack
+        if (compositors[sensor]->flipped()) {
+            copy = copy.mirrored(true, true);
         }
+        ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
+        compositors[sensor]->postprocess(copy);
+        copy.save(QString::fromStdString(get_temp_dir()) + "/viewport.png", nullptr, 100);
 
         if (createGcp) {
             if (tle_manager.catalog.size() == 0) {
@@ -145,7 +132,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
             proj->save_gcp_file(timestamps[sensor], (double)height/(double)width * 21.0, 21, sensor, sat, get_temp_dir() + "/image.gcp", width);
         }
 
-        project_diag->start(sensor);
+        project_diag->start();
     });
 
     mapsettings_dialog = new MapSettings(this);

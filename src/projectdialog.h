@@ -37,7 +37,7 @@ class ProjectDialog : public QDialog {
         ProjectDialog(QWidget *parent = nullptr);
         ~ProjectDialog();
 
-        void start(Imager sensor);
+        void start();
     private:
         Ui::ProjectDialog *ui;
 
@@ -48,13 +48,13 @@ class ProjectDialog : public QDialog {
         QProcess *process;
 
         void set_enabled(bool enabled);
-        void createVrt(Imager sensor);
+        void createVrt();
     private slots:
         void on_startButton_clicked();
         void on_gcp_clicked();
         void on_output_clicked();
     signals:
-        void prepareImage(bool viewport, bool createGcp);
+        void prepareImage(bool createGcp);
 };
 
 #endif

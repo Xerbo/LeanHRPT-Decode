@@ -55,7 +55,6 @@ ProjectDialog::~ProjectDialog() {
 }
 
 void ProjectDialog::set_enabled(bool enabled) {
-    ui->source->setEnabled(enabled);
     ui->projection->setEnabled(enabled);
     ui->interpolation->setEnabled(enabled);
     ui->output->setEnabled(enabled);
@@ -82,10 +81,10 @@ void ProjectDialog::on_gcp_clicked() {
 }
 
 void ProjectDialog::on_startButton_clicked() {
-    prepareImage(ui->source->currentText() == "Viewport", gcpFilename.isEmpty());
+    prepareImage(gcpFilename.isEmpty());
 }
 
-void ProjectDialog::createVrt(Imager sensor) {
+void ProjectDialog::createVrt() {
     std::filebuf in;
     if (gcpFilename.isEmpty()) {
         in.open(get_temp_dir() + "/image.gcp", std::ios::in);
@@ -96,45 +95,28 @@ void ProjectDialog::createVrt(Imager sensor) {
     out.open(get_temp_dir() + "/image.vrt", std::ios::out);
     std::ostream dst(&out);
 
-    QImage image((ui->source->currentText() == "Viewport") ? (QString::fromStdString(get_temp_dir()) + "/viewport.png") : (QString::fromStdString(get_temp_dir()) + "/channel-1.png"));
+    QImage image(QString::fromStdString(get_temp_dir()) + "/viewport.png");
     dst << "<VRTDataset rasterXSize=\"" << image.width() << "\" rasterYSize=\"" << image.height() << "\">\n";
     dst << &in;
 
-    if (ui->source->currentText() == "Viewport") {
-        size_t nchannels = (image.format() == QImage::Format_Grayscale16) ? 1 : 3;
+    size_t nchannels = (image.format() == QImage::Format_Grayscale16) ? 1 : 3;
 
-        for (size_t i = 0; i < nchannels; i++) {
-            dst << "<VRTRasterBand dataType=\"UInt16\" band=\"" << (i+1) << "\">\n";
-            dst << "  <NoDataValue>0.0</NoDataValue>\n";
-            if (nchannels == 1) {
-                dst << "  <ColorInterp>Gray</ColorInterp>\n";
-            } else {
-                std::string channel_names[3] = { "Red", "Green", "Blue" };
-                dst << "  <ColorInterp>" << channel_names[i] << "</ColorInterp>\n";
-            }
-            dst << "  <SimpleSource>\n";
-            dst << "    <SourceFilename relativeToVRT=\"1\">" + get_temp_dir() + "/viewport.png</SourceFilename>\n";
-            if (nchannels == 3) {
-                dst << "    <SourceBand>" << (i+1) << "</SourceBand>\n";
-            }
-            dst << "  </SimpleSource>\n";
-            dst << "</VRTRasterBand>\n";
+    for (size_t i = 0; i < nchannels; i++) {
+        dst << "<VRTRasterBand dataType=\"UInt16\" band=\"" << (i+1) << "\">\n";
+        dst << "  <NoDataValue>0.0</NoDataValue>\n";
+        if (nchannels == 1) {
+            dst << "  <ColorInterp>Gray</ColorInterp>\n";
+        } else {
+            std::string channel_names[3] = { "Red", "Green", "Blue" };
+            dst << "  <ColorInterp>" << channel_names[i] << "</ColorInterp>\n";
         }
-    } else {
-        std::vector<ChannelInfo> ch = channels.at(sensor);
-        for (size_t i = 0; i < ch.size(); i++) {
-            FormatInfo chinfo = format_info.at(ch[i].format);
-            dst << "<VRTRasterBand dataType=\"UInt16\" band=\"" << (i+1) << "\">\n";
-            dst << "  <Description>" << ch[i].wavelength << " " << ch[i].wl_unit << "</Description>\n";
-            dst << "  <NoDataValue>0.0</NoDataValue>\n";
-            dst << "  <Scale>" << chinfo.scale << "</Scale>\n";
-            dst << "  <Offset>" << chinfo.offset << "</Offset>\n";
-            dst << "  <UnitType>" << chinfo.unit << "</UnitType>\n";
-            dst << "  <SimpleSource>\n";
-            dst << "    <SourceFilename relativeToVRT=\"1\">" + get_temp_dir() + "/channel-" << (i+1) << ".png</SourceFilename>\n";
-            dst << "  </SimpleSource>\n";
-            dst << "</VRTRasterBand>\n";
+        dst << "  <SimpleSource>\n";
+        dst << "    <SourceFilename relativeToVRT=\"1\">" + get_temp_dir() + "/viewport.png</SourceFilename>\n";
+        if (nchannels == 3) {
+            dst << "    <SourceBand>" << (i+1) << "</SourceBand>\n";
         }
+        dst << "  </SimpleSource>\n";
+        dst << "</VRTRasterBand>\n";
     }
     dst << "</VRTDataset>\n";
 
@@ -142,7 +124,7 @@ void ProjectDialog::createVrt(Imager sensor) {
     out.close();
 }
 
-void ProjectDialog::start(Imager sensor) {
+void ProjectDialog::start() {
     QString epsg = ui->projection->currentText().split(" ")[0];
 
     // https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-r
@@ -157,7 +139,7 @@ void ProjectDialog::start(Imager sensor) {
         interpolation = "near";
     }
 
-    createVrt(sensor);
+    createVrt();
 
 #ifdef _WIN32
     QString program = "C:\\OSGeo4W\\bin\\gdalwarp.exe";
