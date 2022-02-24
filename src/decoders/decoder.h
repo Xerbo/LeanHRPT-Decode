@@ -89,6 +89,8 @@ class Decoder {
             return { images, timestamps, caldata };
         }
 
+        static Decoder *make(Protocol protocol, SatID sat);
+
     protected:
         uint8_t *buffer;
         std::map<Imager, RawImage *> images;

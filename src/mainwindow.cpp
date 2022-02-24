@@ -32,12 +32,7 @@
 #include "geometry.h"
 #include "math.h"
 
-#include "decoders/meteor_hrpt.h"
-#include "decoders/meteor_lrpt.h"
-#include "decoders/noaa_hrpt.h"
-#include "decoders/fengyun_hrpt.h"
-#include "decoders/metop_hrpt.h"
-#include "decoders/noaa_gac.h"
+#include "decoders/decoder.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ui = new Ui::MainWindow;
@@ -281,15 +276,7 @@ void MainWindow::startDecode(std::string filename) {
 
     // Decode
     status->setText(QString("Decoding %1...").arg(QString::fromStdString(filename)));
-    switch (protocol) {
-        case Protocol::LRPT:        decoder = new MeteorLRPTDecoder; break;
-        case Protocol::HRPT:        decoder = new NOAAHRPTDecoder; break;
-        case Protocol::AHRPT:       decoder = new MetopHRPTDecoder; break;
-        case Protocol::MeteorHRPT:  decoder = new MeteorHRPTDecoder; break;
-        case Protocol::FengYunHRPT: decoder = new FengyunHRPTDecoder(sat); break;
-        case Protocol::GAC:         decoder = new NOAAGACDecoder; break;
-        default: throw std::runtime_error("invalid value in enum `Protocol`");
-    }
+    Decoder *decoder = Decoder::make(protocol, sat);
     decoder->decodeFile(filename, type);
     if (clean_up) {
         sat = SatID::Unknown;
