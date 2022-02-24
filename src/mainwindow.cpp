@@ -249,7 +249,7 @@ void MainWindow::populateChannelSelectors(size_t channels) {
 }
 
 void MainWindow::on_actionOpen_triggered() {
-    QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Supported formats (*.bin *.cadu *.raw16 *.hrp *.vcdu)");
+    QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Supported formats (*.bin *.cadu *.raw16 *.hrp *.vcdu *.tip)");
 
     if (!filename.isEmpty()) {
         decodeWatcher->setFuture(QtConcurrent::run(this, &MainWindow::startDecode, filename.toStdString()));
@@ -306,8 +306,12 @@ void MainWindow::startDecode(std::string filename) {
         compositors[sensor2.first]->import(sensor2.second, sat, sensor2.first, data.caldata);
     }
 
-    sensor = satellite.default_imager;
-    sensor_actions.at(sensor_info.at(satellite.default_imager).name)->setChecked(true);
+    if (compositors.count(satellite.default_imager)) {
+        sensor = satellite.default_imager;
+    } else {
+        sensor = (*data.imagers.begin()).first;
+    }
+    sensor_actions.at(sensor_info.at(sensor).name)->setChecked(true);
 
     std::map<SatID, std::string> tle_names = {
         { SatID::MetOpA, "METOP-A"},
@@ -368,8 +372,10 @@ void MainWindow::startDecode(std::string filename) {
         if (have_tles) compositors[sensor.first]->sunz = proj->calculate_sunz(sensor.second, sensor.first, sat, compositors[sensor.first]->width());
     }
 
-    pass_timestamp = timestamps[sensor][timestamps[sensor].size()/2];
-    
+    if (timestamps.count(sensor)) {
+        pass_timestamp = timestamps[sensor][timestamps[sensor].size()/2];
+    }
+
     delete decoder;
     decoder = nullptr;
 }
@@ -381,7 +387,7 @@ void MainWindow::decodeFinished() {
         return;
     }
 
-    if (compositors.at(satellite_info.at(sat).default_imager)->height() == 0) {
+    if (compositors.at(sensor)->height() == 0) {
         status->setText("Decode failed");
         setState(WindowState::Idle);
         return;
@@ -398,7 +404,9 @@ void MainWindow::decodeFinished() {
     ui->gradientView->repaint();
     status->setText(QString("%1 - %2: %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(compositors.at(sensor)->height()));
     setState(WindowState::Finished);
-    if (have_tles) ui->actionFlip->setChecked(proj->is_northbound(timestamps.at(satellite_info.at(sat).default_imager)));
+    if (have_tles && timestamps.count(sensor)) {
+        ui->actionFlip->setChecked(proj->is_northbound(timestamps.at(sensor)));
+    }
     on_actionFlip_triggered();
     ui->actionEnable_Overlay->setChecked(false);
     ui->actionIR_Blend->setChecked(false);

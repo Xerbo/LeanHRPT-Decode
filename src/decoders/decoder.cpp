@@ -23,6 +23,7 @@
 #include "metop_hrpt.h"
 #include "noaa_hrpt.h"
 #include "noaa_gac.h"
+#include "noaa_dsb.h"
 
 Decoder *Decoder::make(Protocol protocol, SatID sat) {
     Decoder *decoder;
@@ -33,6 +34,7 @@ Decoder *Decoder::make(Protocol protocol, SatID sat) {
         case Protocol::MeteorHRPT:  decoder = new MeteorHRPTDecoder; break;
         case Protocol::FengYunHRPT: decoder = new FengyunHRPTDecoder(sat); break;
         case Protocol::GAC:         decoder = new NOAAGACDecoder; break;
+        case Protocol::DSB:         decoder = new NOAADSBDecoder; break;
         default: throw std::runtime_error("invalid value in enum `Protocol`");
     }
     return decoder;

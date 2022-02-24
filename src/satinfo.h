@@ -30,7 +30,8 @@ enum class Protocol {
     AHRPT,
     MeteorHRPT,
     FengYunHRPT,
-    GAC
+    GAC,
+    DSB
 };
 
 enum Mission {

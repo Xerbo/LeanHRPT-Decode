@@ -13,6 +13,7 @@ const std::map<std::string, FileType> known_extensions = {
     { "vcdu",  FileType::VCDU },
     { "raw16", FileType::raw16 },
     { "hrp",   FileType::HRP },
+    { "tip",   FileType::TIP },
 };
 
 class Fingerprint {
@@ -28,6 +29,7 @@ class Fingerprint {
         SatID fingerprint_noaa(std::istream &stream, FileType type);
         SatID fingerprint_meteor(std::istream &stream, FileType type);
         SatID fingerprint_gac(std::istream &stream);
+        SatID fingerprint_dsb(std::istream &stream, FileType type);
 
         Protocol fingerprint_raw(std::istream &stream);
         std::set<Protocol> ccsds_downlinks(SatID id);
@@ -39,6 +41,7 @@ class Fingerprint {
             if (header[0] == 0x1A && header[1] == 0xCF && header[2] == 0xFC && header[3] == 0x1D) return FileType::CADU;
             if (header[0] == 0x84 && header[1] == 0x02 && header[2] && 0x6F && header[3] == 0x01) return FileType::raw16;
             if (header[0] == 0x02 && header[1] == 0x84 && header[2] && 0x01 && header[3] == 0x6F) return FileType::HRP;
+            if (header[0] == 0xED && header[1] == 0xE2) return FileType::TIP;
             return FileType::Unknown;
         }
 
