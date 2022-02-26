@@ -20,9 +20,32 @@
 #include "protocol/rawimage.h"
 #include "protocol/repack.h"
 #include <map>
+#include <bitset>
 
 #ifndef TIP_H
 #define TIP_H
+
+inline bool tip_parity(const uint8_t *frame) {
+    bool ok = true;
+
+    for (size_t i = 0; i < 6; i++) {
+        size_t parity = 0;
+        for (size_t j = 0; j < 17; j++) {
+            parity += std::bitset<8>(frame[2 + i*17 + j]).count();
+        }
+
+        // Remove last bit on block 5
+        if (i == 5) {
+            parity -= std::bitset<8>(frame[103]).test(0);
+        }
+
+        if ((parity % 2) != std::bitset<8>(frame[103]).test(5-i)) {
+            ok = false;
+        }
+    }
+
+    return ok;
+}
 
 inline void tip_work(std::map<Imager, RawImage *> &images, const uint8_t *frame) {
     // These are taken from the NOAA KLM Users Guide

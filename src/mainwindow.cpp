@@ -276,7 +276,7 @@ void MainWindow::startDecode(std::string filename) {
 
     // Decode
     status->setText(QString("Decoding %1...").arg(QString::fromStdString(filename)));
-    Decoder *decoder = Decoder::make(protocol, sat);
+    decoder = Decoder::make(protocol, sat);
     decoder->decodeFile(filename, type);
     if (clean_up) {
         sat = SatID::Unknown;

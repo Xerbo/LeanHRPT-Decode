@@ -8,6 +8,7 @@
 #include "protocol/ccsds/deframer.h"
 #include "protocol/deframer.h"
 #include "protocol/repack.h"
+#include "decoders/common/tip.h"
 
 // Finds the most common value of T
 template<typename T>
@@ -134,22 +135,22 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> gac_deframer(8, true);
     ArbitraryDeframer<uint32_t, 0b11101101111000100000, 20, 832> dsb_deframer(0, true);
     std::vector<uint8_t> out((11090*10) / 8);
-    Scoreboard<Protocol> s(1000);
+    Scoreboard<Protocol> s;
 
     while (is_running && !stream.eof()) {
         stream.read(reinterpret_cast<char *>(buffer), 1024);
         if (ccsds_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::MeteorHRPT, 100);
+            s.add(Protocol::MeteorHRPT, 10);
         }
         if (noaa_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::HRPT, 100);
+            s.add(Protocol::HRPT, 10);
         }
         if (gac_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::GAC, 50);
+            s.add(Protocol::GAC, 5);
         }
         for (size_t i = 0; i < 9; i++) {
-            if (dsb_deframer.work(buffer, out.data()+i*104, 1024)) {
-                s.add(Protocol::DSB);
+            if (dsb_deframer.work(buffer, out.data()+i*104, 104) && tip_parity(out.data())) {
+                s.add(Protocol::DSB, 5);
             }
         }
 
