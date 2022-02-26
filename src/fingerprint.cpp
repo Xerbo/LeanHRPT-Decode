@@ -34,7 +34,7 @@ class Scoreboard {
 
 std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
     std::filebuf file;
-    if (!file.open(filename, std::ios::in | std::ios::binary)) {
+    if (!file.open(filename, std::ios::in | std::ios::binary) && QFileInfo(QString::fromStdString(filename)).size() != 0) {
         return {SatID::Unknown, FileType::Unknown, Protocol::Unknown};
     }
     std::istream stream(&file);

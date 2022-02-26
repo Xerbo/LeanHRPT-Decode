@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ui->setupUi(this);
 
     // Image display
-    scene = new QGraphicsScene;
+    scene = new QGraphicsScene(this);
     ui->channelView->setScene(scene);
     ui->compositeView->setScene(scene);
     ui->presetView->setScene(scene);
@@ -209,6 +209,10 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         }
     }
 
+    for (const auto &compositor : compositors) {
+        delete compositor.second;
+    }
+
     event->accept();
 }
 
@@ -336,11 +340,13 @@ void MainWindow::startDecode(std::string filename) {
     // Detect and remove invalid timestamps
     for (auto &sensor : timestamps) {
         double median;
-        {
+        if (sensor.second.size() != 0) {
             std::vector<double> medianv = sensor.second;
             std::sort(medianv.begin(), medianv.end());
             medianv.erase(std::remove(medianv.begin(), medianv.end(), 0.0), medianv.end());
             median = medianv[medianv.size()/2];
+        } else {
+            continue;
         }
 
         for (size_t i = 0; i < sensor.second.size()-1; i++) {
@@ -372,7 +378,7 @@ void MainWindow::startDecode(std::string filename) {
         if (have_tles) compositors[sensor.first]->sunz = proj->calculate_sunz(sensor.second, sensor.first, sat, compositors[sensor.first]->width());
     }
 
-    if (timestamps.count(sensor)) {
+    if (timestamps.count(sensor) && timestamps.at(sensor).size() > 0) {
         pass_timestamp = timestamps[sensor][timestamps[sensor].size()/2];
     }
 
