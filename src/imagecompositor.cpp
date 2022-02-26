@@ -168,45 +168,52 @@ void ImageCompositor::calibrate_ir(size_t ch, double Ns, double b0, double b1, d
     double Cbb = d_caldata["ch" + std::to_string(ch) + "_cal"] / static_cast<double>(m_height); // Average backscan count
 
     quint16 *bits = (quint16 *)rawChannels[ch-1].bits();
+    for (size_t y = 0; y < m_height; y++) {
+        quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
 
-    for (size_t i = 0; i < m_height*m_width; i++) {
-        double Ce = bits[i]/64; // Earth count
-        double Nlin = Ns + (Nbb - Ns) * (Cs - Ce)/(Cs - Cbb); // Linear radiance estimate
-        double Ncor = b0 + b1*Nlin + b2*pow(Nlin, 2); // Non-linear correction
-        double Ne = Nlin + Ncor; // Radiance
+        for (size_t x = 0; x < m_width; x++) {
+            double Ce = line[x]/64; // Earth count
+            double Nlin = Ns + (Nbb - Ns) * (Cs - Ce)/(Cs - Cbb); // Linear radiance estimate
+            double Ncor = b0 + b1*Nlin + b2*pow(Nlin, 2); // Non-linear correction
+            double Ne = Nlin + Ncor; // Radiance
 
-        double Testar = c2 * Vc / log(c1 * pow(Vc, 3) / Ne + 1.0); // Equivlent black body temperature
-        double Te = (Testar - A) / B; // Temperature (kelvin)
-    
-        // Convert to celsius
-        Te -= 273.15;
+            double Testar = c2 * Vc / log(c1 * pow(Vc, 3) / Ne + 1.0); // Equivlent black body temperature
+            double Te = (Testar - A) / B; // Temperature (kelvin)
 
-        Te = (Te + 80.0) / 160.0 * (double)UINT16_MAX;
-        bits[i] = clamp(Te, 0.0, (double)UINT16_MAX);
+            // Convert to celsius
+            Te -= 273.15;
+
+            Te = (Te + 80.0) / 160.0 * (double)UINT16_MAX;
+            line[x] = clamp(Te, 0.0, (double)UINT16_MAX);
+        }
     }
 }
 
 void ImageCompositor::calibrate_avhrr(QImage &image, double a1, double b1, double a2, double b2, double c) {
-    quint16 *bits = reinterpret_cast<quint16 *>(image.bits());
+    for (size_t y = 0; y < m_height; y++) {
+        quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
 
-    for (size_t i = 0; i < (size_t)image.height()*(size_t)image.width(); i++) {
-        double count = bits[i]/64;
-        if (count < c) {
-            count = a1*count + b1;
-        } else {
-            count = a2*count + b2;
+        for (size_t x = 0; x < m_width; x++) {
+            double count = line[x]/64;
+            if (count < c) {
+                count = a1*count + b1;
+            } else {
+                count = a2*count + b2;
+            }
+            line[x] = clamp(count/100.0, 0.0, 1.0) * UINT16_MAX;
         }
-        bits[i] = clamp(count/100.0, 0.0, 1.0) * UINT16_MAX;
     }
 }
 
 void ImageCompositor::calibrate_linear(QImage &image, double a, double b) {
-    quint16 *bits = reinterpret_cast<quint16 *>(image.bits());
+    for (size_t y = 0; y < m_height; y++) {
+        quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
 
-    for (size_t i = 0; i < (size_t)image.height()*(size_t)image.width(); i++) {
-        double count = bits[i]/64;
-        count = a*count + b;
-        bits[i] = clamp(count/100.0, 0.0, 1.0) * UINT16_MAX;
+        for (size_t x = 0; x < m_width; x++) {
+            double count = line[x]/64;
+            count = a*count + b;
+            line[x] = clamp(count/100.0, 0.0, 1.0) * UINT16_MAX;
+        }
     }
 }
 
@@ -303,11 +310,14 @@ void ImageCompositor::setFlipped(bool state) {
 template<typename T, size_t A, size_t B>
 std::vector<size_t> ImageCompositor::create_histogram(QImage &image, float clip_limit) {
     std::vector<size_t> histogram(std::numeric_limits<T>::max()+1);
-    T *bits = (T *)image.bits();
 
     // Skip every other pixel for speed (this is a bodge but helps a lot)
-    for (size_t i = 0; i < (size_t)image.width() * (size_t)image.height(); i += 2) {
-        if (bits[i*A + B] != 0) histogram[bits[i*A + B]]++;
+    for (size_t y = 0; y < (size_t)image.height(); y++) {
+        quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
+
+        for (size_t x = 0; x < (size_t)image.width(); x++) {
+            if (line[x*A + B] != 0) histogram[line[x*A + B]]++;
+        }
     }
 
     clip_histogram(histogram, clip_limit);
@@ -317,13 +327,16 @@ std::vector<size_t> ImageCompositor::create_histogram(QImage &image, float clip_
 template<typename T>
 std::vector<size_t> ImageCompositor::create_rgb_histogram(QImage &image, float clip_limit) {
     std::vector<size_t> histogram(std::numeric_limits<T>::max()+1);
-    T *bits = (T *)image.bits();
 
-    for (size_t i = 0; i < (size_t)image.width() * (size_t)image.height(); i += 3) {
-        if (std::min({bits[i*4+0], bits[i*4+1], bits[i*4+2]}) != 0) {
-            histogram[bits[i*4+0]]++;
-            histogram[bits[i*4+1]]++;
-            histogram[bits[i*4+2]]++;
+    for (size_t y = 0; y < (size_t)image.height(); y++) {
+        quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
+
+        for (size_t x = 0; x < (size_t)image.width(); x++) {
+            if (std::min({line[x*4+0], line[x*4+1], line[x*4+2]}) != 0) {
+                histogram[line[x*4+0]]++;
+                histogram[line[x*4+1]]++;
+                histogram[line[x*4+2]]++;
+            }
         }
     }
 
@@ -346,12 +359,15 @@ void ImageCompositor::_equalise(QImage &image, Equalization equalization, std::v
 		cf[i] = (sum*max) / histogram_count;
 	}
 
-    quint16 *bits = reinterpret_cast<quint16 *>(image.bits());
     switch (equalization) {
         case Histogram: {
             #pragma omp parallel for
-            for (size_t i = 0; i < (size_t)image.width()*(size_t)image.height(); i++) {
-                bits[i*A + B] = cf[bits[i*A + B]];
+            for (size_t y = 0; y < (size_t)image.height(); y++) {
+                quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
+
+                for (size_t x = 0; x < (size_t)image.width(); x++) {
+                    line[x*A + B] = cf[line[x*A + B]];
+                }
             }
             break;
         }
@@ -369,9 +385,13 @@ void ImageCompositor::_equalise(QImage &image, Equalization equalization, std::v
 
             // Rescale [low, high] to [0, 65535]
             #pragma omp parallel for
-            for (size_t i = 0; i < (size_t)image.width()*(size_t)image.height(); i++) { 
-                float val = (static_cast<float>(bits[i*A + B]) - low) * 65535.0f/(high - low);
-                bits[i*A + B] = clamp(val, 0.0f, 65535.0f);
+            for (size_t y = 0; y < (size_t)image.height(); y++) {
+                quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
+
+                for (size_t x = 0; x < (size_t)image.width(); x++) { 
+                    float val = (static_cast<float>(line[x*A + B]) - low) * 65535.0f/(high - low);
+                    line[x*A + B] = clamp(val, 0.0f, 65535.0f);
+                }
             }
             break;
         }
