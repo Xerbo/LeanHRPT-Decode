@@ -167,9 +167,8 @@ void ImageCompositor::calibrate_ir(size_t ch, double Ns, double b0, double b1, d
     double Cs = d_caldata["ch" + std::to_string(ch) + "_space"]/ static_cast<double>(m_height); // Average space count
     double Cbb = d_caldata["ch" + std::to_string(ch) + "_cal"] / static_cast<double>(m_height); // Average backscan count
 
-    quint16 *bits = (quint16 *)rawChannels[ch-1].bits();
     for (size_t y = 0; y < m_height; y++) {
-        quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
+        quint16 *line = reinterpret_cast<quint16 *>(rawChannels[ch-1].scanLine(y));
 
         for (size_t x = 0; x < m_width; x++) {
             double Ce = line[x]/64; // Earth count
