@@ -4,6 +4,8 @@ project(LeanHRPT-Decode CXX)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_BUILD_TYPE Release)
 
+add_subdirectory(tools)
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
