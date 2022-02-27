@@ -105,6 +105,7 @@ class MainWindow : public QMainWindow {
 
         // Sensor selection
         Imager sensor;
+        Imager default_sensor;
         QActionGroup *sensor_select;
         std::map<std::string, QAction *> sensor_actions;
 

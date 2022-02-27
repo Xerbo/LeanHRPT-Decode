@@ -311,9 +311,9 @@ void MainWindow::startDecode(std::string filename) {
     }
 
     if (compositors.count(satellite.default_imager)) {
-        sensor = satellite.default_imager;
+        default_sensor = sensor = satellite.default_imager;
     } else {
-        sensor = (*data.imagers.begin()).first;
+        default_sensor = sensor = (*data.imagers.begin()).first;
     }
     sensor_actions.at(sensor_info.at(sensor).name)->setChecked(true);
 
@@ -382,6 +382,10 @@ void MainWindow::startDecode(std::string filename) {
         pass_timestamp = timestamps[sensor][timestamps[sensor].size()/2];
     }
 
+    if (have_tles && timestamps.count(default_sensor)) {
+        ui->actionFlip->setChecked(proj->is_northbound(timestamps.at(default_sensor)));
+    }
+
     delete decoder;
     decoder = nullptr;
 }
@@ -393,7 +397,7 @@ void MainWindow::decodeFinished() {
         return;
     }
 
-    if (compositors.at(sensor)->height() == 0) {
+    if (compositors.at(default_sensor)->height() == 0) {
         status->setText("Decode failed");
         setState(WindowState::Idle);
         return;
@@ -410,9 +414,6 @@ void MainWindow::decodeFinished() {
     ui->gradientView->repaint();
     status->setText(QString("%1 - %2: %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(compositors.at(sensor)->height()));
     setState(WindowState::Finished);
-    if (have_tles && timestamps.count(sensor)) {
-        ui->actionFlip->setChecked(proj->is_northbound(timestamps.at(sensor)));
-    }
     on_actionFlip_triggered();
     ui->actionEnable_Overlay->setChecked(false);
     ui->actionIR_Blend->setChecked(false);
