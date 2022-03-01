@@ -63,7 +63,7 @@ std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
             return {id, filetype, Protocol::HRPT};
         }
         case FileType::TIP: {
-            SatID id = fingerprint_dsb(stream, filetype);
+            SatID id = fingerprint_dsb(stream);
             file.close();
             return {id, filetype, Protocol::DSB};
         }
@@ -86,11 +86,6 @@ std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
             SatID id = fingerprint_gac(stream);
             file.close();
             return {id, FileType::Raw, Protocol::GAC};
-        }
-        case Protocol::DSB: {
-            SatID id = fingerprint_dsb(stream, FileType::Raw);
-            file.close();
-            return {id, FileType::Raw, Protocol::DSB};
         }
         default: break;
     }
@@ -133,7 +128,6 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
     ccsds::Deframer ccsds_deframer;
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> noaa_deframer(8, true);
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> gac_deframer(8, true);
-    ArbitraryDeframer<uint32_t, 0b11101101111000100000, 20, 832> dsb_deframer(0, true);
     std::vector<uint8_t> out((11090*10) / 8);
     Scoreboard<Protocol> s;
 
@@ -147,11 +141,6 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
         }
         if (gac_deframer.work(buffer, out.data(), 1024)) {
             s.add(Protocol::GAC, 5);
-        }
-        for (size_t i = 0; i < 9; i++) {
-            if (dsb_deframer.work(buffer, out.data()+i*104, 104) && tip_parity(out.data())) {
-                s.add(Protocol::DSB, 5);
-            }
         }
 
         if (s.max() != Protocol::Unknown) return s.max();
@@ -279,35 +268,21 @@ SatID Fingerprint::fingerprint_meteor(std::istream &stream, FileType type) {
     return SatID::Unknown;
 }
 
-SatID Fingerprint::fingerprint_dsb(std::istream &stream, FileType type) {
+SatID Fingerprint::fingerprint_dsb(std::istream &stream) {
     Scoreboard<SatID> s;
     uint8_t frame[104];
-    ArbitraryDeframer<uint32_t, 0b11101101111000100000, 20, 832> deframer(2, true);
 
     while (is_running && !stream.eof()) {
-        bool have_frame = false;
+        stream.read((char *)frame, 104);
 
-        if (type == FileType::Raw) {
-            uint8_t buffer[104];
-            stream.read((char *)buffer, 104);
-            if (deframer.work(buffer, frame, 104)) {
-                have_frame = true;
-            }
-        } else if (type == FileType::TIP) {
-            stream.read((char *)frame, 104);
-            have_frame = true;
+        switch (frame[2] & 0b1111) {
+            case 7:  s.add(SatID::NOAA15); break;
+            case 13: s.add(SatID::NOAA18); break;
+            case 15: s.add(SatID::NOAA19); break;
+            default:                       break;
         }
 
-        if (have_frame) {
-            switch (frame[2] & 0b1111) {
-                case 7:  s.add(SatID::NOAA15); break;
-                case 13: s.add(SatID::NOAA18); break;
-                case 15: s.add(SatID::NOAA19); break;
-                default:                       break;
-            }
-
-            if (s.max() != SatID::Unknown) return s.max();
-        }
+        if (s.max() != SatID::Unknown) return s.max();
     }
 
     return SatID::Unknown;

@@ -134,7 +134,7 @@ template class ArbitraryDeframer<uint64_t, 0b10100001000101101111110101110001100
 // NOAA GAC
 template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270>;
 // NOAA DSB
-template class ArbitraryDeframer<uint32_t, 0b11101101111000100000, 20, 832>;
+//template class ArbitraryDeframer<uint32_t, 0b11101101111000100000, 20, 832>;
 
 // Fengyun VIRR
 template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 208400>;
