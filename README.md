@@ -12,17 +12,13 @@ See the [wiki](https://github.com/Xerbo/LeanHRPT-Decode/wiki).
 
 ## FAQ
 
-### Map overlays don't work
-
-You need GDAL installed, see the [wiki](https://github.com/Xerbo/LeanHRPT-Decode/wiki/Geomanipulation#installing-gdal)
-
 ## Installation
 
 Compiled builds for Linux and Windows are available from the [releases](https://github.com/Xerbo/LeanHRPT-Decode/releases) page.
 
 ## Building from source
 
-For those who wish to compile from source you will need `qtbase5-dev` (at least 5.14), [`muparser`](https://github.com/beltoforion/muparser), [`libpredict`](https://github.com/la1k/libpredict) and [`shapelib`](https://github.com/OSGeo/shapelib) installed.
+For those who wish to compile from source you will need Qt (at least 5.14), [`muparser`](https://github.com/beltoforion/muparser), [`libpredict`](https://github.com/la1k/libpredict) and [`shapelib`](https://github.com/OSGeo/shapelib) installed.
 
 ```sh
 # For Ubuntu/Debian

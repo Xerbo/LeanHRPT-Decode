@@ -231,7 +231,7 @@ jobs:
     - name: Compile LeanHRPT
       run: 'mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_PREFIX_PATH=$WIN_TEMP_PATH -DLIBPREDICT_PATH=$WIN_TEMP_PATH/lib/libpredict.dll.a -DMUPARSER_PATH=$WIN_TEMP_PATH/lib/libmuparser.dll.a -SHAPELIB_PATH=$WIN_TEMP_PATH/lib/libshp.dll.a .. &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_PREFIX_PATH=$WIN_TEMP_PATH -DLIBPREDICT_PATH=$WIN_TEMP_PATH/lib/libpredict.dll.a -DMUPARSER_PATH=$WIN_TEMP_PATH/lib/libmuparser.dll.a -DSHAPELIB_PATH=$WIN_TEMP_PATH/lib/libshp.dll.a .. &&
             make -j4'
 
     - name: Package
