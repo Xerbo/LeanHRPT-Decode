@@ -49,32 +49,27 @@ std::vector<std::pair<xy, Geodetic>> Projector::calculate_gcps(const std::vector
     double toffset = str2double(params["toffset"]);
     bool curved = params["curved"] == "true";
 
-    double last_timestamp = 0.0;
     for (size_t j = 0; j < pointsy; j++) {
         size_t i = (double)j/double(pointsy-1) * double(timestamps.size()-1);
-        double timestamp = timestamps[i];
+        double timestamp = timestamps[i] + toffset;
 
-        if (timestamp != 0.0 && timestamp != last_timestamp) {
-            timestamp += toffset;
-            struct predict_position orbit = predictor.predict(timestamp);
+        struct predict_position orbit = predictor.predict(timestamp);
 
-            double azimuth;
-            {
-                struct predict_position b = predictor.predict(timestamp+0.1);
-                azimuth = deg2rad(90) - calculateBearingAngle(Geodetic(orbit), Geodetic(b));
-                if (azimuth > M_PI) {
-                    azimuth += deg2rad(yaw);
-                } else {
-                    azimuth -= deg2rad(yaw);
-                }
-            }
-
-            auto scan = calculate_scan(Geodetic(orbit), azimuth, fov, roll, pitch, pitchscale, curved, pointsx);
-            for (auto &point : scan) {
-                gcps.push_back(std::make_pair(std::make_pair(point.first*double(width-1), (double)i), point.second));
+        double azimuth;
+        {
+            struct predict_position b = predictor.predict(timestamp+0.1);
+            azimuth = deg2rad(90) - calculateBearingAngle(Geodetic(orbit), Geodetic(b));
+            if (azimuth > M_PI) {
+                azimuth += deg2rad(yaw);
+            } else {
+                azimuth -= deg2rad(yaw);
             }
         }
-        last_timestamp = timestamp;
+
+        auto scan = calculate_scan(Geodetic(orbit), azimuth, fov, roll, pitch, pitchscale, curved, pointsx);
+        for (auto &point : scan) {
+            gcps.push_back(std::make_pair(std::make_pair(point.first*double(width-1), (double)i), point.second));
+        }
     }
 
     return gcps;

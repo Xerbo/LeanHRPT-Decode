@@ -30,9 +30,9 @@
 #include <QShortcut>
 #include <QString>
 #include <QActionGroup>
+#include <QColorDialog>
 
 #include "projectdialog.h"
-#include "mapsettings.h"
 #include "fingerprint.h"
 #include "decoders/decoder.h"
 #include "imagecompositor.h"
@@ -98,10 +98,12 @@ class MainWindow : public QMainWindow {
 
         // Orbit information
         ProjectDialog *project_diag;
-        MapSettings *mapsettings_dialog;
         TLEManager tle_manager;
         Projector *proj;
         bool have_tles;
+        QColorDialog *color_dialog;
+        QColor map_color = QColor(255,255,0);
+        QString map_shapefile;
 
         // Sensor selection
         Imager sensor;
@@ -165,8 +167,9 @@ class MainWindow : public QMainWindow {
         void on_actionSave_GCP_File_triggered()                { save_gcp(); };
         // menuGeo
         void on_actionProjector_triggered() { project_diag->show(); };
-        void on_actionEnable_Overlay_toggled(bool toggled) { compositors[sensor]->enable_map = toggled; updateDisplay(); };
-        void on_actionMap_Settings_triggered() { mapsettings_dialog->show(); };
+        void on_actionMap_Shapefile_triggered();
+        void on_actionMap_Color_triggered() { color_dialog->show(); };
+        void on_actionEnable_Map_triggered();
         // menuOptions
         void on_actionFlip_triggered();
         void on_actionIR_Blend_triggered();

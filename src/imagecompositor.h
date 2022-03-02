@@ -55,20 +55,6 @@ class ImageCompositor {
         std::vector<float> sunz;
         std::vector<QColor> stops;
 
-        void load_map(QString filename) {
-            map = QImage(filename).convertToFormat(QImage::Format_ARGB32);
-
-            for (size_t y = 0; y < (size_t)map.height(); y++) {
-                for (size_t x = 0; x < (size_t)map.width(); x++) {
-                    if (map.pixelColor(x, y).red() == 0) {
-                        map.setPixelColor(x, y, QColor(0, 0, 0, 0));
-                    } else {
-                        map.setPixelColor(x, y, map_color);
-                    }
-                }
-            }
-        }
-
         void postprocess(QImage &image);
 
         void enableIRBlend(bool enable) {

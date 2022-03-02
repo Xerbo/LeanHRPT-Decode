@@ -28,6 +28,7 @@
 #include <QCloseEvent>
 #include <QDropEvent>
 #include <QMimeData>
+#include "map.h"
 
 #include "geometry.h"
 #include "math.h"
@@ -130,27 +131,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         project_diag->start();
     });
 
-    mapsettings_dialog = new MapSettings(this);
-    MapSettings::connect(mapsettings_dialog, &MapSettings::prepareGcps, [this]() {
-        if (tle_manager.catalog.size() == 0) {
-            QMessageBox::warning(this, "Error", "No TLEs loaded, cannot save control points.", QMessageBox::Ok);
-            return;
-        }
-        double width = compositors[sensor]->width();
-        double height = compositors[sensor]->height();
-        proj->save_gcp_file(timestamps[sensor], (double)height/(double)width * 21.0, 21, sensor, sat, get_temp_dir() + "/image.gcp", width);
-
-        mapsettings_dialog->start(compositors[sensor]->width(), compositors[sensor]->height());
-    });
-    MapSettings::connect(mapsettings_dialog, &MapSettings::finished, [this]() {
-        compositors[sensor]->map_color = mapsettings_dialog->color;
-        compositors[sensor]->load_map(QString::fromStdString(get_temp_dir() + "/map.tif"));
-        compositors[sensor]->enable_map = true;
-        ui->actionEnable_Overlay->setEnabled(true);
-        ui->actionEnable_Overlay->setChecked(true);
-        updateDisplay();
-    });
-
     UpdateChecker *update_checker = new UpdateChecker();
     UpdateChecker::connect(update_checker, &UpdateChecker::updateAvailable, [this](QString url) {
         status->setText(QString("<a href=\"%1\">A new version is available, click here to get it</a>").arg(url));
@@ -161,6 +141,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     for (const auto &i : gradient_manager->gradients) {
         ui->gradient->addItem(QString::fromStdString(i.first));
     }
+
+    color_dialog = new QColorDialog(this);
+    color_dialog->setCurrentColor(map_color);
+    QColorDialog::connect(color_dialog, &QColorDialog::colorSelected, this, [this](QColor color) {
+        map_color = color;
+        ui->actionMap_Color->setText(QString("Map Color (%1)").arg(color.name()));
+        on_actionEnable_Map_triggered();
+    });
 
     setAcceptDrops(true);
 }
@@ -349,27 +337,29 @@ void MainWindow::startDecode(std::string filename) {
             continue;
         }
 
-        for (size_t i = 0; i < sensor.second.size()-1; i++) {
+        int first = -1, last = -1;
+        for (size_t i = 0; i < sensor.second.size(); i++) {
             if (fabs(sensor.second[i] - median) > 3600.0) {
                 sensor.second[i] = 0;
             }
-        }
-
-        // Find first (valid) timestamp
-        double timestamp = 0.0;
-        for (size_t i = 0; i < sensor.second.size(); i++) {
+            if (sensor.second[i] != 0.0 && first == -1) {
+                first = i;
+            }
             if (sensor.second[i] != 0.0) {
-                timestamp = sensor.second[i];
-                break;
+                last = i;
             }
         }
 
-        // Replace missing timestamps
-        for (size_t i = 0; i < sensor.second.size(); i++) {
-            if (sensor.second[i] == 0.0) {
-                sensor.second[i] = timestamp;
-            } else {
-                timestamp = sensor.second[i];
+        double lps = fabs(sensor.second[last]-sensor.second[first]) / fabs(last-first);
+
+        for (size_t i = 1; i < sensor.second.size(); i++) {
+            if (sensor.second[i] == 0.0 && sensor.second[i-1] != 0.0) {
+                sensor.second[i] = sensor.second[i-1]+lps;
+            }
+        }
+        for (int i = sensor.second.size()-2; i >= 0; i--) {
+            if (sensor.second[i] == 0.0 && sensor.second[i+1] != 0.0) {
+                sensor.second[i] = sensor.second[i+1]-lps;
             }
         }
     }
@@ -405,6 +395,7 @@ void MainWindow::decodeFinished() {
     display = QImage(compositors.at(sensor)->width(), compositors.at(sensor)->height(), QImage::Format_RGBX64);
 
     // Prepare the UI
+    compositors[sensor]->enable_map = false;
     selectedChannel = 1;
     populateChannelSelectors(compositors.at(sensor)->channels());
     reloadPresets();
@@ -417,6 +408,7 @@ void MainWindow::decodeFinished() {
     on_actionFlip_triggered();
     ui->actionEnable_Overlay->setChecked(false);
     ui->actionIR_Blend->setChecked(false);
+    ui->actionEnable_Map->setChecked(false);
     ui->actionIR_Blend->setEnabled(compositors.at(sensor)->sunz.size() != 0 && sensor != Imager::MHS && sensor != Imager::MTVZA && sensor != Imager::HIRS);
 }
 
@@ -640,6 +632,52 @@ void MainWindow::on_gradient_textActivated(const QString &text) {
     ui->gradientView->stops = gradient;
     ui->gradientView->repaint();
     compositors[sensor]->stops = gradient;
+
+    updateDisplay();
+}
+
+void MainWindow::on_actionMap_Shapefile_triggered() {
+    QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Shapefiles (*.shp)");
+    if (filename.isEmpty()) return;
+
+    if (!map::verify_shapefile(filename.toStdString())) {
+        QMessageBox::critical(this, "Error", "Unable to open Shapefile, this may mean a required file is missing (check .shx/dbf) or that it's unsupported.");
+        return;
+    }
+
+    ui->actionMap_Shapefile->setText(QString("Map Shapefile (%1)").arg(QFileInfo(filename).completeBaseName()));
+    ui->actionEnable_Map->setEnabled(true);
+    bool update = !map_shapefile.isEmpty();
+    map_shapefile = filename;
+
+    if (update) {
+        on_actionEnable_Map_triggered();
+    }
+};
+
+void MainWindow::on_actionEnable_Map_triggered() {
+    if (!ui->actionEnable_Map->isChecked()) {
+        compositors[sensor]->enable_map = false;
+        updateDisplay();
+        return;
+    }
+
+    size_t yn = (double)compositors[sensor]->height()/(double)compositors[sensor]->width() * 21.0;
+    size_t xn = 21;
+    auto points = proj->calculate_gcps(timestamps[sensor], yn, xn, sensor, sat, compositors[sensor]->width());
+
+    std::vector<QLineF> shapefile = map::read_shapefile(map_shapefile.toStdString());
+    std::array<std::vector<QLineF>, 36*18> buckets = map::index_line_segments(shapefile);
+    std::vector<QLineF> overlay = map::warp_to_pass(buckets, points, xn);
+
+    compositors[sensor]->map = QImage(compositors[sensor]->width(), compositors[sensor]->height(), QImage::Format_ARGB32);
+    compositors[sensor]->map.fill(0);
+    compositors[sensor]->enable_map = true;
+
+    QPainter painter(&compositors[sensor]->map);
+    painter.setPen(map_color);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.drawLines(overlay.data(), overlay.size());
 
     updateDisplay();
 }

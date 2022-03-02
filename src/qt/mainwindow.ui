@@ -517,8 +517,9 @@
     </property>
     <addaction name="actionProjector"/>
     <addaction name="separator"/>
-    <addaction name="actionMap_Settings"/>
-    <addaction name="actionEnable_Overlay"/>
+    <addaction name="actionMap_Shapefile"/>
+    <addaction name="actionMap_Color"/>
+    <addaction name="actionEnable_Map"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuGeo"/>
@@ -610,6 +611,27 @@
    </property>
    <property name="text">
     <string>IR Blend</string>
+   </property>
+  </action>
+  <action name="actionMap_Shapefile">
+   <property name="text">
+    <string>Map Shapefile (N/A)</string>
+   </property>
+  </action>
+  <action name="actionMap_Color">
+   <property name="text">
+    <string>Map Color (#ffff00)</string>
+   </property>
+  </action>
+  <action name="actionEnable_Map">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Enable Map</string>
    </property>
   </action>
  </widget>

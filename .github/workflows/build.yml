@@ -44,7 +44,7 @@ jobs:
             cp -r 5.15.2/gcc_64/* $TEMP_PATH'
 
     - name: Install libpredict
-      run: 'git clone https://github.com/la1k/libpredict &&
+      run: 'git clone -b v2.0.0 https://github.com/la1k/libpredict &&
             cd libpredict &&
             mkdir build &&
             cd build &&
@@ -53,11 +53,20 @@ jobs:
             make install'
 
     - name: Install muparser
-      run: 'git clone https://github.com/beltoforion/muparser &&
+      run: 'git clone -b v2.3.3-1 https://github.com/beltoforion/muparser &&
             cd muparser &&
             mkdir build &&
             cd build &&
             cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$TEMP_PATH -DENABLE_OPENMP=OFF -DENABLE_SAMPLES=OFF .. &&
+            make -j4 &&
+            make install'
+
+    - name: Install shapelib
+      run: 'git clone -b v1.5.0 https://github.com/OSGeo/shapelib &&
+            cd shapelib &&
+            mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$TEMP_PATH .. &&
             make -j4 &&
             make install'
 
@@ -97,6 +106,7 @@ jobs:
             cp $TEMP_PATH/lib/libicudata.so.56   LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libpredict.so.3    LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp $TEMP_PATH/lib/libmuparser.so.2   LeanHRPT-Decode.AppDir/usr/lib/ &&
+            cp $TEMP_PATH/lib/libshp.so.1.5.0    LeanHRPT-Decode.AppDir/usr/lib/ &&
             cp build/LeanHRPT-Decode             LeanHRPT-Decode.AppDir/usr/bin/ &&
             find LeanHRPT-Decode.AppDir/ -name "*.so*" -exec strip {} \; &&
             strip LeanHRPT-Decode.AppDir/usr/bin/LeanHRPT-Decode &&
@@ -168,7 +178,7 @@ jobs:
             ln -s $TEMP_PATH/bin/uic $WIN_TEMP_PATH/bin/uic.exe'
 
     - name: Install libpredict
-      run: 'git clone https://github.com/la1k/libpredict &&
+      run: 'git clone -b v2.0.0 https://github.com/la1k/libpredict &&
             cd libpredict &&
             mkdir build &&
             cd build &&
@@ -177,7 +187,7 @@ jobs:
             make install'
 
     - name: Install muparser
-      run: 'git clone https://github.com/beltoforion/muparser &&
+      run: 'git clone -b v2.3.3-1 https://github.com/beltoforion/muparser &&
             cd muparser &&
             mkdir build &&
             cd build &&
@@ -185,10 +195,19 @@ jobs:
             make -j4 &&
             make install'
 
+    - name: Install shapelib
+      run: 'git clone -b v1.5.0 https://github.com/OSGeo/shapelib &&
+            cd shapelib &&
+            mkdir build &&
+            cd build &&
+            cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_INSTALL_PREFIX=$WIN_TEMP_PATH .. &&
+            make -j4 &&
+            make install'
+
     - name: Compile LeanHRPT
       run: 'mkdir build &&
             cd build &&
-            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_PREFIX_PATH=$WIN_TEMP_PATH -DLIBPREDICT_PATH=$WIN_TEMP_PATH/lib/libpredict.dll.a -DMUPARSER_PATH=$WIN_TEMP_PATH/lib/libmuparser.dll.a .. &&
+            cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64-x86_64.cmake -DCMAKE_PREFIX_PATH=$WIN_TEMP_PATH -DLIBPREDICT_PATH=$WIN_TEMP_PATH/lib/libpredict.dll.a -DMUPARSER_PATH=$WIN_TEMP_PATH/lib/libmuparser.dll.a -SHAPELIB_PATH=$WIN_TEMP_PATH/lib/libshp.dll.a .. &&
             make -j4'
 
     - name: Package
@@ -209,6 +228,7 @@ jobs:
             cp $WIN_TEMP_PATH/bin/Qt5Widgets.dll                       LeanHRPT-Decode/ &&
             cp libpredict/build/src/libpredict.dll                     LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libmuparser.dll                      LeanHRPT-Decode/ &&
+            cp $WIN_TEMP_PATH/bin/libshp.dll                           LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libgcc_s_seh-1.dll                   LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libstdc++-6.dll                      LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/libwinpthread-1.dll                  LeanHRPT-Decode/ &&
