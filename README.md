@@ -22,7 +22,20 @@ Compiled builds for Linux and Windows are available from the [releases](https://
 
 ## Building from source
 
-For those who wish to compile from source you will need `qtbase5-dev` (at least 5.14), [`muparser`](https://github.com/beltoforion/muparser) and [`libpredict`](https://github.com/la1k/libpredict) installed. After that you can compile with:
+For those who wish to compile from source you will need `qtbase5-dev` (at least 5.14), [`muparser`](https://github.com/beltoforion/muparser), [`libpredict`](https://github.com/la1k/libpredict) and [`shapelib`](https://github.com/OSGeo/shapelib) installed.
+
+```sh
+# For Ubuntu/Debian
+sudo apt install cmake gcc g++ qtbase5-dev libmuparser-dev libshp-dev
+git clone https://github.com/la1k/libpredict
+cd libpredict
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release ..
+make -j4
+sudo make install
+```
+
+After that you can compile with:
 
 ```sh
 mkdir build && cd build
