@@ -113,9 +113,9 @@ jobs:
             ./appimagetool-x86_64.AppImage LeanHRPT-Decode.AppDir'
 
     - name: Package tools
-      run: 'mkdir tools &&
-            cp build/tools/vcdu2cadu tools/ &&
-            tar -cf tools_linux_x86-64.tar tools'
+      run: 'mkdir LeanHRPT-Tools &&
+            cp build/tools/vcdu2cadu LeanHRPT-Tools/ &&
+            tar -cf tools_linux_x86-64.tar LeanHRPT-Tools'
 
     - uses: actions/upload-artifact@v2
       with:
