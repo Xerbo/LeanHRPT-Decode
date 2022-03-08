@@ -124,6 +124,11 @@ jobs:
             strip LeanHRPT-Decode.AppDir/usr/bin/LeanHRPT-Decode &&
             ./appimagetool-x86_64.AppImage LeanHRPT-Decode.AppDir'
 
+    - name: Package tools
+      run: 'mkdir tools &&
+            cp build/tools/vcdu2cadu tools/ &&
+            tar -cf tools_linux_x86-64.tar tools'
+
     - name: Upload AppImage
       uses: actions/upload-release-asset@v1
       with:
@@ -131,6 +136,16 @@ jobs:
         asset_path: ./LeanHRPT_Decode-x86_64.AppImage
         asset_name: LeanHRPT_Decode-x86_64.AppImage
         asset_content_type: application/x-executable
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Upload Tools
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ needs.prepare_release.outputs.upload_url }}
+        asset_path: ./tools_linux_x86-64
+        asset_name: tools_linux_x86-64
+        asset_content_type: application/x-tar
       env:
         GITHUB_TOKEN: ${{ github.token }}
 
@@ -246,6 +261,7 @@ jobs:
             cp calibration.ini                                         LeanHRPT-Decode/ &&
             cp projection.ini                                          LeanHRPT-Decode/ &&
             cp build/LeanHRPT-Decode.exe                               LeanHRPT-Decode/ &&
+            cp build/tools/vcdu2cadu.exe                               LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Core.dll                          LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Network.dll                       LeanHRPT-Decode/ &&
             cp $WIN_TEMP_PATH/bin/Qt5Gui.dll                           LeanHRPT-Decode/ &&
