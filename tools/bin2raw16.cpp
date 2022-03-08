@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     uint8_t frame[13863];
     uint16_t repacked[11090];
     while (!in.eof()) {
-        in.read((char *)buffer, 8192);
+        in.read((char *)buffer, 1024);
 
         if (deframer.work(buffer, frame, 1024)) {
             repack10(frame, repacked, 11090);

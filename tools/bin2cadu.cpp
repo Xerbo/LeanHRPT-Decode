@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     uint8_t buffer[1024];
     uint8_t frame[1024];
     while (!in.eof()) {
-        in.read((char *)buffer, 8192);
+        in.read((char *)buffer, 1024);
 
         if (deframer.work(buffer, frame, 1024)) {
             out.write((char *)frame, 1024);
