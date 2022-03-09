@@ -325,41 +325,41 @@ void MainWindow::startDecode(std::string filename) {
 
     timestamps = data.timestamps;
 
-    // Detect and remove invalid timestamps
+    // Anomaly detection and interpolation
     for (auto &sensor : timestamps) {
-        double median;
-        if (sensor.second.size() != 0) {
-            std::vector<double> medianv = sensor.second;
-            std::sort(medianv.begin(), medianv.end());
-            medianv.erase(std::remove(medianv.begin(), medianv.end(), 0.0), medianv.end());
-            median = medianv[medianv.size()/2];
-        } else {
-            continue;
+        std::vector<double> &timestamp = sensor.second;
+        std::vector<double> filtered(timestamp.size());
+
+        for (size_t i = 1; i < filtered.size()-1; i++) {
+            // TODO: store seconds per line in satinfo
+            if (timestamp[i] - timestamp[i-1] < 2.5 && timestamp[i+1] - timestamp[i] < 2.5) {
+                filtered[i] = timestamp[i];
+            }
         }
+        timestamp = filtered;
 
         int first = -1, last = -1;
-        for (size_t i = 0; i < sensor.second.size(); i++) {
-            if (fabs(sensor.second[i] - median) > 3600.0) {
-                sensor.second[i] = 0;
-            }
-            if (sensor.second[i] != 0.0 && first == -1) {
+        for (size_t i = 0; i < timestamp.size(); i++) {
+            if (timestamp[i] != 0.0 && first == -1) {
                 first = i;
             }
-            if (sensor.second[i] != 0.0) {
+            if (timestamp[i] != 0.0) {
                 last = i;
             }
         }
 
-        double lps = fabs(sensor.second[last]-sensor.second[first]) / fabs(last-first);
+        // Average seconds per line over the pass
+        double spl = (timestamp[last]-timestamp[first]) / (last-first);
 
-        for (size_t i = 1; i < sensor.second.size(); i++) {
-            if (sensor.second[i] == 0.0 && sensor.second[i-1] != 0.0) {
-                sensor.second[i] = sensor.second[i-1]+lps;
+        // Interpolate based on average seconds per line
+        for (size_t i = 1; i < timestamp.size(); i++) {
+            if (timestamp[i] == 0.0 && timestamp[i-1] != 0.0) {
+                timestamp[i] = timestamp[i-1]+spl;
             }
         }
-        for (int i = sensor.second.size()-2; i >= 0; i--) {
-            if (sensor.second[i] == 0.0 && sensor.second[i+1] != 0.0) {
-                sensor.second[i] = sensor.second[i+1]-lps;
+        for (int i = timestamp.size()-2; i >= 0; i--) {
+            if (timestamp[i] == 0.0 && timestamp[i+1] != 0.0) {
+                timestamp[i] = timestamp[i+1]-spl;
             }
         }
     }
