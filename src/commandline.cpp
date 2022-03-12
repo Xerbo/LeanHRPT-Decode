@@ -118,7 +118,7 @@ int parseCommandLine(QCommandLineParser &parser) {
             // Replace template strings in filename
             QString filename = QString::fromStdString(file.first);
             filename = filename.replace("{sat}", QString::fromStdString(satellite_info.at(sat).name));
-            filename = filename.replace("{time}", timestamp.toString(Qt::ISODate));
+            filename = filename.replace("{time}", timestamp.toString("yyyyMMdd-hhmmss"));
             filename = filename.replace("{sensor}", QString::fromStdString(sensor_info.at(imager).name));
 
             // Parse settings
