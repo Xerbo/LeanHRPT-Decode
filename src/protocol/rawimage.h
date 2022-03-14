@@ -25,8 +25,7 @@
 
 class RawImage {
     public:
-        RawImage(size_t width, size_t channels, size_t interleaving_size);
-        RawImage(size_t width, size_t channels);
+        RawImage(size_t width, size_t channels, size_t interleaving_size = 1);
         ~RawImage();
 
         void push10Bit(const uint8_t *data, int offset);

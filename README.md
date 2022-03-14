@@ -6,43 +6,54 @@ LeanHRPT is an easy to use and powerful tool for the manipulation of Level 0 HRP
 
 ![Screenshot of LeanHRPT's GUI](images/gui.webp)
 
-## Usage
-
-See the [wiki](https://github.com/Xerbo/LeanHRPT-Decode/wiki).
-
-## FAQ
-
 ## Installation
 
 Compiled builds for Linux and Windows are available from the [releases](https://github.com/Xerbo/LeanHRPT-Decode/releases) page.
 
-## Building from source
+## Usage
 
-For those who wish to compile from source you will need Qt (at least 5.14), [`muparser`](https://github.com/beltoforion/muparser), [`libpredict`](https://github.com/la1k/libpredict) and [`shapelib`](https://github.com/OSGeo/shapelib) installed.
+See the [wiki](https://github.com/Xerbo/LeanHRPT-Decode/wiki).
+
+## Example results
+
+|FengYun-3B with the NCSWIR preset|MetOp-C SWIR with a map overlay|Projected NOAA IR image|
+|-|-|-|
+|![](images/fy.webp)|![](images/metop.webp)|![](images/ir.webp)|
+
+## Advanced
+
+### Building from source
+
+You will need Qt (at least 5.14), [`muparser`](https://github.com/beltoforion/muparser), [`libpredict`](https://github.com/la1k/libpredict) and [`shapelib`](https://github.com/OSGeo/shapelib) installed.
+
+While MacOS isn't officially supported, compiling should be pretty similar to the steps below.
+
+#### Dependencies Installation
 
 ```sh
-# For Ubuntu/Debian
+# Debian/Ubuntu
 sudo apt install cmake gcc g++ qtbase5-dev libmuparser-dev libshp-dev
-git clone https://github.com/la1k/libpredict
-cd libpredict
+git clone -b v2.0.0 https://github.com/la1k/libpredict && cd libpredict
 mkdir build && cd build
 cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release ..
-make -j4
-sudo make install
+cmake --install .
 ```
 
-After that you can compile with:
+```sh
+# MSYS2
+pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-qt5-base mingw-w64-x86_64-muparser mingw-w64-x86_64-shapelib mingw-w64-x86_64-ninja git
+git clone -b v2.0.0 https://github.com/la1k/libpredict && cd libpredict
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX=/mingw64 -DCMAKE_BUILD_TYPE=Release ..
+cmake --install .
+```
+
+#### Development Setup
 
 ```sh
 mkdir build && cd build
 cmake ..
-make
-```
-
-You may also wish to symlink the configuration files into the build directory:
-
-```sh
-# Assuming you are in LeanHRPT-Decode/build
+cmake --build .
 ln -s ../presets.ini
 ln -s ../calibration.ini
 ln -s ../projection.ini
@@ -50,20 +61,7 @@ ln -s ../gradients.ini
 ln -s ../logo128.png
 ```
 
-And then run the resulting binary. Alternatively, to install system wide:
-
-```
-sudo make install
-```
-
-## Example results
-
-|![](images/fy.webp)FengYun-3B with the "NCSWIR" preset|![](images/metop.webp)MetOp-C 321 with a map overlay|
- -|-
-|![](images/ir.webp)**Projected NOAA IR image**|![](images/mhs.png)<br/>**MHS 112 Composite with "brightness only" equalization**|
-
-
-## Input file format
+### Input file format
 
 Input files should be:
 

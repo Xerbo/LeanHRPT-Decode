@@ -47,7 +47,7 @@ void MeteorHRPTDecoder::frame_work(uint8_t *ptr) {
         int seconds = msumrFrame[10];
         int delay = msumrFrame[10];
 
-        if (hours < 24 || minutes < 60 || seconds < 60) {
+        if (hours < 24 && minutes < 60 && seconds < 60) {
             time_t day = created/86400 * 86400;
             msumr_timestamp = (double)day + (double)hours*3600.0 + (double)minutes*60.0 + (double)seconds + (double)delay/255.0;
         } else {

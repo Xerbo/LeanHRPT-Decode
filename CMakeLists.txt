@@ -63,9 +63,9 @@ target_compile_definitions(LeanHRPT-Decode PRIVATE "VERSION=\"${VERSION}\"")
 # Binaries
 install(TARGETS LeanHRPT-Decode)
 # Desktop file and icon
-configure_file(${CMAKE_SOURCE_DIR}/LeanHRPT-Decode.desktop ${CMAKE_CURRENT_BINARY_DIR}/LeanHRPT-Decode.desktop)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/LeanHRPT-Decode.desktop DESTINATION share/applications)
-install(FILES ${CMAKE_SOURCE_DIR}/logo128.png DESTINATION share/icons RENAME LeanHRPT-Decode.png)
+install(FILES ${CMAKE_SOURCE_DIR}/LeanHRPT-Decode.desktop DESTINATION share/applications)
+install(FILES ${CMAKE_SOURCE_DIR}/logo128.png DESTINATION share/icons/hicolor/128x128/apps RENAME LeanHRPT-Decode.png)
+install(FILES ${CMAKE_SOURCE_DIR}/logo.svg DESTINATION share/icons/hicolor/scalable/apps RENAME LeanHRPT-Decode.svg)
 # Config files
 install(FILES ${CMAKE_SOURCE_DIR}/projection.ini DESTINATION share/leanhrpt)
 install(FILES ${CMAKE_SOURCE_DIR}/calibration.ini DESTINATION share/leanhrpt)

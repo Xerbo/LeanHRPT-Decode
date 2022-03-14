@@ -22,7 +22,7 @@
 #include <cstring>
 
 RawImage::RawImage(size_t width, size_t channels, size_t interleaving_size) 
-    : rowBuffer(new unsigned short[width*channels + 4]),
+    : rowBuffer(new unsigned short[width*channels + 100]),
       m_width(width),
       m_channels(channels),
       m_interleavingSize(interleaving_size),
@@ -32,8 +32,6 @@ RawImage::RawImage(size_t width, size_t channels, size_t interleaving_size)
         imageBuffer[i].resize(width * 5000);
     }
 }
-RawImage::RawImage(size_t width, size_t channels)
-    : RawImage(width, channels, 1) { }
 
 RawImage::~RawImage() {
     delete[] rowBuffer;
@@ -43,11 +41,11 @@ void RawImage::push10Bit(const uint8_t *data, int offset) {
     int j = offset/4 * 5; // Offset as close as we can get in just bytes
     int pxoffset = offset % 4; // Numbers of pixels to offset after byte shifting
 
-    repack10(&data[j], rowBuffer, m_width*m_channels);
+    repack10(&data[j], rowBuffer, m_width*m_channels+pxoffset);
 
     // Scale 10 to 16 bit
     // 2^16 / 2^10 is 64, not 60...
-    for (size_t i = 0; i < m_width*m_channels; i++) {
+    for (size_t i = 0; i < m_width*m_channels+pxoffset; i++) {
         rowBuffer[i] *= 64;
     }
 
