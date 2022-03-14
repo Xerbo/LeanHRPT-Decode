@@ -99,7 +99,7 @@ jobs:
             mkdir LeanHRPT-Decode.AppDir/usr/share/icons &&
             mkdir LeanHRPT-Decode.AppDir/usr/share/leanhrpt &&
             cp AppRun                            LeanHRPT-Decode.AppDir/ &&
-            cp build/LeanHRPT-Decode.desktop     LeanHRPT-Decode.AppDir/ &&
+            cp LeanHRPT-Decode.desktop           LeanHRPT-Decode.AppDir/ &&
             cp logo128.png                       LeanHRPT-Decode.AppDir/usr/share/icons/LeanHRPT-Decode.png &&
             cp presets.ini                       LeanHRPT-Decode.AppDir/usr/share/leanhrpt/ &&
             cp gradients.ini                     LeanHRPT-Decode.AppDir/usr/share/leanhrpt/ &&
