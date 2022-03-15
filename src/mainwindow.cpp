@@ -30,7 +30,6 @@
 #include <QMimeData>
 #include "map.h"
 
-#include "geometry.h"
 #include "math.h"
 
 #include "decoders/decoder.h"
@@ -101,7 +100,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     QActionGroup::connect(sensor_select, &QActionGroup::triggered, [this](QAction *action) {
         sensor = sensors.at(action->text().toStdString());
         decodeFinished();
-        ui->actionEnable_Overlay->setEnabled(!compositors[sensor]->map.isNull());
+        ui->actionEnable_Overlay->setEnabled(!compositors[sensor]->overlay.empty());
         ui->actionEnable_Overlay->setChecked(compositors[sensor]->enable_map);
     });
 
@@ -505,10 +504,10 @@ void MainWindow::on_imageTabs_currentChanged(int index) {
     updateDisplay();
 }
 
-void MainWindow::updateDisplay() {
+void MainWindow::get_source(QImage &image) {
     switch (ui->imageTabs->currentIndex()) {
-        case 0: compositors.at(sensor)->getChannel(display, selectedChannel); break;
-        case 1: compositors.at(sensor)->getComposite(display, selectedComposite); break;
+        case 0: compositors.at(sensor)->getChannel(image, selectedChannel); break;
+        case 1: compositors.at(sensor)->getComposite(image, selectedComposite); break;
         case 2: {
             Preset preset = selected_presets.at(ui->presetSelector->currentText().toStdString());
 
@@ -516,12 +515,15 @@ void MainWindow::updateDisplay() {
             if (preset.overrides.count(sensor)) {
                 expression = preset.overrides.at(sensor);
             }
-            compositors.at(sensor)->getExpression(display, expression);
+            compositors.at(sensor)->getExpression(image, expression);
             break;
         }
         default: throw std::runtime_error("invalid tab index");
     }
+}
 
+void MainWindow::updateDisplay() {
+    get_source(display);
     if (selectedEqualization == None) {
         QImage copy(display);
         compositors[sensor]->postprocess(copy);
@@ -556,14 +558,12 @@ void MainWindow::saveCurrentImage(bool corrected) {
 
     savingImage = true;
     QtConcurrent::run([this](QString filename, bool corrected) {
-        QImage copy(display);
-        ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
-        compositors[sensor]->postprocess(copy);
-        if (corrected) {
-            correct_geometry(copy, sat, sensor, compositors[sensor]->width()).save(filename);
-        } else {
-            copy.save(filename);
-        }
+        QImage image(compositors[sensor]->width(), compositors[sensor]->height(), QImage::Format_RGBX64);
+        get_source(image);
+        ImageCompositor::equalise(image, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
+        compositors[sensor]->postprocess(image, corrected);
+        image.save(filename);
+
         savingImage = false;
     }, filename, corrected);
 }
@@ -668,16 +668,9 @@ void MainWindow::on_actionEnable_Map_triggered() {
 
     std::vector<QLineF> shapefile = map::read_shapefile(map_shapefile.toStdString());
     std::array<std::vector<QLineF>, 36*18> buckets = map::index_line_segments(shapefile);
-    std::vector<QLineF> overlay = map::warp_to_pass(buckets, points, xn);
-
-    compositors[sensor]->map = QImage(compositors[sensor]->width(), compositors[sensor]->height(), QImage::Format_ARGB32);
-    compositors[sensor]->map.fill(0);
+    compositors[sensor]->map_color = map_color;
+    compositors[sensor]->overlay = map::warp_to_pass(buckets, points, xn);
     compositors[sensor]->enable_map = true;
-
-    QPainter painter(&compositors[sensor]->map);
-    painter.setPen(map_color);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.drawLines(overlay.data(), overlay.size());
 
     updateDisplay();
 }

@@ -49,13 +49,13 @@ class ImageCompositor {
         size_t height()   { return m_height; };
         size_t channels() { return m_channels; };
 
-        QImage map;
+        std::vector<QLineF> overlay;
         bool enable_map = false;
         QColor map_color;
         std::vector<float> sunz;
         std::vector<QColor> stops;
 
-        void postprocess(QImage &image);
+        void postprocess(QImage &image, bool correct = false);
 
         void enableIRBlend(bool enable) {
             ir_blend = enable;
@@ -66,6 +66,8 @@ class ImageCompositor {
         size_t m_width;
         size_t m_height;
         size_t m_channels;
+        SatID m_satellite;
+        Imager m_sensor;
         bool m_isFlipped;
         std::vector<QImage> rawChannels;
         std::map<std::string, double> d_caldata;

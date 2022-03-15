@@ -44,6 +44,7 @@ QImage correct_geometry(QImage image, SatID satellite, Imager sensor, size_t wid
 
     // Copy pixels over from the source to the corrected image
     QImage corrected(output_width, image.height(), image.format());
+    #pragma omp parallel for
     for (size_t y = 0; y < static_cast<size_t>(image.height()); y++) {
         for (size_t x = 0; x < output_width; x++) {
             QColor a = image.pixelColor(floor(lut[x]), y);
@@ -53,4 +54,30 @@ QImage correct_geometry(QImage image, SatID satellite, Imager sensor, size_t wid
     }
 
     return corrected;
+}
+
+void correct_lines(std::vector<QLineF> &lines, SatID satellite, Imager sensor, size_t width) {
+    const SatelliteInfo satinfo = satellite_info.at(satellite);
+    const SensorInfo sensorinfo = sensor_info.at(sensor);
+
+    double ratio = (double)width/(double)sensorinfo.width;
+    const size_t output_width = sensorinfo.swath/sensorinfo.resolution * ratio;
+    std::vector<float> lut(output_width);
+
+    float view_angle = sensorinfo.swath / EARTH_RADIUS;
+    float sat_edge = geo::earth2sat_angle(EARTH_RADIUS, satinfo.orbit_height, view_angle/2);
+
+    // Copy pixels over from the source to the corrected image
+    for (QLineF &line : lines) {
+        QPointF p1 = line.p1();
+        QPointF p2 = line.p2();
+
+        p1.rx() = geo::sat2earth_angle(EARTH_RADIUS, satinfo.orbit_height, (p1.x()/width-0.5) * 2.0 * sat_edge)/view_angle + 0.5;
+        p2.rx() = geo::sat2earth_angle(EARTH_RADIUS, satinfo.orbit_height, (p2.x()/width-0.5) * 2.0 * sat_edge)/view_angle + 0.5;
+        p1.rx() *= output_width;
+        p2.rx() *= output_width;
+
+        line.setP1(p1);
+        line.setP2(p2);
+    }
 }

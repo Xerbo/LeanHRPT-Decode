@@ -29,6 +29,7 @@
 
 #include "config/config.h"
 #include "math.h"
+#include "geometry.h"
 
 static double str2double(std::string str) {
     QLocale l(QLocale::C);
@@ -39,6 +40,8 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
     m_width = image->width();
     m_height = image->rows();
     m_channels = image->channels();
+    m_satellite = satellite;
+    m_sensor = sensor;
     m_isFlipped = false;
     d_caldata = caldata;
 
@@ -90,7 +93,7 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
     }
 }
 
-void ImageCompositor::postprocess(QImage &image) {
+void ImageCompositor::postprocess(QImage &image, bool correct) {
     if (m_isFlipped) {
         image = image.mirrored(true, true);
     }
@@ -141,14 +144,21 @@ void ImageCompositor::postprocess(QImage &image) {
         }
     }
 
-    if (!map.isNull() && enable_map) {
+    if (correct) {
+        image = correct_geometry(image, m_satellite, m_sensor, m_width);
+    }
+
+    if (enable_map) {
+        auto _overlay = overlay;
+        if (correct) {
+            correct_lines(_overlay, m_satellite, m_sensor, m_width);
+        }
+
         image = image.convertToFormat(QImage::Format_RGBX64);
         QPainter painter(&image);
-        if (m_isFlipped) {
-            painter.drawImage(0, 0, map.mirrored(true, true));
-        } else {
-            painter.drawImage(0, 0, map);
-        }
+        painter.setPen(map_color);
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.drawLines(_overlay.data(), _overlay.size());
     }
 }
 

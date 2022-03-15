@@ -126,6 +126,7 @@ class MainWindow : public QMainWindow {
         void incrementZoom(int amount);
         void startDecode(std::string filename);
         void decodeFinished();
+        void get_source(QImage &image);
         void updateDisplay();
         void populateChannelSelectors(size_t channels);
 

@@ -35,6 +35,9 @@ namespace geo {
     inline double earth2sat_angle(double radius, double height, double angle) {
         return -atan(sin(angle)*radius / (cos(angle)*radius - (radius+height)));
     }
+    inline double sat2earth_angle(double radius, double height, double angle) {
+        return asin((radius+height)/radius * sin(angle)) - angle;
+    }
 }
 
 class Projector {
