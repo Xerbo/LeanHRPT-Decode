@@ -1,10 +1,10 @@
 # LeanHRPT Decode
 
+<img alt="Screenshot of LeanHRPT's GUI" src="images/gui.webp" align="right" width="40%">
+
 [![Build](https://github.com/Xerbo/LeanHRPT-Decode/actions/workflows/build.yml/badge.svg)](https://github.com/Xerbo/LeanHRPT-Decode/actions/workflows/build.yml)
 
 LeanHRPT is an easy to use and powerful tool for the manipulation of Level 0 HRPT data. Also see [LeanHRPT Demod](https://github.com/Xerbo/LeanHRPT-Demod).
-
-![Screenshot of LeanHRPT's GUI](images/gui.webp)
 
 ## Installation
 
