@@ -95,7 +95,7 @@ int parseCommandLine(QCommandLineParser &parser) {
         ini.sections["{sat}_{time}_{sensor}_Automatic_CONT.png"] = settings;
 
         settings = {
-            { "sensors", "AVHRR|MSU-MR|VIRR|HIRS" },
+            { "sensors", "AVHRR|MSU-MR|VIRR" },
             { "preset", "Thermal" }
         };
         ini.sections["{sat}_{time}_{sensor}_Thermal.png"] = settings;
