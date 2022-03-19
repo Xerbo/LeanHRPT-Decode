@@ -18,6 +18,7 @@ If you don't have a GitHub account, you can email me the patch at `xerbo (at) pr
 
 ## Coding style
 
+- Use LF line endings
 - Whitespace should be denoted with spaces
 - Prefer readable code to fast code
 - If you're making large changes, discuss it before creating a PR

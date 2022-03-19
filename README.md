@@ -72,4 +72,6 @@ Input files should be:
 
 ## Credits
 
- - Geotranslation code - taken from `MeteorDemod`
+ - [`MeteorDemod`](https://github.com/Digitelektro/MeteorDemod) - geotransformation code
+ - [JM (@g5juergenm)](https://twitter.com/g5juergenm) - testing and feedback
+ - KentuckyFriedData - donation
