@@ -36,7 +36,8 @@ sudo apt install cmake gcc g++ qtbase5-dev libmuparser-dev libshp-dev
 git clone -b v2.0.0 https://github.com/la1k/libpredict && cd libpredict
 mkdir build && cd build
 cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release ..
-cmake --install .
+cmake --build .
+sudo cmake --install .
 ```
 
 ```sh
@@ -45,6 +46,7 @@ pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-qt5-base 
 git clone -b v2.0.0 https://github.com/la1k/libpredict && cd libpredict
 mkdir build && cd build
 cmake -DCMAKE_INSTALL_PREFIX=/mingw64 -DCMAKE_BUILD_TYPE=Release ..
+cmake --build .
 cmake --install .
 ```
 
