@@ -94,10 +94,6 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
 }
 
 void ImageCompositor::postprocess(QImage &image, bool correct) {
-    if (m_isFlipped) {
-        image = image.mirrored(true, true);
-    }
-
     if (image.format() == QImage::Format_Grayscale16 && stops.size() > 1) {
         QImage copy(image);
         image = QImage(image.width(), image.height(), QImage::Format_RGBX64);
@@ -159,6 +155,10 @@ void ImageCompositor::postprocess(QImage &image, bool correct) {
         painter.setPen(map_color);
         painter.setRenderHint(QPainter::Antialiasing);
         painter.drawLines(_overlay.data(), _overlay.size());
+    }
+
+    if (m_isFlipped) {
+        image = image.mirrored(true, true);
     }
 }
 
