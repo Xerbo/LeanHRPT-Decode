@@ -23,6 +23,14 @@
 #include <config/inipp.h>
 #include <iostream>
 
+inline std::string get_temp_dir() {
+#ifdef _WIN32
+    return std::getenv("TEMP");
+#else
+    return "/tmp";
+#endif
+}
+
 // Load a config file, first try looking in the current directory and then the config path
 class Config : public inipp::Ini<char> {
     public:

@@ -107,28 +107,31 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setState(WindowState::Idle);
 
     project_diag = new ProjectDialog(this);
-    ProjectDialog::connect(project_diag, &ProjectDialog::prepareImage, [this](bool createGcp) {
+    ProjectDialog::connect(project_diag, &ProjectDialog::get_viewport, [this]() -> QImage {
         QImage copy(display);
-        // Very very horrible hack
-        if (compositors[sensor]->flipped()) {
-            copy = copy.mirrored(true, true);
-        }
-        ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
+        compositors[sensor]->equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
+        compositors[sensor]->enable_map = false;
         compositors[sensor]->postprocess(copy);
-        copy.save(QString::fromStdString(get_temp_dir()) + "/viewport.png", nullptr, 100);
-
-        if (createGcp) {
-            if (tle_manager.catalog.size() == 0) {
-                QMessageBox::warning(this, "Error", "No TLEs loaded, cannot save control points.", QMessageBox::Ok);
-                return;
-            }
-            double width = compositors[sensor]->width();
-            double height = compositors[sensor]->height();
-            proj->save_gcp_file(timestamps[sensor], (double)height/(double)width * 21.0, 21, sensor, sat, get_temp_dir() + "/image.gcp", width);
-        }
-
-        project_diag->start();
+        compositors[sensor]->enable_map = ui->actionEnable_Map->isChecked();
+        return copy;
     });
+    ProjectDialog::connect(project_diag, &ProjectDialog::get_points, [this](size_t n) -> std::vector<std::pair<xy, Geodetic>> {
+        size_t width  = compositors[sensor]->width();
+        size_t height = compositors[sensor]->height();
+        size_t y = round((double)height/(double)width * (double)n);
+
+        return proj->calculate_gcps(timestamps[sensor], y, n, sensor, sat, width);
+    });
+    ProjectDialog::connect(project_diag, &ProjectDialog::map_shapefile, [this]() -> QString {
+        return map_shapefile;
+    });
+    ProjectDialog::connect(project_diag, &ProjectDialog::map_color, [this]() -> QColor {
+        return map_color;
+    });
+    ProjectDialog::connect(project_diag, &ProjectDialog::map_enable, [this]() -> bool {
+        return ui->actionEnable_Map->isChecked();
+    });
+
 
     UpdateChecker *update_checker = new UpdateChecker();
     UpdateChecker::connect(update_checker, &UpdateChecker::updateAvailable, [this](QString url) {

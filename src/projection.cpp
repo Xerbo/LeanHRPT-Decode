@@ -82,15 +82,13 @@ void Projector::save_gcp_file(const std::vector<double> &timestamps, size_t poin
     if (!file.open(filename, std::ios::out)) return;
     std::ostream stream(&file);
 
-    stream << "<GCPList Projection=\"EPSG:4326\">\n";
     for (size_t i = 0; i < gcps.size(); i++) {
         double x = gcps[i].first.first;
         double y = gcps[i].first.second;
-        double lon = (gcps[i].second.longitude*RAD2DEG);
         double lat = (gcps[i].second.latitude*RAD2DEG);
-        stream << "<GCP Id=\"" << i << "\" Pixel=\"" << x << "\" Line=\"" << y << "\" X=\"" << lon << "\" Y=\"" << lat << "\" />\n";
+        double lon = (gcps[i].second.longitude*RAD2DEG);
+        stream << x << "," << y << "," << lat << "," << lon << "\n";
     }
-    stream << "</GCPList>\n";
     file.close();
 }
 

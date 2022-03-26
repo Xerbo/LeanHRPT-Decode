@@ -20,41 +20,39 @@
 #define PROJECTDIALOG_H
 
 #include "satinfo.h"
+#include "projection.h"
 
 #include <QDialog>
 #include <QProcess>
 #include <QTimer>
+#include <QGraphicsScene>
+#include <QColor>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ProjectDialog; }
 QT_END_NAMESPACE
-
-std::string get_temp_dir();
 
 class ProjectDialog : public QDialog {
     Q_OBJECT
     public:
         ProjectDialog(QWidget *parent = nullptr);
         ~ProjectDialog();
-
-        void start();
     private:
         Ui::ProjectDialog *ui;
+        QGraphicsScene *scene;
+        QImage render(size_t resolution);
 
-        QString outputFilename;
-        QString gcpFilename;
-        QTimer *timer;
-        QString history;
-        QProcess *process;
-
-        void set_enabled(bool enabled);
-        void createVrt();
+        virtual void resizeEvent(QResizeEvent *event) override;
     private slots:
-        void on_startButton_clicked();
-        void on_gcp_clicked();
-        void on_output_clicked();
+        void on_preview_clicked();
+        void on_render_clicked();
     signals:
-        void prepareImage(bool createGcp);
+        QImage get_viewport();
+        std::vector<std::pair<xy, Geodetic>> get_points(size_t n);
+
+        QString map_shapefile();
+        QColor map_color();
+        bool map_enable();
 };
 
 #endif

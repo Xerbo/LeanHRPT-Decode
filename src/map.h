@@ -24,6 +24,7 @@
 #include <string>
 #include <QLineF>
 #include "projection.h"
+#include <QImage>
 
 namespace map {
     // Checks that a Shapefile is readable and supported (Polyline/Polygon)
@@ -37,6 +38,15 @@ namespace map {
 
     // Warp an (indexed) map to fit a pass based off a point grid
     std::vector<QLineF> warp_to_pass(const std::array<std::vector<QLineF>, 36*18> &buckets, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn);
+    
+    // Project a pass into Rectangular projection
+    QImage project(const QImage &image, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn, size_t resolution);
+    
+    // Render a map overlay on an image with Rectangular projection
+    void add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor color);
+
+    // Warp rectangular into azimuthal equidistant
+    QImage warp_to_azimuthal_equidistant(const QImage &image, bool south);
 }
 
 #endif
