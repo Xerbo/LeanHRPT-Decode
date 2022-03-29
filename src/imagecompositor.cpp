@@ -113,9 +113,8 @@ void ImageCompositor::postprocess(QImage &image, bool correct) {
     }
 
     if (ir_blend) {
-        QImage copy(m_channels == 6 ? rawChannels[4] : rawChannels[3]);
+        QImage copy(m_sensor == Imager::MSUMR ? rawChannels[4] : rawChannels[3]);
         equalise(copy, Equalization::Histogram, 0.7f, false);
-        if (m_isFlipped) copy = copy.mirrored(true, true);
 
         for (size_t i = 0; i < m_height; i++) {
             uint16_t *ir = (uint16_t *)copy.scanLine(i);
@@ -126,9 +125,9 @@ void ImageCompositor::postprocess(QImage &image, bool correct) {
 
             #pragma omp parallel for
             for (size_t j = 0; j < m_width; j++) {
-                float irval = m_channels == 6 ? (UINT16_MAX - ir[j]) : ir[j];
+                float irval = m_sensor == Imager::MSUMR ? (UINT16_MAX - ir[j]) : ir[j];
 
-                float _sunz = m_isFlipped ? sunz[(m_width*m_height-1) - (i*m_width + j)] : sunz[i*m_width + j];
+                float _sunz = sunz[i*m_width + j];
                 float x = clamp(_sunz*10.0f-14.8f, 0.0f, 1.0f);
 
                 if (image.format() == QImage::Format_RGBX64) {
@@ -259,7 +258,7 @@ void ImageCompositor::getExpression(QImage &image, std::string expression) {
         p.DefineVar("ch" + std::to_string(i+1), &ch[i]);
     }
 
-    if (m_channels == 10) {
+    if (m_sensor == Imager::VIRR) {
         p.DefineVar("SWIR", &ch[5]);
     } else {
         p.DefineVar("SWIR", &ch[2]);
