@@ -28,6 +28,7 @@
 #include "geo/geodetic.h"
 
 const double EARTH_RADIUS = 6371.0;
+const double EARTH_CIRCUMFRANCE = EARTH_RADIUS*2.0*M_PI;
 using xy = std::pair<double, double>;
 
 namespace geo {

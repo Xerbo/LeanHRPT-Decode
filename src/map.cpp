@@ -133,34 +133,24 @@ std::vector<QLineF> map::warp_to_pass(const std::array<std::vector<QLineF>, 36*1
     return warped;
 }
 
-std::vector<QPointF> create_coslut(int width, int height, bool north) {
-    std::vector<QPointF> out(width*height);
-
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            double lon = double(j+0.5)/(double)width * (M_PI*2.0) - M_PI;
-            double lat = double(i+0.5)/(double)height;
-            if (north) {
-                lat = 1.0 - lat;
-            }
-
-            out[i*width + j] = QPointF(cos(lon)*lat, sin(lon)*lat);
-        }
-    }
-
-    return out;
+// Convert from the center of a pixel at `x` to 0.0 to 1.0 (non inclusive)
+double px2r(double x, double range) {
+    return (x+0.5)/range;
 }
 
-QImage map::project(const QImage &image, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn, size_t resolution) {
-    int height = resolution/2;
-    int width  = resolution/2*2;
+// Opposite of px2r
+double r2px(double x, double range) {
+    return x*range - 0.5;
+}
 
-    std::vector<QPointF> north_lut = create_coslut(width, height, true);
-    std::vector<QPointF> south_lut = create_coslut(width, height, false);
-
-    QImage warped(width, height, image.format());
+QImage map::project(const QImage &image, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn, QSize resolution, double xa, double xb, double ya, double yb) {
+    QImage warped(resolution, image.format());
     warped.fill(0);
 
+    int height = resolution.height();
+    int width  = resolution.width();
+
+    #pragma omp parallel for
     for (size_t y = 0; y < points.size()/xn-1; y++) {
         for (size_t x = 0; x < xn-1; x++) {
             //                     top left      top right     bottom right  bottom left
@@ -186,11 +176,12 @@ QImage map::project(const QImage &image, const std::vector<std::pair<xy, Geodeti
                 QTransform trans;
                 if (!QTransform::quadToQuad(geo, px, trans)) continue;
 
-                // Fill all pixels within this polygon
-                for (int i = (bounds.top() + 90.0) * height/180.0; i < (bounds.bottom()+ 90.0) * height/180.0; i++)
-                for (int j = (bounds.left()+180.0) *  width/360.0; j < (bounds.right() +180.0) *  width/360.0; j++) {
-                    QPointF point(double(j+0.5)/width*360.0 - 180.0, double(i+0.5)/height*180.0 - 90.0);
+                // Fill all pixels
+                for (int i = r2px((bounds.top() -yb)/ya,  height); i < r2px((bounds.bottom()-yb)/ya, height); i++)
+                for (int j = r2px((bounds.left()-xb)/xa,  width ); j < r2px((bounds.right() -xb)/xa, width ); j++) {
+                    if (i < 0 || i > height || j < 0 || j > width*2) break;
 
+                    QPointF point(px2r(j, width)*xa + xb, px2r(i, height)*ya + yb);
                     if (geo.containsPoint(point, Qt::OddEvenFill)) {
                         QPointF pixel = trans.map(point);
                         QPoint out(j%width, (height-1)-i);
@@ -198,21 +189,20 @@ QImage map::project(const QImage &image, const std::vector<std::pair<xy, Geodeti
                         warped.setPixelColor(out, lerp2(image, pixel));
                     }
                 }
-            } 
+            }
 
             // Project as azimuthal equidistant for polar regions
             // This is less efficient as every pixel has to be checked
-            if (fabs(bounds.center().y()) > 87.0) {
+            if (fabs(bounds.center().y()) > 86.0) {
                 bool north = bounds.center().y() > 0.0;
 
                 // Convert to azimuthal equidistant
                 QPolygonF polar;
                 for (size_t i = 0; i < 4; i++) {
-                    double lon = geo[i].x()*DEG2RAD;
+                    double lon =  geo[i].x()*DEG2RAD;
                     double lat = (geo[i].y()+90.0)/180.0;
-                    if (north) {
-                        lat = 1.0 - lat;
-                    }
+                    if (north) lat = 1.0 - lat;
+
                     polar << QPointF(cos(lon)*lat, sin(lon)*lat);
                 }
 
@@ -220,27 +210,35 @@ QImage map::project(const QImage &image, const std::vector<std::pair<xy, Geodeti
                 QTransform trans;
                 if (!QTransform::quadToQuad(polar, px, trans)) continue;
 
-                int count = round(3.0/180.0 * height);
-                for (int i = (north ? height-count : 0); i < (north ? height : count); i++) {
-                    for (int j = 0; j < width; j++) {
-                        QPointF point = north ? north_lut[i*width + j] : south_lut[i*width + j];
+                int offset = north ? 86 : -90;
+                for (int i = r2px((offset-yb)/ya,  height); i < r2px(((offset+4)-yb)/ya, height); i++)
+                for (int j = r2px((-180  -xb)/xa,  width ); j < r2px((180       -xb)/xa, width ); j++) {
+                    if (i < 0 || i > height || j < 0 || j > width) break;
 
-                        if (polar.containsPoint(point, Qt::OddEvenFill)) {
-                            QPointF pixel = trans.map(point);
-                            QPoint out(j, (height-1)-i);
+                    double lon = px2r(j, width )*xa + xb;
+                    double lat = px2r(i, height)*ya + yb;
+                    lon *= DEG2RAD;
+                    lat = (lat+90.0)/180.0;
+                    if (north) lat = 1.0 - lat;
 
-                            warped.setPixelColor(out, lerp2(image, pixel));
-                        }
+                    QPointF point(cos(lon)*lat, sin(lon)*lat);
+                    if (polar.containsPoint(point, Qt::OddEvenFill)) {
+                        QPointF pixel = trans.map(point);
+                        QPoint out(j, (height-1)-i);
+
+                        warped.setPixelColor(out, lerp2(image, pixel));
                     }
                 }
-            }
+            } 
         }
     }
 
     return warped;
 }
 
-void map::add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor color) {
+void map::add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor color, double xa, double xb, double ya, double yb) {
+    image = image.convertToFormat(QImage::Format_RGBX64);
+
     QPainter painter(&image);
     painter.setPen(color);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -249,35 +247,24 @@ void map::add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor 
         QPointF p1 = line.p1();
         QPointF p2 = line.p2();
 
-        p1.rx() = ( p1.x()+180.0)/360.0 * image.width();
-        p2.rx() = ( p2.x()+180.0)/360.0 * image.width();
-        p1.ry() = (-p1.y()+ 90.0)/180.0 * image.height();
-        p2.ry() = (-p2.y()+ 90.0)/180.0 * image.height();
+        p1.rx() = r2px((p1.x()-xb)/xa, image.width());
+        p2.rx() = r2px((p2.x()-xb)/xa, image.width());
+        p1.ry() = (image.height()-1) - r2px((p1.y()-yb)/ya, image.height());
+        p2.ry() = (image.height()-1) - r2px((p2.y()-yb)/ya, image.height());
 
         painter.drawLine(p1, p2);
     }
 }
 
-QImage map::warp_to_azimuthal_equidistant(const QImage &image, bool south) {
-    QImage north(image.width(), image.width(), image.format());
-    north.fill(0);
-
-    for (int y = 0; y < north.height(); y++) {
-        for (int x = 0; x < north.width(); x++) {
-            double y2 = double(y+0.5)/(double)north.height()*2.0 - 1.0;
-            double x2 = double(x+0.5)/(double)north.width() *2.0 - 1.0;
-            double lat = hypot(y2, x2);
-            double lon = atan2(y2, x2);
-            if (lat > 1.0) {
-                continue;
-            }
-            if (south) {
-                lat = 1.0 - lat;
-            }
-
-            north.setPixelColor(x, y, lerp2(image, (lon/M_PI+1.0)/2.0 * (image.width()-1) + 0.5, lat*(image.height()-1) + 0.5));
-        }
+QRectF map::bounds(const std::vector<std::pair<xy, Geodetic>> &points) {
+    QPointF min(180, 90);
+    QPointF max(-180, -90);
+    for (const auto &x : points) {
+        min.rx() = std::min(min.x(), x.second.longitude*RAD2DEG);
+        min.ry() = std::min(min.y(), x.second.latitude *RAD2DEG);
+        max.rx() = std::max(max.x(), x.second.longitude*RAD2DEG);
+        max.ry() = std::max(max.y(), x.second.latitude *RAD2DEG);
     }
 
-    return north;
+    return QRectF(min, max);
 }

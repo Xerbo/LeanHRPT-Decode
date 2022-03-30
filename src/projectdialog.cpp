@@ -35,18 +35,24 @@ ProjectDialog::~ProjectDialog() {
 }
 
 QImage ProjectDialog::render(size_t resolution) {
-    QImage image = map::project(get_viewport(), get_points(31), 31, resolution);
+    QRectF bounds(-180, -90, 360, 180);
+    if (ui->bounds->currentText() == "Auto") {
+        bounds = map::bounds(get_points(31));
+    }
+
+    double scale = EARTH_CIRCUMFRANCE/ui->resolution->value();
+    QSize dimensions(bounds.width()/360.0 * scale, bounds.height()/360.0 * scale);
+    ui->details->setText(QString("Final size: %1x%2").arg(dimensions.width()).arg(dimensions.height()));
+
+    if (resolution != 0) {
+        dimensions = QSize(resolution*2, resolution);
+    }
+
+    QImage image = map::project(get_viewport(), get_points(31), 31, dimensions, bounds.width(), bounds.x(), bounds.height(), bounds.y());
 
     if (map_enable()) {
         std::vector<QLineF> map = map::read_shapefile(map_shapefile().toStdString());
-        map::add_overlay(image, map, map_color());
-    }
-
-    if(ui->targetProjection->currentText() == "North Pole Azimuthal Equidistant") {
-        image = map::warp_to_azimuthal_equidistant(image, false);
-    }
-    if(ui->targetProjection->currentText() == "South Pole Azimuthal Equidistant") {
-        image = map::warp_to_azimuthal_equidistant(image, true);
+        map::add_overlay(image, map, map_color(), bounds.width(), bounds.x(), bounds.height(), bounds.y());
     }
 
     return image;
@@ -61,7 +67,7 @@ void ProjectDialog::on_preview_clicked() {
 }
 
 void ProjectDialog::on_render_clicked() {
-    QImage image = render(10000);
+    QImage image = render(0);
     image.save("map.png");
 }
 

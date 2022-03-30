@@ -40,13 +40,13 @@ namespace map {
     std::vector<QLineF> warp_to_pass(const std::array<std::vector<QLineF>, 36*18> &buckets, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn);
     
     // Project a pass into Rectangular projection
-    QImage project(const QImage &image, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn, size_t resolution);
-    
-    // Render a map overlay on an image with Rectangular projection
-    void add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor color);
+    QImage project(const QImage &image, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn, QSize resolution, double xa, double xb, double ya, double yb);
 
-    // Warp rectangular into azimuthal equidistant
-    QImage warp_to_azimuthal_equidistant(const QImage &image, bool south);
+    // Render a map overlay on an image with Rectangular projection
+    void add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor color, double xa, double xb, double ya, double yb);
+
+    // Calculate bounds of a pass, height is inverted
+    QRectF bounds(const std::vector<std::pair<xy, Geodetic>> &points);
 }
 
 #endif

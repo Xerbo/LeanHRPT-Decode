@@ -113,6 +113,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         compositors[sensor]->enable_map = false;
         compositors[sensor]->postprocess(copy);
         compositors[sensor]->enable_map = ui->actionEnable_Map->isChecked();
+        if (compositors[sensor]->flipped()) {
+            copy = copy.mirrored(true, true);
+        }
         return copy;
     });
     ProjectDialog::connect(project_diag, &ProjectDialog::get_points, [this](size_t n) -> std::vector<std::pair<xy, Geodetic>> {
