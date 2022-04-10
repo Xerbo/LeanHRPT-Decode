@@ -134,7 +134,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ProjectDialog::connect(project_diag, &ProjectDialog::map_enable, [this]() -> bool {
         return ui->actionEnable_Map->isChecked();
     });
-
+    ProjectDialog::connect(project_diag, &ProjectDialog::default_filename, [this]() -> QString {
+        return getDefaultFilename();
+    });
 
     UpdateChecker *update_checker = new UpdateChecker();
     UpdateChecker::connect(update_checker, &UpdateChecker::updateAvailable, [this](QString url) {
@@ -544,7 +546,7 @@ void MainWindow::updateDisplay() {
     ui->gradient->setEnabled(display.format() == QImage::Format_Grayscale16);
 }
 
-void MainWindow::saveCurrentImage(bool corrected) {
+QString MainWindow::getDefaultFilename() {
     QString composite;
     for (auto channel : selectedComposite) {
         if (channel < 10) {
@@ -555,8 +557,11 @@ void MainWindow::saveCurrentImage(bool corrected) {
     }
 
     QString types[3] = { QString::number(selectedChannel), composite, ui->presetSelector->currentText() };
-    QString name = QString("%1_%2_%3_%4.png").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString("yyyyMMdd-hhmmss")).arg(types[ui->imageTabs->currentIndex()]);
-    QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", name, "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
+    return QString("%1_%2_%3_%4").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString("yyyyMMdd-hhmmss")).arg(types[ui->imageTabs->currentIndex()]);
+}
+
+void MainWindow::saveCurrentImage(bool corrected) {
+    QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", getDefaultFilename() + ".png", "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
 
     if (filename.isEmpty()) {
         return;

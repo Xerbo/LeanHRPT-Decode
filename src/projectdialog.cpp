@@ -21,13 +21,20 @@
 #include "map.h"
 
 #include <QFileDialog>
-#include <fstream>
+#include <QtConcurrent/QtConcurrent>
+#include <QFileDialog>
 
 ProjectDialog::ProjectDialog(QWidget *parent) : QDialog(parent) {
     ui = new Ui::ProjectDialog;
     ui->setupUi(this);
+
     scene = new QGraphicsScene(this);
     ui->projectionPreview->setScene(scene);
+
+    render_finished = new QFutureWatcher<void>(this);
+    QFutureWatcher<void>::connect(render_finished, &QFutureWatcher<void>::finished, [=]() {
+        ui->render->setEnabled(true);
+    });
 }
 
 ProjectDialog::~ProjectDialog() {
@@ -67,8 +74,16 @@ void ProjectDialog::on_preview_clicked() {
 }
 
 void ProjectDialog::on_render_clicked() {
-    QImage image = render(0);
-    image.save("map.png");
+    QString filename = QFileDialog::getSaveFileName(this, "Save Projected Image", QString("%1_%2.png").arg(default_filename()).arg(ui->targetProjection->currentText()), "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);;BMP (*.bmp)");
+    if (filename.isEmpty()) return;
+
+    QFuture<void> future = QtConcurrent::run([=]() {
+        QImage image = render(0);
+        image.save(filename);
+    });
+
+    render_finished->setFuture(future);
+    ui->render->setEnabled(false);
 }
 
 void ProjectDialog::resizeEvent(QResizeEvent *event) {

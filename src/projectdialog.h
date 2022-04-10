@@ -27,6 +27,7 @@
 #include <QTimer>
 #include <QGraphicsScene>
 #include <QColor>
+#include <QFutureWatcher>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class ProjectDialog; }
@@ -40,6 +41,7 @@ class ProjectDialog : public QDialog {
     private:
         Ui::ProjectDialog *ui;
         QGraphicsScene *scene;
+        QFutureWatcher<void> *render_finished;
         QImage render(size_t resolution);
 
         virtual void resizeEvent(QResizeEvent *event) override;
@@ -53,6 +55,7 @@ class ProjectDialog : public QDialog {
         QString map_shapefile();
         QColor map_color();
         bool map_enable();
+        QString default_filename();
 };
 
 #endif
