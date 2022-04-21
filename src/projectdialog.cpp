@@ -41,13 +41,29 @@ ProjectDialog::~ProjectDialog() {
     delete ui;
 }
 
+void ProjectDialog::write_wld_file(QString filename) {
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        return;
+
+    QTextStream out(&file);
+
+    out << pixelsize << "\n";
+    out << 0.0 << "\n";
+    out << 0.0 << "\n";
+    out << -pixelsize << "\n";
+    out << bounds.left() << "\n";
+    out << bounds.bottom() << "\n";
+}
+
 QImage ProjectDialog::render(size_t resolution) {
-    QRectF bounds(-180, -90, 360, 180);
+    bounds = QRectF(-180, -90, 360, 180);
     if (ui->bounds->currentText() == "Auto") {
         bounds = map::bounds(get_points(31));
     }
 
     double scale = EARTH_CIRCUMFRANCE/ui->resolution->value();
+    pixelsize = 360.0/scale;
     QSize dimensions(bounds.width()/360.0 * scale, bounds.height()/360.0 * scale);
     ui->details->setText(QString("Final size: %1x%2").arg(dimensions.width()).arg(dimensions.height()));
 
@@ -79,6 +95,8 @@ void ProjectDialog::on_render_clicked() {
 
     QFuture<void> future = QtConcurrent::run([=]() {
         QImage image = render(0);
+        QFileInfo fi(filename);
+        write_wld_file(fi.absolutePath() + "/" + fi.completeBaseName() + ".wld");
         image.save(filename);
     });
 

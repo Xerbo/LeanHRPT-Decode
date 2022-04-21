@@ -43,6 +43,10 @@ class ProjectDialog : public QDialog {
         QGraphicsScene *scene;
         QFutureWatcher<void> *render_finished;
         QImage render(size_t resolution);
+        void write_wld_file(QString filename);
+
+        QRectF bounds;
+        double pixelsize;
 
         virtual void resizeEvent(QResizeEvent *event) override;
     private slots:
