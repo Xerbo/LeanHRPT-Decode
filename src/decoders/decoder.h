@@ -34,6 +34,7 @@ struct Data {
     std::map<Imager, RawImage *> imagers;
     std::map<Imager, std::vector<double>> timestamps;
     std::map<std::string, double> caldata;
+    std::vector<bool> ch3a;
 };
 
 enum class FileType {
@@ -87,7 +88,7 @@ class Decoder {
         }
 
         Data get() {
-            return { images, timestamps, caldata };
+            return { images, timestamps, caldata, ch3a };
         }
 
         static Decoder *make(Protocol protocol, SatID sat);
@@ -97,6 +98,7 @@ class Decoder {
         std::map<Imager, RawImage *> images;
         std::map<Imager, std::vector<double>> timestamps;
         std::map<std::string, double> caldata;
+        std::vector<bool> ch3a;
         virtual void work(std::istream &stream)=0;
         FileType d_filetype;
         time_t created;

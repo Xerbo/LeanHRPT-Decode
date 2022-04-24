@@ -294,7 +294,13 @@ void MainWindow::startDecode(std::string filename) {
         ui->menuSensor->addAction(action);
 
         compositors[sensor2.first] = new ImageCompositor;
+        compositors[sensor2.first]->ch3a = data.ch3a;
         compositors[sensor2.first]->import(sensor2.second, sat, sensor2.first, data.caldata);
+        float sum = 0.0;
+        for (const bool &x : data.ch3a) {
+            sum += x;
+        }
+        compositors[sensor2.first]->has_ch3a = (sum/(float)data.ch3a.size() > 0.5f);
     }
 
     if (compositors.count(satellite.default_imager)) {
@@ -414,8 +420,19 @@ void MainWindow::decodeFinished() {
 void MainWindow::reloadPresets() {
     selected_presets.clear();
     for (auto preset : manager.presets) {
+        std::string expression = preset.second.expression;
+        if (preset.second.overrides.count(sensor)) {
+            expression = preset.second.overrides.at(sensor);
+        }
+
         if (preset.second.imagers.count(sensor)) {
-            selected_presets.insert(preset);
+            if (sensor == Imager::AVHRR && expression.find("SWIR") != std::string::npos) {
+                if (compositors[sensor]->has_ch3a) {
+                    selected_presets.insert(preset);
+                }
+            } else {
+                selected_presets.insert(preset);
+            }
         }
     }
 

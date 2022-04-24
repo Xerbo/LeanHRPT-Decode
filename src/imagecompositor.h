@@ -54,6 +54,8 @@ class ImageCompositor {
         QColor map_color;
         std::vector<float> sunz;
         std::vector<QColor> stops;
+        std::vector<bool> ch3a;
+        bool has_ch3a = false;
 
         void postprocess(QImage &image, bool correct = false);
 

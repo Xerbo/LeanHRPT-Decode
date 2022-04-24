@@ -200,6 +200,7 @@ void ImageCompositor::calibrate_ir(size_t ch, double Ns, double b0, double b1, d
 void ImageCompositor::calibrate_avhrr(QImage &image, double a1, double b1, double a2, double b2, double c) {
     for (size_t y = 0; y < m_height; y++) {
         quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
+        if (!ch3a[y]) continue;
 
         for (size_t x = 0; x < m_width; x++) {
             double count = line[x]/64;
@@ -258,11 +259,9 @@ void ImageCompositor::getExpression(QImage &image, std::string expression) {
         p.DefineVar("ch" + std::to_string(i+1), &ch[i]);
     }
 
-    if (m_sensor == Imager::VIRR) {
-        p.DefineVar("SWIR", &ch[5]);
-    } else {
-        p.DefineVar("SWIR", &ch[2]);
-    }
+    double swir, mwir;
+    p.DefineVar("SWIR", &swir);
+    p.DefineVar("MWIR", &mwir);
     p.DefineVar("NIR", &ch[1]);
     p.DefineVar("RED", &ch[0]);
     p.DefineVar("sunz", &sunz_val);
@@ -291,6 +290,21 @@ void ImageCompositor::getExpression(QImage &image, std::string expression) {
                     ch[i] = (double)rawbits[i][x] / (double)UINT16_MAX;
                 }
                 if(sunz.size() != 0) sunz_val = sunz[y*m_width + x];
+
+                mwir = swir = 0.0;
+                if (m_sensor == Imager::AVHRR) {
+                    if (ch3a[y]) {
+                        swir = ch[2];
+                    } else {
+                        mwir = ch[2];
+                    }
+                } else {
+                    if (m_sensor == VIRR) {
+                        swir = ch[5];
+                    } else {
+                        swir = ch[2];
+                    }
+                }
 
                 double *rgb = p.Eval(channels);
                 if (channels == 1) {
