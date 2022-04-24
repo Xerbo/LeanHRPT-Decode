@@ -154,7 +154,7 @@ jobs:
   build_debian:
     strategy:
       matrix:
-        distro: [debian_bullseye, ubuntu_hirsute, ubuntu_impish]
+        distro: [debian_bullseye, ubuntu_hirsute, ubuntu_impish, ubuntu_jammy]
     runs-on: ubuntu-latest
     needs: [prepare_release]
 
