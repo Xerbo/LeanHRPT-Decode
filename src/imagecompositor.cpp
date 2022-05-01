@@ -68,7 +68,7 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
                 double a2 = str2double(coefficients.at("a2"));
                 double b2 = str2double(coefficients.at("b2"));
                 double c  = str2double(coefficients.at("c"));
-                calibrate_avhrr(rawChannels[i], a1, b1, a2, b2, c);
+                calibrate_avhrr(i+1, a1, b1, a2, b2, c);
             } else if (coefficients.count("ns")) {
                 double ns = str2double(coefficients.at("ns"));
                 double b0 = str2double(coefficients.at("b0"));
@@ -81,7 +81,7 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
             } else if (coefficients.count("a")) {
                 double a = str2double(coefficients.at("a"));
                 double b = str2double(coefficients.at("b"));
-                calibrate_linear(rawChannels[i], a, b);
+                calibrate_linear(i+1, a, b);
             }
         }
     }
@@ -197,10 +197,10 @@ void ImageCompositor::calibrate_ir(size_t ch, double Ns, double b0, double b1, d
     }
 }
 
-void ImageCompositor::calibrate_avhrr(QImage &image, double a1, double b1, double a2, double b2, double c) {
+void ImageCompositor::calibrate_avhrr(size_t ch, double a1, double b1, double a2, double b2, double c) {
     for (size_t y = 0; y < m_height; y++) {
-        quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
-        if (!ch3a[y]) continue;
+        quint16 *line = reinterpret_cast<quint16 *>(rawChannels[ch-1].scanLine(y));
+        if (!ch3a[y] && ch == 3) continue;
 
         for (size_t x = 0; x < m_width; x++) {
             double count = line[x]/64;
@@ -214,9 +214,9 @@ void ImageCompositor::calibrate_avhrr(QImage &image, double a1, double b1, doubl
     }
 }
 
-void ImageCompositor::calibrate_linear(QImage &image, double a, double b) {
+void ImageCompositor::calibrate_linear(size_t ch, double a, double b) {
     for (size_t y = 0; y < m_height; y++) {
-        quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
+        quint16 *line = reinterpret_cast<quint16 *>(rawChannels[ch-1].scanLine(y));
 
         for (size_t x = 0; x < m_width; x++) {
             double count = line[x]/64;
