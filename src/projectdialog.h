@@ -42,7 +42,8 @@ class ProjectDialog : public QDialog {
         Ui::ProjectDialog *ui;
         QGraphicsScene *scene;
         QFutureWatcher<void> *render_finished;
-        QImage render(size_t resolution);
+        QImage render(QSize dimensions);
+        QSize calculate_dimensions(size_t resolution);
         void write_wld_file(QString filename);
 
         QRectF bounds;

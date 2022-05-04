@@ -23,6 +23,7 @@
 #include <QFileDialog>
 #include <QtConcurrent/QtConcurrent>
 #include <QFileDialog>
+#include <QMessageBox>
 
 ProjectDialog::ProjectDialog(QWidget *parent) : QDialog(parent) {
     ui = new Ui::ProjectDialog;
@@ -56,7 +57,7 @@ void ProjectDialog::write_wld_file(QString filename) {
     out << bounds.bottom() << "\n";
 }
 
-QImage ProjectDialog::render(size_t resolution) {
+QSize ProjectDialog::calculate_dimensions(size_t resolution) {
     bounds = QRectF(-180, -90, 360, 180);
     if (ui->bounds->currentText() == "Auto") {
         bounds = map::bounds(get_points(31));
@@ -71,6 +72,10 @@ QImage ProjectDialog::render(size_t resolution) {
         dimensions = QSize(resolution*2, resolution);
     }
 
+    return dimensions;
+}
+
+QImage ProjectDialog::render(QSize dimensions) {
     QImage image = map::project(get_viewport(), get_points(31), 31, dimensions, bounds.width(), bounds.x(), bounds.height(), bounds.y());
 
     if (map_enable()) {
@@ -82,7 +87,7 @@ QImage ProjectDialog::render(size_t resolution) {
 }
 
 void ProjectDialog::on_preview_clicked() {
-    QImage image = render(1000);
+    QImage image = render(calculate_dimensions(1000));
     scene->clear();
     scene->setSceneRect(0, 0, image.width(), image.height());
     scene->addPixmap(QPixmap::fromImage(image, Qt::NoFormatConversion));
@@ -90,11 +95,23 @@ void ProjectDialog::on_preview_clicked() {
 }
 
 void ProjectDialog::on_render_clicked() {
+    QSize dimensions = calculate_dimensions(0);
+    if (dimensions.width()*dimensions.height() > 64000000) {
+        QMessageBox confirm;
+        confirm.setText(QString("Generating an large (%1x%2) image, this may cause slowdowns/crashes!").arg(dimensions.width()).arg(dimensions.height()));
+        confirm.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
+        confirm.setDefaultButton(QMessageBox::Cancel);
+        confirm.setIcon(QMessageBox::Warning);
+        if (confirm.exec() == QMessageBox::Cancel) {
+            return;
+        }
+    }
+
     QString filename = QFileDialog::getSaveFileName(this, "Save Projected Image", QString("%1_%2.png").arg(default_filename()).arg(ui->targetProjection->currentText()), "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);;BMP (*.bmp)");
     if (filename.isEmpty()) return;
 
     QFuture<void> future = QtConcurrent::run([=]() {
-        QImage image = render(0);
+        QImage image = render(dimensions);
         QFileInfo fi(filename);
         write_wld_file(fi.absolutePath() + "/" + fi.completeBaseName() + ".wld");
         image.save(filename);
