@@ -54,6 +54,12 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
         }
     }
 
+    if (m_sensor == Imager::MSUMR) {
+        rawChannels[3].invertPixels();
+        rawChannels[4].invertPixels();
+        rawChannels[5].invertPixels();
+    }
+
     Config ini("calibration.ini");
 
     for (size_t i = 0; i < m_channels; i++) {
@@ -125,15 +131,13 @@ void ImageCompositor::postprocess(QImage &image, bool correct) {
 
             #pragma omp parallel for
             for (size_t j = 0; j < m_width; j++) {
-                float irval = m_sensor == Imager::MSUMR ? (UINT16_MAX - ir[j]) : ir[j];
-
                 float _sunz = sunz[i*m_width + j];
                 float x = clamp(_sunz*10.0f-14.8f, 0.0f, 1.0f);
 
                 if (image.format() == QImage::Format_RGBX64) {
-                    std::get<0>(bits)[j] = lerp(std::get<0>(bits)[j], QRgba64::fromRgba64(irval, irval, irval, UINT16_MAX), x);
+                    std::get<0>(bits)[j] = lerp(std::get<0>(bits)[j], QRgba64::fromRgba64(ir[j], ir[j], ir[j], UINT16_MAX), x);
                 } else {
-                    std::get<1>(bits)[j] = lerp<float>(std::get<1>(bits)[j], irval, x);
+                    std::get<1>(bits)[j] = lerp<float>(std::get<1>(bits)[j], ir[j], x);
                 }
             }
         }
