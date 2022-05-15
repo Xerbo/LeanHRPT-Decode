@@ -19,6 +19,7 @@
 #ifndef LEANHRPT_IMAGECOMPOSITOR_H
 #define LEANHRPT_IMAGECOMPOSITOR_H
 
+#include <array>
 #include <vector>
 #include <QImage>
 #include <QPainter>
