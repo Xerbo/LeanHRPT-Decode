@@ -44,6 +44,7 @@ void MetopHRPTDecoder::frame_work(uint8_t *ptr) {
 
             double timestamp = 946684800.0 + days*86400.0 + ms/1000.0;
             timestamps[Imager::AVHRR].push_back(timestamp);
+            ch3a.push_back(ccsds::CPPDUHeader(line).apid == 103);
         }
     } else if (VCID == 12) {
         std::vector<uint8_t> line = mhs_demux.work(ptr);

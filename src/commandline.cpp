@@ -27,6 +27,7 @@
 #include <QLocale>
 #include <QDir>
 #include <iostream>
+#include <array>
 
 static ulong str2ulong(QString str) {
     QLocale l(QLocale::C);

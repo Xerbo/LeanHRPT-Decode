@@ -19,6 +19,7 @@
 #ifndef LEANHRPT_IMAGECOMPOSITOR_H
 #define LEANHRPT_IMAGECOMPOSITOR_H
 
+#include <array>
 #include <vector>
 #include <QImage>
 #include <QPainter>
@@ -54,6 +55,8 @@ class ImageCompositor {
         QColor map_color;
         std::vector<float> sunz;
         std::vector<QColor> stops;
+        std::vector<bool> ch3a;
+        bool has_ch3a = false;
 
         void postprocess(QImage &image, bool correct = false);
 
@@ -73,8 +76,8 @@ class ImageCompositor {
         std::map<std::string, double> d_caldata;
         bool ir_blend = false;
 
-        void calibrate_avhrr(QImage &image, double a1, double b1, double a2, double b2, double c);
-        void calibrate_linear(QImage &image, double a, double b);
+        void calibrate_avhrr(size_t ch, double a1, double b1, double a2, double b2, double c);
+        void calibrate_linear(size_t ch, double a, double b);
         void calibrate_ir(size_t ch, double Ns, double b0, double b1, double b2, double Vc, double A, double B);
 
         template<typename T, size_t A, size_t B>

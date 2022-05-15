@@ -54,6 +54,12 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
         }
     }
 
+    if (m_sensor == Imager::MSUMR) {
+        rawChannels[3].invertPixels();
+        rawChannels[4].invertPixels();
+        rawChannels[5].invertPixels();
+    }
+
     Config ini("calibration.ini");
 
     for (size_t i = 0; i < m_channels; i++) {
@@ -68,7 +74,7 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
                 double a2 = str2double(coefficients.at("a2"));
                 double b2 = str2double(coefficients.at("b2"));
                 double c  = str2double(coefficients.at("c"));
-                calibrate_avhrr(rawChannels[i], a1, b1, a2, b2, c);
+                calibrate_avhrr(i+1, a1, b1, a2, b2, c);
             } else if (coefficients.count("ns")) {
                 double ns = str2double(coefficients.at("ns"));
                 double b0 = str2double(coefficients.at("b0"));
@@ -81,7 +87,7 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
             } else if (coefficients.count("a")) {
                 double a = str2double(coefficients.at("a"));
                 double b = str2double(coefficients.at("b"));
-                calibrate_linear(rawChannels[i], a, b);
+                calibrate_linear(i+1, a, b);
             }
         }
     }
@@ -113,7 +119,7 @@ void ImageCompositor::postprocess(QImage &image, bool correct) {
     }
 
     if (ir_blend) {
-        QImage copy(m_channels == 6 ? rawChannels[4] : rawChannels[3]);
+        QImage copy(m_sensor == Imager::MSUMR ? rawChannels[4] : rawChannels[3]);
         equalise(copy, Equalization::Histogram, 0.7f, false);
 
         for (size_t i = 0; i < m_height; i++) {
@@ -125,15 +131,13 @@ void ImageCompositor::postprocess(QImage &image, bool correct) {
 
             #pragma omp parallel for
             for (size_t j = 0; j < m_width; j++) {
-                float irval = m_channels == 6 ? (UINT16_MAX - ir[j]) : ir[j];
-
                 float _sunz = sunz[i*m_width + j];
                 float x = clamp(_sunz*10.0f-14.8f, 0.0f, 1.0f);
 
                 if (image.format() == QImage::Format_RGBX64) {
-                    std::get<0>(bits)[j] = lerp(std::get<0>(bits)[j], QRgba64::fromRgba64(irval, irval, irval, UINT16_MAX), x);
+                    std::get<0>(bits)[j] = lerp(std::get<0>(bits)[j], QRgba64::fromRgba64(ir[j], ir[j], ir[j], UINT16_MAX), x);
                 } else {
-                    std::get<1>(bits)[j] = lerp<float>(std::get<1>(bits)[j], irval, x);
+                    std::get<1>(bits)[j] = lerp<float>(std::get<1>(bits)[j], ir[j], x);
                 }
             }
         }
@@ -197,9 +201,10 @@ void ImageCompositor::calibrate_ir(size_t ch, double Ns, double b0, double b1, d
     }
 }
 
-void ImageCompositor::calibrate_avhrr(QImage &image, double a1, double b1, double a2, double b2, double c) {
+void ImageCompositor::calibrate_avhrr(size_t ch, double a1, double b1, double a2, double b2, double c) {
     for (size_t y = 0; y < m_height; y++) {
-        quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
+        quint16 *line = reinterpret_cast<quint16 *>(rawChannels[ch-1].scanLine(y));
+        if (!ch3a[y] && ch == 3) continue;
 
         for (size_t x = 0; x < m_width; x++) {
             double count = line[x]/64;
@@ -213,9 +218,9 @@ void ImageCompositor::calibrate_avhrr(QImage &image, double a1, double b1, doubl
     }
 }
 
-void ImageCompositor::calibrate_linear(QImage &image, double a, double b) {
+void ImageCompositor::calibrate_linear(size_t ch, double a, double b) {
     for (size_t y = 0; y < m_height; y++) {
-        quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
+        quint16 *line = reinterpret_cast<quint16 *>(rawChannels[ch-1].scanLine(y));
 
         for (size_t x = 0; x < m_width; x++) {
             double count = line[x]/64;
@@ -258,11 +263,9 @@ void ImageCompositor::getExpression(QImage &image, std::string expression) {
         p.DefineVar("ch" + std::to_string(i+1), &ch[i]);
     }
 
-    if (m_channels == 10) {
-        p.DefineVar("SWIR", &ch[5]);
-    } else {
-        p.DefineVar("SWIR", &ch[2]);
-    }
+    double swir, mwir;
+    p.DefineVar("SWIR", &swir);
+    p.DefineVar("MWIR", &mwir);
     p.DefineVar("NIR", &ch[1]);
     p.DefineVar("RED", &ch[0]);
     p.DefineVar("sunz", &sunz_val);
@@ -291,6 +294,21 @@ void ImageCompositor::getExpression(QImage &image, std::string expression) {
                     ch[i] = (double)rawbits[i][x] / (double)UINT16_MAX;
                 }
                 if(sunz.size() != 0) sunz_val = sunz[y*m_width + x];
+
+                mwir = swir = 0.0;
+                if (m_sensor == Imager::AVHRR) {
+                    if (ch3a[y]) {
+                        swir = ch[2];
+                    } else {
+                        mwir = ch[2];
+                    }
+                } else {
+                    if (m_sensor == VIRR) {
+                        swir = ch[5];
+                    } else {
+                        swir = ch[2];
+                    }
+                }
 
                 double *rgb = p.Eval(channels);
                 if (channels == 1) {

@@ -121,5 +121,6 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
         ptr[i] *= 64;
     }
     images[Imager::AVHRR]->push16Bit(ptr, 750);
+    ch3a.push_back(false);
 }
 

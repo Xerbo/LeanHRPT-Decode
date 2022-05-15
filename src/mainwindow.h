@@ -20,6 +20,7 @@
 #define MAINWINDOW_H
 
 #include <cmath>
+#include <array>
 
 #include <QMainWindow>
 #include <QUrl>
