@@ -144,12 +144,26 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     color_dialog = new QColorDialog(this);
     color_dialog->setCurrentColor(map_color);
     QColorDialog::connect(color_dialog, &QColorDialog::colorSelected, this, [this](QColor color) {
+        QSettings settings;
+        settings.setValue("map/color", color);
+
         map_color = color;
         ui->actionMap_Color->setText(QString("Map Color (%1)").arg(color.name()));
         on_actionEnable_Map_triggered();
     });
 
     setAcceptDrops(true);
+
+    QSettings settings;
+    if (settings.contains("map/shapefile")) {
+        map_shapefile = settings.value("map/shapefile").toString();
+        ui->actionMap_Shapefile->setText(QString("Map Shapefile (%1)").arg(QFileInfo(map_shapefile).completeBaseName()));
+        ui->actionEnable_Map->setEnabled(true);
+    }
+    if (settings.contains("map/color")) {
+        map_color = settings.value("map/color").value<QColor>();
+        ui->actionMap_Color->setText(QString("Map Color (%1)").arg(map_color.name()));
+    }
 }
 
 MainWindow::~MainWindow() {
@@ -666,6 +680,9 @@ void MainWindow::on_actionMap_Shapefile_triggered() {
     ui->actionEnable_Map->setEnabled(true);
     bool update = !map_shapefile.isEmpty();
     map_shapefile = filename;
+
+    QSettings settings;
+    settings.setValue("map/shapefile", map_shapefile);
 
     if (update) {
         on_actionEnable_Map_triggered();
