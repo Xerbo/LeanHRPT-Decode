@@ -124,9 +124,9 @@ std::vector<float> Projector::calculate_sunz(const std::vector<double> &timestam
             double y2 = (double)y/double(height-1) * (pointsy-1);
             double x2 = (double)x/double(width -1) * (pointsx-1);
 
-            float a = lerp(sunz[floor(y2)*pointsx + floor(x2)], sunz[floor(y2)*pointsx + ceil(x2)], fmodf(x2, 1.0));
-            float b = lerp(sunz[ceil(y2) *pointsx + floor(x2)], sunz[ceil(y2) *pointsx + ceil(x2)], fmodf(x2, 1.0));
-            full_sunz[y*width + x] = lerp(a, b, fmodf(y2, 1.0));
+            float a = lerp(sunz[floor(y2)*pointsx + floor(x2)], sunz[floor(y2)*pointsx + ceil(x2)], fmod(x2, 1.0));
+            float b = lerp(sunz[ceil(y2) *pointsx + floor(x2)], sunz[ceil(y2) *pointsx + ceil(x2)], fmod(x2, 1.0));
+            full_sunz[y*width + x] = lerp(a, b, fmod(y2, 1.0));
         }
     }
 

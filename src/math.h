@@ -23,6 +23,7 @@
 #ifndef LEANHRPT_MATH_H
 #define LEANHRPT_MATH_H
 
+#include <cmath>
 #include <QColor>
 #include <QImage>
 
@@ -67,7 +68,7 @@ inline QColor lerp2(const QImage &image, double x, double y) {
     QColor a = lerp(image.pixelColor(floor(x), floor(y)), image.pixelColor(ceil(x), floor(y)), fmod(x, 1.0));
     QColor b = lerp(image.pixelColor(floor(x),  ceil(y)), image.pixelColor(ceil(x),  ceil(y)), fmod(x, 1.0));
 
-    return lerp(a, b, fmodf(y, 1.0));
+    return lerp(a, b, fmod(y, 1.0));
 }
 
 inline QColor lerp2(const QImage &image, QPointF point) {

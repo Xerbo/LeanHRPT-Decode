@@ -681,7 +681,7 @@ void MainWindow::on_actionMap_Shapefile_triggered() {
     if (update) {
         on_actionEnable_Map_triggered();
     }
-};
+}
 
 void MainWindow::on_actionEnable_Map_triggered() {
     if (!ui->actionEnable_Map->isChecked()) {
