@@ -107,7 +107,7 @@ void ProjectDialog::on_render_clicked() {
         }
     }
 
-    QString filename = QFileDialog::getSaveFileName(this, "Save Projected Image", QString("%1_%2.png").arg(default_filename()).arg(ui->targetProjection->currentText()), "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);;BMP (*.bmp)");
+    QString filename = QFileDialog::getSaveFileName(this, "Save Projected Image", QString("%1.png").arg(default_filename()), "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);;BMP (*.bmp)");
     if (filename.isEmpty()) return;
 
     QFuture<void> future = QtConcurrent::run([=]() {
