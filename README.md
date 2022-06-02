@@ -41,6 +41,16 @@ sudo cmake --install .
 ```
 
 ```sh
+# Fedora
+sudo dnf install g++ cmake qt5-qtbase-devel muParser-devel shapelib-devel
+git clone -b v2.0.0 https://github.com/la1k/libpredict && cd libpredict
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build .
+sudo cmake --install .
+```
+
+```sh
 # MSYS2
 pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-qt5-base mingw-w64-x86_64-muparser mingw-w64-x86_64-shapelib mingw-w64-x86_64-ninja git
 git clone -b v2.0.0 https://github.com/la1k/libpredict && cd libpredict

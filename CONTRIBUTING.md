@@ -27,3 +27,4 @@ If you don't have a GitHub account, you can email me the patch at `xerbo (at) pr
 
 - Keep titles short to prevent wrapping (descriptions exist)
 - Split up large changes into multiple commits
+- Never use hastags for sequential counting in commits, as this interferes with issue/PR referencing
