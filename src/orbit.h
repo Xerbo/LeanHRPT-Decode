@@ -22,11 +22,13 @@
 #include <string>
 #include <stdexcept>
 #include <predict/predict.h>
+#include <locale>
 
 // A simple C++ wrapper around libpredict
 class OrbitPredictor {
     public:
         OrbitPredictor(std::pair<std::string, std::string> tle) {
+            std::setlocale(LC_NUMERIC, "en_GB.UTF-8");
             orbital_elements = predict_parse_tle(tle.first.c_str(), tle.second.c_str());
         }
         ~OrbitPredictor() {
