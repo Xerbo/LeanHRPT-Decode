@@ -24,7 +24,7 @@
 #include <QDateTime>
 #include <QJsonDocument>
 #include <QJsonArray>
-#include "projectdialog.h"
+#include "config/config.h"
 
 TLEManager::TLEManager() {
     quint64 time = QDateTime::currentSecsSinceEpoch();

@@ -107,27 +107,35 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     setState(WindowState::Idle);
 
     project_diag = new ProjectDialog(this);
-    ProjectDialog::connect(project_diag, &ProjectDialog::prepareImage, [this](bool createGcp) {
+    ProjectDialog::connect(project_diag, &ProjectDialog::get_viewport, [this]() -> QImage {
         QImage copy(display);
-        // Very very horrible hack
+        compositors[sensor]->equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
+        compositors[sensor]->enable_map = false;
+        compositors[sensor]->postprocess(copy);
+        compositors[sensor]->enable_map = ui->actionEnable_Map->isChecked();
         if (compositors[sensor]->flipped()) {
             copy = copy.mirrored(true, true);
         }
-        ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
-        compositors[sensor]->postprocess(copy);
-        copy.save(QString::fromStdString(get_temp_dir()) + "/viewport.png", nullptr, 100);
+        return copy;
+    });
+    ProjectDialog::connect(project_diag, &ProjectDialog::get_points, [this](size_t n) -> std::vector<std::pair<xy, Geodetic>> {
+        size_t width  = compositors[sensor]->width();
+        size_t height = compositors[sensor]->height();
+        size_t y = round((double)height/(double)width * (double)n);
 
-        if (createGcp) {
-            if (tle_manager.catalog.size() == 0) {
-                QMessageBox::warning(this, "Error", "No TLEs loaded, cannot save control points.", QMessageBox::Ok);
-                return;
-            }
-            double width = compositors[sensor]->width();
-            double height = compositors[sensor]->height();
-            proj->save_gcp_file(timestamps[sensor], (double)height/(double)width * 21.0, 21, sensor, sat, get_temp_dir() + "/image.gcp", width);
-        }
-
-        project_diag->start();
+        return proj->calculate_gcps(timestamps[sensor], y, n, sensor, sat, width);
+    });
+    ProjectDialog::connect(project_diag, &ProjectDialog::map_shapefile, [this]() -> QString {
+        return map_shapefile;
+    });
+    ProjectDialog::connect(project_diag, &ProjectDialog::map_color, [this]() -> QColor {
+        return map_color;
+    });
+    ProjectDialog::connect(project_diag, &ProjectDialog::map_enable, [this]() -> bool {
+        return ui->actionEnable_Map->isChecked();
+    });
+    ProjectDialog::connect(project_diag, &ProjectDialog::default_filename, [this]() -> QString {
+        return getDefaultFilename();
     });
 
     UpdateChecker *update_checker = new UpdateChecker();
@@ -569,7 +577,7 @@ void MainWindow::updateDisplay() {
     ui->gradient->setEnabled(display.format() == QImage::Format_Grayscale16);
 }
 
-void MainWindow::saveCurrentImage(bool corrected) {
+QString MainWindow::getDefaultFilename() {
     QString composite;
     for (auto channel : selectedComposite) {
         if (channel < 10) {
@@ -580,8 +588,11 @@ void MainWindow::saveCurrentImage(bool corrected) {
     }
 
     QString types[3] = { QString::number(selectedChannel), composite, ui->presetSelector->currentText() };
-    QString name = QString("%1_%2_%3_%4.png").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString("yyyyMMdd-hhmmss")).arg(types[ui->imageTabs->currentIndex()]);
-    QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", name, "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
+    return QString("%1_%2_%3_%4").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString("yyyyMMdd-hhmmss")).arg(types[ui->imageTabs->currentIndex()]);
+}
+
+void MainWindow::saveCurrentImage(bool corrected) {
+    QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", getDefaultFilename() + ".png", "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
 
     if (filename.isEmpty()) {
         return;
@@ -687,7 +698,7 @@ void MainWindow::on_actionMap_Shapefile_triggered() {
     if (update) {
         on_actionEnable_Map_triggered();
     }
-};
+}
 
 void MainWindow::on_actionEnable_Map_triggered() {
     if (!ui->actionEnable_Map->isChecked()) {

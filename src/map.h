@@ -24,6 +24,7 @@
 #include <string>
 #include <QLineF>
 #include "projection.h"
+#include <QImage>
 
 namespace map {
     // Checks that a Shapefile is readable and supported (Polyline/Polygon)
@@ -37,6 +38,15 @@ namespace map {
 
     // Warp an (indexed) map to fit a pass based off a point grid
     std::vector<QLineF> warp_to_pass(const std::array<std::vector<QLineF>, 36*18> &buckets, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn);
+    
+    // Project a pass into Rectangular projection
+    QImage project(const QImage &image, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn, QSize resolution, double xa, double xb, double ya, double yb);
+
+    // Render a map overlay on an image with Rectangular projection
+    void add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor color, double xa, double xb, double ya, double yb);
+
+    // Calculate bounds of a pass, height is inverted
+    QRectF bounds(const std::vector<std::pair<xy, Geodetic>> &points);
 }
 
 #endif

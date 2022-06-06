@@ -23,7 +23,9 @@
 #ifndef LEANHRPT_MATH_H
 #define LEANHRPT_MATH_H
 
+#include <cmath>
 #include <QColor>
+#include <QImage>
 
 #define RAD2DEG (180.0/M_PI)
 #define DEG2RAD (M_PI/180.0)
@@ -60,6 +62,17 @@ inline QColor lerp(QColor a, QColor b, double x) {
         a.greenF()*(1.0-x) + b.greenF()*x,
         a.blueF() *(1.0-x) + b.blueF() *x
     );
+}
+
+inline QColor lerp2(const QImage &image, double x, double y) {
+    QColor a = lerp(image.pixelColor(floor(x), floor(y)), image.pixelColor(ceil(x), floor(y)), fmod(x, 1.0));
+    QColor b = lerp(image.pixelColor(floor(x),  ceil(y)), image.pixelColor(ceil(x),  ceil(y)), fmod(x, 1.0));
+
+    return lerp(a, b, fmod(y, 1.0));
+}
+
+inline QColor lerp2(const QImage &image, QPointF point) {
+    return lerp2(image, point.x(), point.y());
 }
 
 #endif

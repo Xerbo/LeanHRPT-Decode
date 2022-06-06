@@ -18,35 +18,23 @@
 
 #include "projectdialog.h"
 #include "qt/ui_projectdialog.h"
+#include "map.h"
 
 #include <QFileDialog>
-#include <fstream>
-
-std::string get_temp_dir() {
-#ifdef _WIN32
-    return std::getenv("TEMP");
-#else
-    return "/tmp";
-#endif
-}
+#include <QtConcurrent/QtConcurrent>
+#include <QFileDialog>
+#include <QMessageBox>
 
 ProjectDialog::ProjectDialog(QWidget *parent) : QDialog(parent) {
     ui = new Ui::ProjectDialog;
     ui->setupUi(this);
 
-    timer = new QTimer(this);
-    QTimer::connect(timer, &QTimer::timeout, this, [this]() {
-        QByteArray data = process->read(128);
-        if (data.size() != 0) {
-            history.append(QString(data));
-            ui->logWindow->setPlainText(history);
-        }
+    scene = new QGraphicsScene(this);
+    ui->projectionPreview->setScene(scene);
 
-        if (process->state() == QProcess::NotRunning) {
-            timer->stop();
-            set_enabled(true);
-            return;
-        }
+    render_finished = new QFutureWatcher<void>(this);
+    QFutureWatcher<void>::connect(render_finished, &QFutureWatcher<void>::finished, [=]() {
+        ui->render->setEnabled(true);
     });
 }
 
@@ -54,107 +42,86 @@ ProjectDialog::~ProjectDialog() {
     delete ui;
 }
 
-void ProjectDialog::set_enabled(bool enabled) {
-    ui->projection->setEnabled(enabled);
-    ui->interpolation->setEnabled(enabled);
-    ui->output->setEnabled(enabled);
-    ui->startButton->setEnabled(enabled);
+void ProjectDialog::write_wld_file(QString filename) {
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        return;
+
+    QTextStream out(&file);
+
+    out << pixelsize << "\n";
+    out << 0.0 << "\n";
+    out << 0.0 << "\n";
+    out << -pixelsize << "\n";
+    out << bounds.left() << "\n";
+    out << bounds.bottom() << "\n";
 }
 
-void ProjectDialog::on_output_clicked() {
-    QString _outputFilename = QFileDialog::getSaveFileName(this, "Select Output File", "", "GeoTIFF (*.tif *.tiff)");
-    if (!_outputFilename.isEmpty()) {
-        outputFilename = _outputFilename;
-
-        ui->output->setText(outputFilename);
-        ui->startButton->setEnabled(true);
+QSize ProjectDialog::calculate_dimensions(size_t resolution) {
+    bounds = QRectF(-180, -90, 360, 180);
+    if (ui->bounds->currentText() == "Auto") {
+        bounds = map::bounds(get_points(31));
     }
-}
 
-void ProjectDialog::on_gcp_clicked() {
-    gcpFilename = QFileDialog::getOpenFileName(this, "Select Output File", "", "GeoTIFF (*.tif *.tiff)");
-    if (gcpFilename.isEmpty()) {
-        ui->gcp->setText("(From TLE)");
-    } else {
-        ui->gcp->setText(gcpFilename);
+    double scale = EARTH_CIRCUMFRANCE/ui->resolution->value();
+    pixelsize = 360.0/scale;
+    QSize dimensions(bounds.width()/360.0 * scale, bounds.height()/360.0 * scale);
+    ui->details->setText(QString("Final size: %1x%2").arg(dimensions.width()).arg(dimensions.height()));
+
+    if (resolution != 0) {
+        dimensions = QSize(resolution*2, resolution);
     }
+
+    return dimensions;
 }
 
-void ProjectDialog::on_startButton_clicked() {
-    prepareImage(gcpFilename.isEmpty());
-}
+QImage ProjectDialog::render(QSize dimensions) {
+    QImage image = map::project(get_viewport(), get_points(31), 31, dimensions, bounds.width(), bounds.x(), bounds.height(), bounds.y());
 
-void ProjectDialog::createVrt() {
-    std::filebuf in;
-    if (gcpFilename.isEmpty()) {
-        in.open(get_temp_dir() + "/image.gcp", std::ios::in);
-    } else {
-        in.open(gcpFilename.toStdString(), std::ios::in);
+    if (map_enable()) {
+        std::vector<QLineF> map = map::read_shapefile(map_shapefile().toStdString());
+        map::add_overlay(image, map, map_color(), bounds.width(), bounds.x(), bounds.height(), bounds.y());
     }
-    std::filebuf out;
-    out.open(get_temp_dir() + "/image.vrt", std::ios::out);
-    std::ostream dst(&out);
 
-    QImage image(QString::fromStdString(get_temp_dir()) + "/viewport.png");
-    dst << "<VRTDataset rasterXSize=\"" << image.width() << "\" rasterYSize=\"" << image.height() << "\">\n";
-    dst << &in;
+    return image;
+}
 
-    size_t nchannels = (image.format() == QImage::Format_Grayscale16) ? 1 : 3;
+void ProjectDialog::on_preview_clicked() {
+    QImage image = render(calculate_dimensions(1000));
+    scene->clear();
+    scene->setSceneRect(0, 0, image.width(), image.height());
+    scene->addPixmap(QPixmap::fromImage(image, Qt::NoFormatConversion));
+    ui->projectionPreview->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+}
 
-    for (size_t i = 0; i < nchannels; i++) {
-        dst << "<VRTRasterBand dataType=\"UInt16\" band=\"" << (i+1) << "\">\n";
-        dst << "  <NoDataValue>0.0</NoDataValue>\n";
-        if (nchannels == 1) {
-            dst << "  <ColorInterp>Gray</ColorInterp>\n";
-        } else {
-            std::string channel_names[3] = { "Red", "Green", "Blue" };
-            dst << "  <ColorInterp>" << channel_names[i] << "</ColorInterp>\n";
+void ProjectDialog::on_render_clicked() {
+    QSize dimensions = calculate_dimensions(0);
+    if (dimensions.width()*dimensions.height() > 64000000) {
+        QMessageBox confirm;
+        confirm.setText(QString("Generating an large (%1x%2) image, this may cause slowdowns/crashes!").arg(dimensions.width()).arg(dimensions.height()));
+        confirm.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
+        confirm.setDefaultButton(QMessageBox::Cancel);
+        confirm.setIcon(QMessageBox::Warning);
+        if (confirm.exec() == QMessageBox::Cancel) {
+            return;
         }
-        dst << "  <SimpleSource>\n";
-        dst << "    <SourceFilename relativeToVRT=\"1\">" + get_temp_dir() + "/viewport.png</SourceFilename>\n";
-        if (nchannels == 3) {
-            dst << "    <SourceBand>" << (i+1) << "</SourceBand>\n";
-        }
-        dst << "  </SimpleSource>\n";
-        dst << "</VRTRasterBand>\n";
     }
-    dst << "</VRTDataset>\n";
 
-    in.close();
-    out.close();
+    QString filename = QFileDialog::getSaveFileName(this, "Save Projected Image", QString("%1.png").arg(default_filename()), "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);;BMP (*.bmp)");
+    if (filename.isEmpty()) return;
+
+    QFuture<void> future = QtConcurrent::run([=]() {
+        QImage image = render(dimensions);
+        QFileInfo fi(filename);
+        write_wld_file(fi.absolutePath() + "/" + fi.completeBaseName() + ".wld");
+        image.save(filename);
+    });
+
+    render_finished->setFuture(future);
+    ui->render->setEnabled(false);
 }
 
-void ProjectDialog::start() {
-    QString epsg = ui->projection->currentText().split(" ")[0];
-
-    // https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-r
-    QString interpolation;
-    if (ui->interpolation->currentText() == "Lanczos") {
-        interpolation = "lanczos";
-    } else if (ui->interpolation->currentText() == "Cubic") {
-        interpolation = "cubic";
-    } else if (ui->interpolation->currentText() == "Bilinear") {
-        interpolation = "bilinear";
-    } else if (ui->interpolation->currentText() == "Nearest Neighbor") {
-        interpolation = "near";
-    }
-
-    createVrt();
-
-#ifdef _WIN32
-    QString program = "C:\\OSGeo4W\\bin\\gdalwarp.exe";
-#else
-    QString program = "gdalwarp";
-#endif
-    QStringList arguments;
-    arguments << "-multi" << "-wm" << "512" << "-wo" << "NUM_THREADS=ALL_CPUS" << "-overwrite" << "-r" << interpolation << "-tps" << "-t_srs" << epsg << (QString::fromStdString(get_temp_dir()) + "/image.vrt") << outputFilename;
-
-    history = "Command: " + program + " " + arguments.join(" ") + "\n";
-
-    process = new QProcess(this);
-    process->setProcessChannelMode(QProcess::MergedChannels);
-    process->start(program, arguments, QIODevice::ReadOnly);
-
-    set_enabled(false);
-    timer->start(1000.0f/30.0f);
+void ProjectDialog::resizeEvent(QResizeEvent *event) {
+    Q_UNUSED(event);
+    ui->projectionPreview->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
 }

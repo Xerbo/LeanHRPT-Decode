@@ -151,6 +151,7 @@ class MainWindow : public QMainWindow {
         // Image saving
         bool savingImage = false;
         void saveAllChannels();
+        QString getDefaultFilename();
         void saveCurrentImage(bool corrected);
 
         // GCP Saving
