@@ -28,8 +28,9 @@
 class OrbitPredictor {
     public:
         OrbitPredictor(std::pair<std::string, std::string> tle) {
-            std::setlocale(LC_NUMERIC, "en_GB.UTF-8");
+            std::setlocale(LC_NUMERIC, "C");
             orbital_elements = predict_parse_tle(tle.first.c_str(), tle.second.c_str());
+            std::setlocale(LC_NUMERIC, "");
         }
         ~OrbitPredictor() {
             predict_destroy_orbital_elements(orbital_elements);
