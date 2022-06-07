@@ -33,6 +33,7 @@ class NOAAGACDecoder : public Decoder {
         }
     private:
         ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> deframer;
+        double timestamp = 0.0;
 
         uint8_t frame[4159];
         uint16_t repacked[3327];

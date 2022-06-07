@@ -47,7 +47,7 @@ inline bool tip_parity(const uint8_t *frame) {
     return ok;
 }
 
-inline void tip_work(std::map<Imager, RawImage *> &images, const uint8_t *frame) {
+inline bool tip_work(std::map<Imager, RawImage *> &images, const uint8_t *frame) {
     // These are taken from the NOAA KLM Users Guide
     const size_t offsets[36] = { 16, 17, 22, 23, 26, 27, 30, 31, 34, 35, 38, 39, 42, 43, 54, 55, 58, 59, 62, 63, 66, 67, 70, 71, 74, 75, 78, 79, 82, 83, 84, 85, 88, 89, 92, 93 };
     const size_t channels[20] = { 1, 17, 2, 3, 13, 4, 18, 11, 19, 7, 8, 20, 10, 14, 6, 5, 15, 12, 16, 9 };
@@ -63,7 +63,7 @@ inline void tip_work(std::map<Imager, RawImage *> &images, const uint8_t *frame)
     arbitrary_repack<uint16_t, 13>(packet, words, 22);
 
     uint8_t element_number = (words[1] >> 1) & 0b111111;
-    if (element_number > 55) return;
+    if (element_number > 55) return false;
 
     for (size_t j = 0; j < 20; j++) {
         unsigned short *channel = images[Imager::HIRS]->getChannel(channels[j]-1);
@@ -78,7 +78,9 @@ inline void tip_work(std::map<Imager, RawImage *> &images, const uint8_t *frame)
     // New line
     if (element_number == 55) {
         images[Imager::HIRS]->set_height(images[Imager::HIRS]->rows() + 1);
+        return true;
     }
+    return false;
 }
 
 #endif

@@ -28,9 +28,9 @@
 
 class AIPDecoder {
     public:
-        void work(std::map<Imager, RawImage *> &images, const uint8_t *frame) {
+        bool work(std::map<Imager, RawImage *> &images, const uint8_t *frame) {
             uint8_t mhs_status = frame[7];
-            if (mhs_status > 80) return;
+            if (mhs_status > 80) return false;
 
             std::memcpy(&mhsline[mhs_status*50], &frame[48], 50);
             if (mhs_status == 79) {
@@ -38,7 +38,9 @@ class AIPDecoder {
                 images[Imager::MHS]->push16Bit((uint16_t *)&mhsline[1432], 0);
                 images[Imager::MHS]->push16Bit((uint16_t *)&mhsline[2764], 0);
                 std::memset(mhsline, 0, 80*50);
+                return true;
             }
+            return false;
         }
     private:
         uint8_t mhsline[80*50];

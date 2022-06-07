@@ -75,9 +75,21 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
 
         uint8_t frame_type = (ptr[6] >> 7) & 0b11;
         switch (frame_type) {
-            case 1: tip_work(images, frame); break;
-            case 3: aip_decoder.work(images, frame); break;
-            default:                 break;
+            case 1:{
+                if (tip_work(images, frame)) {
+                    timestamps[Imager::HIRS].push_back(timestamp);
+                }
+                break;
+            }
+            case 3:{
+                if (aip_decoder.work(images, frame)) {
+                    timestamps[Imager::MHS].push_back(0);
+                    timestamps[Imager::MHS].push_back(0);
+                    timestamps[Imager::MHS].push_back(timestamp);
+                };
+                break;
+            }
+            default: break;
         }
     }
 
@@ -110,7 +122,7 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
     // Parse timestamp
     uint16_t days = repacked[8] >> 1;
     uint32_t ms = (repacked[9] & 0b1111111) << 20 | repacked[10] << 10 | repacked[11];
-    double timestamp = (double)year + (double)days*86400.0 + (double)ms/1000.0;
+    timestamp = (double)year + (double)days*86400.0 + (double)ms/1000.0;
     if (line_ok) {
         timestamps[Imager::AVHRR].push_back(timestamp);
     } else {

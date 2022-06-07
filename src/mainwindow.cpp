@@ -359,7 +359,7 @@ void MainWindow::startDecode(std::string filename) {
 
         for (size_t i = 1; i < filtered.size()-1; i++) {
             // TODO: store seconds per line in satinfo
-            if ((timestamp[i-1] == 0 && timestamp[i+1] == 0) || (timestamp[i] - timestamp[i-1] < 2.5 && timestamp[i+1] - timestamp[i] < 2.5)) {
+            if ((timestamp[i-1] == 0 && timestamp[i+1] == 0) || (timestamp[i] - timestamp[i-1] < 10.0 && timestamp[i+1] - timestamp[i] < 10.0)) {
                 filtered[i] = timestamp[i];
             }
         }
