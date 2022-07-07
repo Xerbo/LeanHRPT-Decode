@@ -66,11 +66,6 @@ cmake --install .
 mkdir build && cd build
 cmake ..
 cmake --build .
-ln -s ../presets.ini
-ln -s ../calibration.ini
-ln -s ../projection.ini
-ln -s ../gradients.ini
-ln -s ../logo128.png
 ```
 
 ### Input file format
