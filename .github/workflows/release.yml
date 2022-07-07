@@ -145,8 +145,8 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ needs.prepare_release.outputs.upload_url }}
-        asset_path: ./tools_linux_x86-64
-        asset_name: tools_linux_x86-64
+        asset_path: ./tools_linux_x86-64.tar
+        asset_name: tools_linux_x86-64.tar
         asset_content_type: application/x-tar
       env:
         GITHUB_TOKEN: ${{ github.token }}
