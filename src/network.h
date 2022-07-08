@@ -24,7 +24,7 @@
 #include <map>
 #include <QObject>
 
-#define TLE_URL "https://celestrak.com/NORAD/elements/weather.txt"
+#define TLE_URL "https://celestrak.org/NORAD/elements/weather.txt"
 #define TAG_URL "https://api.github.com/repos/xerbo/LeanHRPT-Decode/tags"
 #define USER_AGENT ("LeanHRPT-Decode/" VERSION " (https://github.com/Xerbo/LeanHRPT-Decode)")
 
