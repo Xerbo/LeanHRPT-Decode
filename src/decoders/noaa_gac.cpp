@@ -18,6 +18,7 @@
 
 #include "noaa_gac.h"
 #include "common/tip.h"
+#include "protocol/reverse.h"
 #include <bitset>
 
 // Contains 1023 bits of data, last bit is zero
@@ -56,13 +57,31 @@ void NOAAGACDecoder::init_xor() {
 void NOAAGACDecoder::work(std::istream &stream) {
     if (d_filetype == FileType::Raw) {
         stream.read(reinterpret_cast<char *>(buffer), BUFFER_SIZE);
-        if (deframer.work(buffer, frame, BUFFER_SIZE)) {
-            for (size_t i = 0; i < 4159; i++) {
-				frame[i] ^= xor_table[i];
-			}
 
-            repack10(frame, repacked, 3327-3);
-            frame_work(repacked);
+        if (d_reverse) {
+            if (deframer_reverse.work(buffer, frame, BUFFER_SIZE)) {
+                for (size_t i = 0; i < 4159; i++) {
+                    frame[i] = reverse_bits(frame[i]);
+                }
+                for (size_t i = 0; i < 4159/2; i++) {
+                    std::swap(frame[i], frame[4158-i]);
+                }
+                for (size_t i = 0; i < 4159; i++) {
+                    frame[i] ^= xor_table[i];
+                }
+
+                repack10(frame, repacked, 3327-3);
+                frame_work(repacked);
+            }
+        } else {
+            if (deframer.work(buffer, frame, BUFFER_SIZE)) {
+                for (size_t i = 0; i < 4159; i++) {
+                    frame[i] ^= xor_table[i];
+                }
+
+                repack10(frame, repacked, 3327-3);
+                frame_work(repacked);
+            }
         }
     }
 }

@@ -31,6 +31,7 @@ enum class Protocol {
     MeteorHRPT,
     FengYunHRPT,
     GAC,
+    GACReverse,
     DSB
 };
 
@@ -63,51 +64,6 @@ enum Imager {
     MHS,
     MTVZA,
     HIRS
-};
-
-enum class Format {
-    Unknown,
-    DegreeC,
-    Percent,
-    Raw10,
-    Raw16
-};
-
-struct FormatInfo {
-    std::string unit;
-    double scale;
-    double offset;
-};
-
-const std::map<Format, FormatInfo> format_info = {
-    { Format::Unknown, FormatInfo { "?", 100.0/(double)UINT16_MAX, 0.0 }},
-    { Format::DegreeC, FormatInfo { "°C", 160.0/(double)UINT16_MAX, -80.0 }},
-    { Format::Percent, FormatInfo { "%", 100.0/(double)UINT16_MAX, 0.0 }},
-    { Format::Raw10, FormatInfo { "counts", 1.0/64.0, 0.0 }},
-    { Format::Raw16, FormatInfo { "counts", 1.0, 0.0 }}
-};
-
-struct ChannelInfo {
-    double wavelength;
-    std::string wl_unit;
-    Format format;
-};
-
-const std::map<Imager, std::vector<ChannelInfo>> channels = {
-    {Imager::AVHRR, {
-        ChannelInfo { 0.630, "µm", Format::Percent },
-        ChannelInfo { 0.862, "µm", Format::Percent },
-        ChannelInfo { -1.0,  "?",  Format::Unknown }, // Fucking channel 3A/3B
-        ChannelInfo { 10.80, "µm", Format::Raw10 },
-        ChannelInfo { 12.00, "µm", Format::Raw10 },
-    }},
-    {Imager::MHS, {
-        ChannelInfo { 89.0,    "GHz (V)", Format::Raw16 },
-        ChannelInfo { 157.0,   "GHz (V)", Format::Raw16 },
-        ChannelInfo { 183.331, "GHz (H)", Format::Raw16 },
-        ChannelInfo { 183.331, "GHz (H)", Format::Raw16 },
-        ChannelInfo { 190.331, "GHz (V)", Format::Raw16 },
-    }}
 };
 
 struct SensorInfo {

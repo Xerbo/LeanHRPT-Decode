@@ -8,6 +8,7 @@
 #include "protocol/ccsds/deframer.h"
 #include "protocol/deframer.h"
 #include "protocol/repack.h"
+#include "protocol/reverse.h"
 #include "decoders/common/tip.h"
 
 // Finds the most common value of T
@@ -83,9 +84,14 @@ std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
             return {id, FileType::Raw, Protocol::MeteorHRPT};
         }
         case Protocol::GAC: {
-            SatID id = fingerprint_gac(stream);
+            SatID id = fingerprint_gac(stream, false);
             file.close();
             return {id, FileType::Raw, Protocol::GAC};
+        }
+        case Protocol::GACReverse: {
+            SatID id = fingerprint_gac(stream, true);
+            file.close();
+            return {id, FileType::Raw, Protocol::GACReverse};
         }
         default: break;
     }
@@ -128,6 +134,7 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
     ccsds::Deframer ccsds_deframer;
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> noaa_deframer(8, true);
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> gac_deframer(8, true);
+    ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270> gac_reverse_deframer(8, true);
     std::vector<uint8_t> out((11090*10) / 8);
     Scoreboard<Protocol> s;
 
@@ -142,6 +149,9 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
         if (gac_deframer.work(buffer, out.data(), 1024)) {
             s.add(Protocol::GAC, 5);
         }
+        if (gac_reverse_deframer.work(buffer, out.data(), 1024)) {
+            s.add(Protocol::GACReverse, 5);
+        }
 
         if (s.max() != Protocol::Unknown) return s.max();
     }
@@ -149,9 +159,10 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
     return Protocol::Unknown;
 }
 
-SatID Fingerprint::fingerprint_gac(std::istream &stream) {
+SatID Fingerprint::fingerprint_gac(std::istream &stream, bool reverse) {
     uint8_t pn[20] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x74, 0x0c, 0x92, 0x94, 0x25, 0xee, 0xea, 0x8e, 0xe2, 0xc2, 0xfb, 0x1f };
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> deframer(8, true);
+    ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270> deframer_reverse(8, true);
     std::vector<uint8_t> buffer(1024);
     std::vector<uint8_t> raw(4159);
     std::vector<uint16_t> frame(3327);
@@ -159,23 +170,38 @@ SatID Fingerprint::fingerprint_gac(std::istream &stream) {
 
     while (is_running && !stream.eof()) {
         stream.read((char *)buffer.data(), 1024);
-        if (deframer.work(buffer.data(), raw.data(), 1024)) {
-            for (size_t i = 0; i < 20; i++) {
-				raw[i] ^= pn[i];
-			}
-
-            repack10(raw.data(), frame.data(), 3327-3);
-
-            uint8_t address = (frame[6] >> 3) & 0b1111;
-            switch (address) {
-                case 7:  s.add(SatID::NOAA15); break;
-                case 13: s.add(SatID::NOAA18); break;
-                case 15: s.add(SatID::NOAA19); break;
-                default:                       break;
+        if (reverse) {
+            if (deframer_reverse.work(buffer.data(), raw.data(), 1024)) {
+                for (size_t i = 0; i < 4159; i++) {
+                    raw[i] = reverse_bits(raw[i]);
+                }
+                for (size_t i = 0; i < 4159/2; i++) {
+                    std::swap(raw[i], raw[4158-i]);
+                }
+                goto have_frame;
             }
-
-            if (s.max() != SatID::Unknown) return s.max();
+        } else {
+            if (deframer.work(buffer.data(), raw.data(), 1024)) {
+                goto have_frame;
+            }
         }
+        continue;
+
+        have_frame:
+        for (size_t i = 0; i < 20; i++) {
+            raw[i] ^= pn[i];
+        }
+        repack10(raw.data(), frame.data(), 3327-3);
+
+        uint8_t address = (frame[6] >> 3) & 0b1111;
+        switch (address) {
+            case 7:  s.add(SatID::NOAA15); break;
+            case 13: s.add(SatID::NOAA18); break;
+            case 15: s.add(SatID::NOAA19); break;
+            default:                       break;
+        }
+
+        if (s.max() != SatID::Unknown) return s.max();
     }
 
     return SatID::Unknown;

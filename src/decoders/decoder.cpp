@@ -33,7 +33,8 @@ Decoder *Decoder::make(Protocol protocol, SatID sat) {
         case Protocol::AHRPT:       decoder = new MetopHRPTDecoder; break;
         case Protocol::MeteorHRPT:  decoder = new MeteorHRPTDecoder; break;
         case Protocol::FengYunHRPT: decoder = new FengyunHRPTDecoder(sat); break;
-        case Protocol::GAC:         decoder = new NOAAGACDecoder; break;
+        case Protocol::GAC:         decoder = new NOAAGACDecoder(false); break;
+        case Protocol::GACReverse:  decoder = new NOAAGACDecoder(true); break;
         case Protocol::DSB:         decoder = new NOAADSBDecoder; break;
         default: throw std::runtime_error("invalid value in enum `Protocol`");
     }
