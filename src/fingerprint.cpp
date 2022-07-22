@@ -141,16 +141,16 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
     while (is_running && !stream.eof()) {
         stream.read(reinterpret_cast<char *>(buffer), 1024);
         if (ccsds_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::MeteorHRPT, 10);
+            s.add(Protocol::MeteorHRPT, 1);
         }
         if (noaa_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::HRPT, 10);
+            s.add(Protocol::HRPT, 3);
         }
         if (gac_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::GAC, 5);
+            s.add(Protocol::GAC, 3);
         }
         if (gac_reverse_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::GACReverse, 5);
+            s.add(Protocol::GACReverse, 3);
         }
 
         if (s.max() != Protocol::Unknown) return s.max();
