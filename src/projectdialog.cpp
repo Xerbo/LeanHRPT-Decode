@@ -98,7 +98,7 @@ void ProjectDialog::on_render_clicked() {
     QSize dimensions = calculate_dimensions(0);
     if (dimensions.width()*dimensions.height() > 64000000) {
         QMessageBox confirm;
-        confirm.setText(QString("Generating an large (%1x%2) image, this may cause slowdowns/crashes!").arg(dimensions.width()).arg(dimensions.height()));
+        confirm.setText(QString("Generating a large (%1x%2) image, this may cause slowdowns/crashes!").arg(dimensions.width()).arg(dimensions.height()));
         confirm.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
         confirm.setDefaultButton(QMessageBox::Cancel);
         confirm.setIcon(QMessageBox::Warning);

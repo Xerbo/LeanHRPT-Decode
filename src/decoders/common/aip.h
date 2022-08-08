@@ -30,7 +30,7 @@ class AIPDecoder {
     public:
         bool work(std::map<Imager, RawImage *> &images, const uint8_t *frame) {
             uint8_t mhs_status = frame[7];
-            if (mhs_status > 80) return false;
+            if (mhs_status >= 80) return false;
 
             std::memcpy(&mhsline[mhs_status*50], &frame[48], 50);
             if (mhs_status == 79) {

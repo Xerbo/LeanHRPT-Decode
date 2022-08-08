@@ -40,6 +40,9 @@ std::vector<std::pair<xy, Geodetic>> Projector::calculate_gcps(const std::vector
     }
 
     Config proj_info("projection.ini");
+    if (!proj_info.sections.count(satellite_info.at(sat).name + "_" + sensor_info.at(sensor).name)) {
+        return gcps;
+    }
     auto params = proj_info.sections.at(satellite_info.at(sat).name + "_" + sensor_info.at(sensor).name);
     double fov = str2double(params["fov"]);
     double yaw = str2double(params["yaw"]);

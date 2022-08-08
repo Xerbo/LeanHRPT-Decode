@@ -88,29 +88,29 @@ void NOAAGACDecoder::work(std::istream &stream) {
 
 void NOAAGACDecoder::frame_work(uint16_t *ptr) {
     uint16_t *data = &ptr[103];
-    bool line_ok = true;
+    //bool line_ok = true;
 
     // Parse TIP/AIP frames
     for (size_t i = 0; i < 10; i++) {
         uint8_t frame[104];
-        bool parity_ok = true;
+        //bool parity_ok = true;
 
         for (size_t j = 0; j < 104; j++) {
             uint16_t word = data[104*i + j];
             frame[j] = word >> 2;
 
             // Parity check
-            bool parity = std::bitset<8>(frame[j]).count() % 2;
+            /*bool parity = std::bitset<8>(frame[j]).count() % 2;
             bool expected_parity = std::bitset<16>(word).test(1);
             if (parity != expected_parity) {
                 parity_ok = false;
-            }
+            }*/
         }
 
-        if (!parity_ok) {
+        /*if (!parity_ok) {
             line_ok = false;
             continue;
-        }
+        }*/
 
         if (i < 5) {
             if (tip_work(images, frame)) {
@@ -133,7 +133,7 @@ void NOAAGACDecoder::frame_work(uint16_t *ptr) {
     uint16_t days = repacked[8] >> 1;
     uint32_t ms = (repacked[9] & 0b1111111) << 20 | repacked[10] << 10 | repacked[11];
     timestamp = (double)year + (double)days*86400.0 + (double)ms/1000.0;
-    timestamps[Imager::AVHRR].push_back(line_ok ? timestamp : 0.0);
+    timestamps[Imager::AVHRR].push_back(timestamp);
 
     for (size_t i = 0; i < 3327; i++) {
         ptr[i] *= 64;

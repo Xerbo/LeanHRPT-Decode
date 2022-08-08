@@ -36,7 +36,7 @@ static double str2double(std::string str) {
     return l.toDouble(QString::fromStdString(str));
 }
 
-void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, std::map<std::string, double> caldata) {
+void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, std::map<std::string, double> caldata, double reverse) {
     m_width = image->width();
     m_height = image->rows();
     m_channels = image->channels();
@@ -95,6 +95,11 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
     if (sensor == Imager::MHS || sensor == Imager::HIRS) {
         for(size_t i = 0; i < m_channels; i++) {
             rawChannels[i] = rawChannels[i].mirrored(true, false);
+        }
+    }
+    if (reverse) {
+        for (size_t i = 0; i < m_channels; i++) {
+            rawChannels[i] = rawChannels[i].mirrored(false, true);
         }
     }
 }

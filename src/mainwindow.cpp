@@ -317,7 +317,7 @@ void MainWindow::startDecode(std::string filename) {
 
         compositors[sensor2.first] = new ImageCompositor;
         compositors[sensor2.first]->ch3a = data.ch3a;
-        compositors[sensor2.first]->import(sensor2.second, sat, sensor2.first, data.caldata);
+        compositors[sensor2.first]->import(sensor2.second, sat, sensor2.first, data.caldata, protocol == Protocol::GACReverse);
         float sum = 0.0;
         for (const bool &x : data.ch3a) {
             sum += x;
@@ -354,6 +354,12 @@ void MainWindow::startDecode(std::string filename) {
 
     // Anomaly detection and interpolation
     for (auto &sensor : timestamps) {
+        if (protocol == Protocol::GACReverse) {
+            for (size_t i = 0; i < sensor.second.size()/2; i++) {
+                std::swap(sensor.second[i], sensor.second[(sensor.second.size()-1) - i]);
+            }
+        }
+
         std::vector<double> &timestamp = sensor.second;
         std::vector<double> filtered(timestamp.size());
 
@@ -373,6 +379,9 @@ void MainWindow::startDecode(std::string filename) {
             if (timestamp[i] != 0.0) {
                 last = i;
             }
+        }
+        if (first < 0 || last < 0) {
+            break;
         }
 
         // Average seconds per line over the pass

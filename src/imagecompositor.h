@@ -36,7 +36,7 @@ enum Equalization {
 
 class ImageCompositor {
     public:
-        void import(RawImage *image, SatID satellite, Imager sensor, std::map<std::string, double> caldata);
+        void import(RawImage *image, SatID satellite, Imager sensor, std::map<std::string, double> caldata, double reverse = false);
 
         // Manipulation functions
         void setFlipped(bool state);
