@@ -11,26 +11,27 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "network.h"
 
+#include <QDateTime>
+#include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkReply>
-#include <QFileInfo>
-#include <QDateTime>
-#include <QJsonDocument>
-#include <QJsonArray>
+
 #include "config/config.h"
 
 TLEManager::TLEManager() {
     quint64 time = QDateTime::currentSecsSinceEpoch();
     quint64 modified = QFileInfo(QString::fromStdString(get_temp_dir() + "/weather.txt")).lastModified().toSecsSinceEpoch();
 
-    if (time - modified > 24*60*60) {
+    if (time - modified > 24 * 60 * 60) {
         QNetworkAccessManager *manager = new QNetworkAccessManager();
         QNetworkAccessManager::connect(manager, &QNetworkAccessManager::finished, [this](QNetworkReply *reply) {
             if (reply->error() != QNetworkReply::NoError) {
@@ -61,7 +62,7 @@ void TLEManager::parse(std::string filename) {
     tle.open(QIODevice::ReadOnly | QIODevice::Text);
 
     while (!tle.atEnd()) {
-        std::string name  = tle.readLine().simplified().toStdString();
+        std::string name = tle.readLine().simplified().toStdString();
         std::string line1 = tle.readLine().toStdString();
         std::string line2 = tle.readLine().toStdString();
 

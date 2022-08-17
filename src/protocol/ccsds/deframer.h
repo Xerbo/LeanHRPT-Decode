@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -19,42 +19,43 @@
 #ifndef LEANHRPT_CCSDS_DEFRAMER_H
 #define LEANHRPT_CCSDS_DEFRAMER_H
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
 namespace ccsds {
-    enum SyncMachineState { State0, State1, State2, State3 };
+enum SyncMachineState { State0, State1, State2, State3 };
 
-    using asm_t = uint32_t;
+using asm_t = uint32_t;
 
-    // A deframer based on http://www.sat.cc.ua/data/CADU%20Frame%20Synchro.pdf
-    class Deframer {
-        public:
-            Deframer();
-            ~Deframer();
-            bool work(const uint8_t *in, uint8_t *out, size_t len);
-        private:
-            asm_t shifter;
-            bool asmCompare(asm_t a, asm_t b);
+// A deframer based on http://www.sat.cc.ua/data/CADU%20Frame%20Synchro.pdf
+class Deframer {
+   public:
+    Deframer();
+    ~Deframer();
+    bool work(const uint8_t *in, uint8_t *out, size_t len);
 
-            uint8_t *frameBuffer;
-            uint8_t byteBuffer;
-            unsigned int bufferPosition = 0, bufferBitPosition = 0;
-            void pushByte(uint8_t byte);
-            void pushBit(bool bit);
+   private:
+    asm_t shifter;
+    bool asmCompare(asm_t a, asm_t b);
 
-            SyncMachineState state;
+    uint8_t *frameBuffer;
+    uint8_t byteBuffer;
+    unsigned int bufferPosition = 0, bufferBitPosition = 0;
+    void pushByte(uint8_t byte);
+    void pushBit(bool bit);
 
-            unsigned int bitsWritten;
-            bool writingData;
-            bool invert;
-            unsigned int badFrames;
-            unsigned int goodFrames;
+    SyncMachineState state;
 
-            void startWriting();
-            void enterState(SyncMachineState newState);
-            int skip;
-    };
-}
+    unsigned int bitsWritten;
+    bool writingData;
+    bool invert;
+    unsigned int badFrames;
+    unsigned int goodFrames;
+
+    void startWriting();
+    void enterState(SyncMachineState newState);
+    int skip;
+};
+}  // namespace ccsds
 
 #endif

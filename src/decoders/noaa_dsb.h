@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -19,22 +19,21 @@
 #ifndef NOAA_DSB_H
 #define NOAA_DSB_H
 
-#include "decoder.h"
 #include "common/tip.h"
+#include "decoder.h"
 
 class NOAADSBDecoder : public Decoder {
-    public:
-        NOAADSBDecoder() {
-            images[Imager::HIRS] = new RawImage(56, 20);
+   public:
+    NOAADSBDecoder() { images[Imager::HIRS] = new RawImage(56, 20); }
+
+   private:
+    void work(std::istream &stream) {
+        uint8_t frame[104];
+        if (d_filetype == FileType::TIP) {
+            stream.read((char *)frame, 104);
+            tip_work(images, frame);
         }
-    private:
-        void work(std::istream &stream) {
-            uint8_t frame[104];
-            if (d_filetype == FileType::TIP) {
-                stream.read((char *)frame, 104);
-                tip_work(images, frame);
-            }
-        }
+    }
 };
 
 #endif

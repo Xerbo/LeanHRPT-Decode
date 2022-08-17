@@ -11,44 +11,45 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "huffman.h"
+
 #include <bitset>
 
 // Provides bit level access to an array
 class BitArray {
-	public:
-		BitArray(const uint8_t *data) : d_data(data) { }
+   public:
+    BitArray(const uint8_t *data) : d_data(data) {}
 
-		uint32_t peek(size_t n) {
-			uint32_t result = 0;
-			for (size_t i = 0; i < n; i++) {
-				size_t x = d_pos+i;
+    uint32_t peek(size_t n) {
+        uint32_t result = 0;
+        for (size_t i = 0; i < n; i++) {
+            size_t x = d_pos + i;
 
-				bool bit = std::bitset<8>(d_data[x/8]).test(7 - x%8);	
-				result = result << 1 | bit;
-			}
-			return result;
-		}
+            bool bit = std::bitset<8>(d_data[x / 8]).test(7 - x % 8);
+            result = result << 1 | bit;
+        }
+        return result;
+    }
 
-		void advance(size_t n) {
-			d_pos += n;
-		}
+    void advance(size_t n) { d_pos += n; }
 
-		uint32_t fetch(size_t n) {
-			uint32_t result = peek(n);
-			advance(n);
-			return result;
-		}
-	private:
-		const uint8_t *d_data;
-		size_t d_pos = 0;
+    uint32_t fetch(size_t n) {
+        uint32_t result = peek(n);
+        advance(n);
+        return result;
+    }
+
+   private:
+    const uint8_t *d_data;
+    size_t d_pos = 0;
 };
 
+// clang-format off
 const uint8_t dc_category_len[12] = {
     2, 3, 3, 3, 3, 3, 4, 5, 6, 7, 8, 9
 };
@@ -77,33 +78,39 @@ const uint8_t ac_table[] = {
 	212, 213, 214, 215, 216, 217, 218, 225, 226, 227, 228, 229, 230, 231, 232,
 	233, 234, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250
 };
+// clang-format on
 
 int16_t apply_sign(uint16_t x, uint8_t category) {
     int16_t max = (1 << category) - 1;
 
-	if (std::bitset<16>(x)[category-1]) {
+    if (std::bitset<16>(x)[category - 1]) {
         return x;
     } else {
-		return (int16_t)x - max;
-	}
+        return (int16_t)x - max;
+    }
 }
 
 int get_dc_category(uint16_t word) {
-	if (word >> 14 == 0x0) return 0;
-	switch (word >> 13) {
-		case 0x2: return 1;
-		case 0x3: return 2;
-		case 0x4: return 3;
-		case 0x5: return 4;
-		case 0x6: return 5;
-	}
-	if (word >> 12 == 0xE) return 6;
-	if (word >> 11 == 0x1E) return 7;
-	if (word >> 10 == 0x3E) return 8;
-	if (word >> 9  == 0x7E) return 9;
-	if (word >> 8  == 0xFE) return 10;
-	if (word >> 7  == 0x1FE) return 11;
-	return -1;
+    if (word >> 14 == 0x0) return 0;
+    switch (word >> 13) {
+        case 0x2:
+            return 1;
+        case 0x3:
+            return 2;
+        case 0x4:
+            return 3;
+        case 0x5:
+            return 4;
+        case 0x6:
+            return 5;
+    }
+    if (word >> 12 == 0xE) return 6;
+    if (word >> 11 == 0x1E) return 7;
+    if (word >> 10 == 0x3E) return 8;
+    if (word >> 9 == 0x7E) return 9;
+    if (word >> 8 == 0xFE) return 10;
+    if (word >> 7 == 0x1FE) return 11;
+    return -1;
 }
 
 #define DECOMPRESS(x) apply_sign(b.fetch(x), x)
@@ -125,47 +132,49 @@ bool huffman_decode(const uint8_t *in, std::array<std::array<int16_t, 64>, MCU_P
 
         // Decompress the AC coefficients
         for (size_t j = 1; j < 64; j++) {
-			uint8_t ac_len = 1;
-			uint8_t ac_run = 0;
-			uint8_t ac_category = 0;
+            uint8_t ac_len = 1;
+            uint8_t ac_run = 0;
+            uint8_t ac_category = 0;
 
-			// Extract the AC code
-			// This is adapted from https://github.com/dbdexter-dev/meteor_decode/blob/master/jpeg/huffman.c#L89-L100
-			{uint16_t first_coeff = 0;
-			size_t ac_idx = 0;
-			uint32_t ac_buf = b.peek(32);
-			for (; ac_len < 17; ac_len++) {
-				uint32_t word = ac_buf >> (32-ac_len);
+            // Extract the AC code
+            // This is adapted from https://github.com/dbdexter-dev/meteor_decode/blob/master/jpeg/huffman.c#L89-L100
+            {
+                uint16_t first_coeff = 0;
+                size_t ac_idx = 0;
+                uint32_t ac_buf = b.peek(32);
+                for (; ac_len < 17; ac_len++) {
+                    uint32_t word = ac_buf >> (32 - ac_len);
 
-				// If the coefficient belongs to this range, decompress it
-				if (word - first_coeff < ac_table_size[ac_len]) {
-					uint8_t ac_info = ac_table[ac_idx + word - first_coeff];
-					ac_run = ac_info >> 4;
-					ac_category = ac_info & 0x0F;
-					break;
-				}
+                    // If the coefficient belongs to this range, decompress it
+                    if (word - first_coeff < ac_table_size[ac_len]) {
+                        uint8_t ac_info = ac_table[ac_idx + word - first_coeff];
+                        ac_run = ac_info >> 4;
+                        ac_category = ac_info & 0x0F;
+                        break;
+                    }
 
-				first_coeff = (first_coeff + ac_table_size[ac_len]) << 1;
-				ac_idx += ac_table_size[ac_len];
-			}}
+                    first_coeff = (first_coeff + ac_table_size[ac_len]) << 1;
+                    ac_idx += ac_table_size[ac_len];
+                }
+            }
 
             b.advance(ac_len);
 
             if (ac_run == 0 && ac_category == 0) {
-				// Fill the rest of this block
-				for (; j < 64; j++) {
-					out[i][j] = 0;
-				}
+                // Fill the rest of this block
+                for (; j < 64; j++) {
+                    out[i][j] = 0;
+                }
             } else {
-				// Sanity check
-				if (j+ac_run >= 64) return false;
+                // Sanity check
+                if (j + ac_run >= 64) return false;
 
-				// The actual decompression
-				for (size_t x = 0; x < ac_run; x++) {
-					out[i][j++] = 0;
-				}
-				out[i][j] = DECOMPRESS(ac_category);
-			}
+                // The actual decompression
+                for (size_t x = 0; x < ac_run; x++) {
+                    out[i][j++] = 0;
+                }
+                out[i][j] = DECOMPRESS(ac_category);
+            }
         }
     }
 

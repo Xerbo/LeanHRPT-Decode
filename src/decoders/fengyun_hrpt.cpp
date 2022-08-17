@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -44,7 +44,7 @@ void FengyunHRPTDecoder::frame_work(uint8_t *ptr) {
 
             uint16_t days = (timestamp[1] & 0b11) << 10 | timestamp[2] << 2 | timestamp[3] >> 6;
             uint32_t ms = (timestamp[3] & 0b11) << 24 | timestamp[4] << 16 | timestamp[6] << 8 | timestamp[7];
-            timestamps[Imager::VIRR].push_back(launch_timestamp + days*86400.0 + ms/1000.0 + 12.0*3600.0);
+            timestamps[Imager::VIRR].push_back(launch_timestamp + days * 86400.0 + ms / 1000.0 + 12.0 * 3600.0);
 
             images[Imager::VIRR]->push10Bit(line, 349);
         }

@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -19,41 +19,39 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <cmath>
-#include <array>
-
-#include <QMainWindow>
-#include <QUrl>
-#include <QMessageBox>
-#include <QDesktopServices>
-#include <QGraphicsView>
-#include <QFutureWatcher>
-#include <QShortcut>
-#include <QString>
 #include <QActionGroup>
 #include <QColorDialog>
+#include <QDesktopServices>
+#include <QFutureWatcher>
+#include <QGraphicsView>
+#include <QMainWindow>
+#include <QMessageBox>
+#include <QShortcut>
+#include <QString>
+#include <QUrl>
+#include <array>
+#include <cmath>
 
-#include "projectdialog.h"
-#include "fingerprint.h"
-#include "decoders/decoder.h"
-#include "imagecompositor.h"
-#include "config/preset.h"
 #include "config/gradient.h"
-#include "satinfo.h"
+#include "config/preset.h"
+#include "decoders/decoder.h"
+#include "fingerprint.h"
+#include "imagecompositor.h"
 #include "network.h"
+#include "projectdialog.h"
 #include "projection.h"
+#include "satinfo.h"
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
+namespace Ui {
+class MainWindow;
+}
 QT_END_NAMESPACE
 
-enum WindowState {
-    Idle,
-    Decoding,
-    Finished
-};
+enum WindowState { Idle, Decoding, Finished };
 
-#define ABOUT_TEXT "<h2>LeanHRPT Decode</h2>\
+#define ABOUT_TEXT \
+    "<h2>LeanHRPT Decode</h2>\
 A high quality, easy to use HRPT decoder\
 <ul>\
 <li><code>Ctrl++</code> Zoom in</li>\
@@ -65,148 +63,155 @@ Licensed under GPL-3.0.\
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
-    public:
-        MainWindow(QWidget *parent = nullptr);
-        ~MainWindow();
-    private:
-        void closeEvent(QCloseEvent *event);
+   public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
 
-        Ui::MainWindow *ui;
-        void setState(WindowState state);
+   private:
+    void closeEvent(QCloseEvent *event);
 
-        // Shortcuts
-        QShortcut *zoomIn;
-        QShortcut *zoomOut;
+    Ui::MainWindow *ui;
+    void setState(WindowState state);
 
-        std::map<Imager, ImageCompositor *> compositors;
-        QImage display;
-        QGraphicsScene *scene;
+    // Shortcuts
+    QShortcut *zoomIn;
+    QShortcut *zoomOut;
 
-        // Presets
-        void reloadPresets();
-        PresetManager manager;
-        std::map<std::string, Preset> selected_presets;
+    std::map<Imager, ImageCompositor *> compositors;
+    QImage display;
+    QGraphicsScene *scene;
 
-        // User settings
-        float clip_limit = 1.0f;
-        size_t selectedChannel = 1;
-        std::array<size_t, 3> selectedComposite;
-        Equalization selectedEqualization = None;
+    // Presets
+    void reloadPresets();
+    PresetManager manager;
+    std::map<std::string, Preset> selected_presets;
 
-        // Satellite meta information
-        SatID sat;
-        int previousTabIndex = 0;
+    // User settings
+    float clip_limit = 1.0f;
+    size_t selectedChannel = 1;
+    std::array<size_t, 3> selectedComposite;
+    Equalization selectedEqualization = None;
 
-        // Orbit information
-        ProjectDialog *project_diag;
-        TLEManager tle_manager;
-        Projector *proj;
-        bool have_tles;
-        QColorDialog *color_dialog;
-        QColor map_color = QColor(255,255,0);
-        QString map_shapefile;
+    // Satellite meta information
+    SatID sat;
+    int previousTabIndex = 0;
 
-        // Sensor selection
-        Imager sensor;
-        Imager default_sensor;
-        QActionGroup *sensor_select;
-        std::map<std::string, QAction *> sensor_actions;
+    // Orbit information
+    ProjectDialog *project_diag;
+    TLEManager tle_manager;
+    Projector *proj;
+    bool have_tles;
+    QColorDialog *color_dialog;
+    QColor map_color = QColor(255, 255, 0);
+    QString map_shapefile;
 
-        // Decoding
-        QFutureWatcher<void> *decodeWatcher;
-        Decoder *decoder = nullptr;
-        Fingerprint *fingerprinter = nullptr;
-        QLabel *status;
-        QPushButton *cancel_button;
-        bool clean_up = false;
+    // Sensor selection
+    Imager sensor;
+    Imager default_sensor;
+    QActionGroup *sensor_select;
+    std::map<std::string, QAction *> sensor_actions;
 
-        // Gradients
-        GradientManager *gradient_manager;
+    // Decoding
+    QFutureWatcher<void> *decodeWatcher;
+    Decoder *decoder = nullptr;
+    Fingerprint *fingerprinter = nullptr;
+    QLabel *status;
+    QPushButton *cancel_button;
+    bool clean_up = false;
 
-        // Internal
-        void incrementZoom(int amount);
-        void startDecode(std::string filename);
-        void decodeFinished();
-        void get_source(QImage &image);
-        void updateDisplay();
-        void populateChannelSelectors(size_t channels);
+    // Gradients
+    GradientManager *gradient_manager;
 
-        // Sets the contents of a QGraphicsScene to a QImage
-        static void displayQImage(QGraphicsScene *scene, QImage &image) {
-            scene->clear();
-            scene->setSceneRect(0, 0, image.width(), image.height());
-            scene->addPixmap(QPixmap::fromImage(image, Qt::NoFormatConversion));
-        };
+    // Internal
+    void incrementZoom(int amount);
+    void startDecode(std::string filename);
+    void decodeFinished();
+    void get_source(QImage &image);
+    void updateDisplay();
+    void populateChannelSelectors(size_t channels);
 
-        // Channel
-        void setChannel(int sensor_channel);
+    // Sets the contents of a QGraphicsScene to a QImage
+    static void displayQImage(QGraphicsScene *scene, QImage &image) {
+        scene->clear();
+        scene->setSceneRect(0, 0, image.width(), image.height());
+        scene->addPixmap(QPixmap::fromImage(image, Qt::NoFormatConversion));
+    };
 
-        // Composite
-        void setCompositeChannel(int channel, int sensor_channel);
-        void setComposite(std::array<size_t, 3> channels);
+    // Channel
+    void setChannel(int sensor_channel);
 
-        // Equalization
-        void setEqualization(Equalization type);
+    // Composite
+    void setCompositeChannel(int channel, int sensor_channel);
+    void setComposite(std::array<size_t, 3> channels);
 
-        // Image saving
-        bool savingImage = false;
-        void saveAllChannels();
-        QString getDefaultFilename();
-        void saveCurrentImage(bool corrected);
+    // Equalization
+    void setEqualization(Equalization type);
 
-        // GCP Saving
-        void save_gcp();
-        std::map<Imager, std::vector<double>> timestamps;
-        double pass_timestamp;
-    protected:
-        void dragEnterEvent(QDragEnterEvent *e);
-        void dropEvent(QDropEvent *e);
-    private slots:
-        // menuFile
-        void on_actionOpen_triggered();
-        void on_actionSave_Current_Image_triggered()           { saveCurrentImage(false); };
-        void on_actionSave_Current_Image_Corrected_triggered() { saveCurrentImage(true); };
-        void on_actionSave_All_Channels_triggered()            { saveAllChannels(); };
-        void on_actionSave_GCP_File_triggered()                { save_gcp(); };
-        // menuGeo
-        void on_actionProjector_triggered() { project_diag->show(); };
-        void on_actionMap_Shapefile_triggered();
-        void on_actionMap_Color_triggered() { color_dialog->show(); };
-        void on_actionEnable_Map_triggered();
-        // menuOptions
-        void on_actionFlip_triggered();
-        void on_actionIR_Blend_triggered();
-        // menuHelp
-        void on_actionDocumentation_triggered()  { QDesktopServices::openUrl(QUrl("https://github.com/Xerbo/LeanHRPT-Decode/wiki")); };
-        void on_actionIssue_Tracker_triggered()  { QDesktopServices::openUrl(QUrl("https://github.com/Xerbo/LeanHRPT-Decode/issues")); };
-        void on_actionAbout_LeanHRPT_triggered() { QMessageBox::about(this, "About LeanHRPT", QString("%1\nVersion: %2").arg(ABOUT_TEXT).arg(VERSION)); };
-        void on_actionAbout_Qt_triggered()       { QMessageBox::aboutQt(this, "About Qt"); };
+    // Image saving
+    bool savingImage = false;
+    void saveAllChannels();
+    QString getDefaultFilename();
+    void saveCurrentImage(bool corrected);
 
-        // Channel selectors
-        void on_channelSelector_activated(int index) { setChannel(index); };
-        void on_redSelector_activated(int index)     { setCompositeChannel(0, index); };
-        void on_greenSelector_activated(int index)   { setCompositeChannel(1, index); };
-        void on_blueSelector_activated(int index)    { setCompositeChannel(2, index); };
+    // GCP Saving
+    void save_gcp();
+    std::map<Imager, std::vector<double>> timestamps;
+    double pass_timestamp;
 
-        // Equalization
-        void on_equalisationNone_clicked()      { setEqualization(Equalization::None); };
-        void on_equalisationStretch_clicked()   { setEqualization(Equalization::Stretch); };
-        void on_equalisationHistogram_clicked() { setEqualization(Equalization::Histogram); };
+   protected:
+    void dragEnterEvent(QDragEnterEvent *e);
+    void dropEvent(QDropEvent *e);
+   private slots:
+    // menuFile
+    void on_actionOpen_triggered();
+    void on_actionSave_Current_Image_triggered() { saveCurrentImage(false); };
+    void on_actionSave_Current_Image_Corrected_triggered() { saveCurrentImage(true); };
+    void on_actionSave_All_Channels_triggered() { saveAllChannels(); };
+    void on_actionSave_GCP_File_triggered() { save_gcp(); };
+    // menuGeo
+    void on_actionProjector_triggered() { project_diag->show(); };
+    void on_actionMap_Shapefile_triggered();
+    void on_actionMap_Color_triggered() { color_dialog->show(); };
+    void on_actionEnable_Map_triggered();
+    // menuOptions
+    void on_actionFlip_triggered();
+    void on_actionIR_Blend_triggered();
+    // menuHelp
+    void on_actionDocumentation_triggered() { QDesktopServices::openUrl(QUrl("https://github.com/Xerbo/LeanHRPT-Decode/wiki")); };
+    void on_actionIssue_Tracker_triggered() {
+        QDesktopServices::openUrl(QUrl("https://github.com/Xerbo/LeanHRPT-Decode/issues"));
+    };
+    void on_actionAbout_LeanHRPT_triggered() {
+        QMessageBox::about(this, "About LeanHRPT", QString("%1\nVersion: %2").arg(ABOUT_TEXT).arg(VERSION));
+    };
+    void on_actionAbout_Qt_triggered() { QMessageBox::aboutQt(this, "About Qt"); };
 
-        void on_zoomSelector_activated(int index);
-        void on_imageTabs_currentChanged(int index);
-        void on_presetSelector_activated(QString text);
-        void on_presetReload_clicked() { manager.reload(); reloadPresets(); };
-        void on_gradient_textActivated(const QString &text);
+    // Channel selectors
+    void on_channelSelector_activated(int index) { setChannel(index); };
+    void on_redSelector_activated(int index) { setCompositeChannel(0, index); };
+    void on_greenSelector_activated(int index) { setCompositeChannel(1, index); };
+    void on_blueSelector_activated(int index) { setCompositeChannel(2, index); };
 
-        // https://www.desmos.com/calculator/ercsdr9hrq
-        void on_contrastLimit_valueChanged(int value) {
-            clip_limit = std::log10(value/100.0f*0.9 + 0.1)+1.0f;
-            setEqualization(selectedEqualization);
-        };
-        void on_brightnessOnly_stateChanged() {
-            setEqualization(selectedEqualization);
-        }
+    // Equalization
+    void on_equalisationNone_clicked() { setEqualization(Equalization::None); };
+    void on_equalisationStretch_clicked() { setEqualization(Equalization::Stretch); };
+    void on_equalisationHistogram_clicked() { setEqualization(Equalization::Histogram); };
+
+    void on_zoomSelector_activated(int index);
+    void on_imageTabs_currentChanged(int index);
+    void on_presetSelector_activated(QString text);
+    void on_presetReload_clicked() {
+        manager.reload();
+        reloadPresets();
+    };
+    void on_gradient_textActivated(const QString &text);
+
+    // https://www.desmos.com/calculator/ercsdr9hrq
+    void on_contrastLimit_valueChanged(int value) {
+        clip_limit = std::log10(value / 100.0f * 0.9 + 0.1) + 1.0f;
+        setEqualization(selectedEqualization);
+    };
+    void on_brightnessOnly_stateChanged() { setEqualization(selectedEqualization); }
 };
 
-#endif // MAINWINDOW_H
+#endif  // MAINWINDOW_H

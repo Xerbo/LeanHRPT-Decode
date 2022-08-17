@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -19,28 +19,30 @@
 #ifndef QPALETTEVIEW_H
 #define QPALETTEVIEW_H
 
-#include <QWidget>
 #include <QPainter>
+#include <QWidget>
+
 #include "math.h"
 
 class QPaletteView : public QWidget {
-    public:
-        QPaletteView([[maybe_unused]] QWidget *parent) { }
-        std::vector<QColor> stops;
-    private:
-        virtual void paintEvent([[maybe_unused]] QPaintEvent* p) override {
-            QPainter painter(this);
-            painter.fillRect(0, 0, width(), height(), QColor(0, 0, 0));
-            if (stops.size() == 0) return;
+   public:
+    QPaletteView([[maybe_unused]] QWidget* parent) {}
+    std::vector<QColor> stops;
 
-            for (size_t x = 0; x < (size_t)width(); x++) {
-                double i = (double)x/(double)(width()-1) * (stops.size()-1);
-                QColor color = lerp(stops[floor(i)], stops[ceil(i)], fmod(i, 1.0));
+   private:
+    virtual void paintEvent([[maybe_unused]] QPaintEvent* p) override {
+        QPainter painter(this);
+        painter.fillRect(0, 0, width(), height(), QColor(0, 0, 0));
+        if (stops.size() == 0) return;
 
-                painter.setPen(color);
-                painter.drawLine(x, 0, x, height());
-            }
+        for (size_t x = 0; x < (size_t)width(); x++) {
+            double i = (double)x / (double)(width() - 1) * (stops.size() - 1);
+            QColor color = lerp(stops[floor(i)], stops[ceil(i)], fmod(i, 1.0));
+
+            painter.setPen(color);
+            painter.drawLine(x, 0, x, height());
         }
+    }
 };
 
 #endif

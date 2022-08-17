@@ -73,6 +73,14 @@ struct SensorInfo {
     size_t width;
 };
 
+struct SatelliteInfo {
+    float orbit_height; // in km
+    Mission mission;
+    std::string name;
+    Imager default_imager;
+};
+
+// clang-format off
 const std::map<Imager, SensorInfo> sensor_info = {
     { Imager::AVHRR, SensorInfo {"AVHRR",  2900.0f, 1.1f,  2048 } },
     { Imager::VIRR,  SensorInfo {"VIRR",   2800.0f, 1.1f,  2048 } },
@@ -91,13 +99,6 @@ const std::map<std::string, Imager> sensors = {
     { "HIRS",   Imager::HIRS },
 };
 
-struct SatelliteInfo {
-    float orbit_height; // in km
-    Mission mission;
-    std::string name;
-    Imager default_imager;
-};
-
 const std::map<SatID, SatelliteInfo> satellite_info {
     { SatID::MetOpA,    SatelliteInfo { 827.0f, Mission::MetOp,    "MetOp-A",    Imager::AVHRR } },
     { SatID::MetOpB,    SatelliteInfo { 827.0f, Mission::MetOp,    "MetOp-B",    Imager::AVHRR } },
@@ -111,5 +112,6 @@ const std::map<SatID, SatelliteInfo> satellite_info {
     { SatID::MeteorM2,  SatelliteInfo { 820.0f, Mission::MeteorM,  "Meteor-M2",  Imager::MSUMR } },
     { SatID::MeteorM22, SatelliteInfo { 821.0f, Mission::MeteorM,  "Meteor-M22", Imager::MSUMR } },
 };
+// clang-format on
 
 #endif

@@ -11,16 +11,17 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "meteor_lrpt.h"
 
-#include "protocol/lrpt/packet.h"
-#include <cstring>
 #include <cmath>
+#include <cstring>
+
+#include "protocol/lrpt/packet.h"
 
 void MeteorLRPTDecoder::work(std::istream &stream) {
     if (d_filetype == FileType::CADU) {
@@ -41,47 +42,47 @@ void MeteorLRPTDecoder::frame_work() {
         ccsds::CPPDUHeader header(packet);
         if (start_offset == 0) {
             if (header.apid == 70) {
-                start_offset = header.counter+1;
+                start_offset = header.counter + 1;
             }
             continue;
         }
         if (header.apid < 64 || header.apid > 69) continue;
 
         // Sanity check
-        uint8_t seq = packet[6+8];
+        uint8_t seq = packet[6 + 8];
         if (seq > 196) continue;
 
         // Current day (always zero)
-        //uint16_t day = packet[6+0] << 8 | packet[6+1]; 
+        // uint16_t day = packet[6+0] << 8 | packet[6+1];
         // Millisecond of day
-        uint32_t timestamp = packet[6+2] << 24 | packet[6+3] << 16 | packet[6+4] << 8 | packet[6+5];
+        uint32_t timestamp = packet[6 + 2] << 24 | packet[6 + 3] << 16 | packet[6 + 4] << 8 | packet[6 + 5];
 
         // JPEG decoding
         std::array<jpeg::block<uint8_t>, MCU_PER_PACKET> pixels;
-        uint8_t q = packet[6+13];
-        if (!lrpt::decode_packet(pixels, &packet[6+14], q, header.length-6)) continue;
+        uint8_t q = packet[6 + 13];
+        if (!lrpt::decode_packet(pixels, &packet[6 + 14], q, header.length - 6)) continue;
 
         // Handle counter overflow
-        if (last_counter > (size_t)header.counter+8192) {
-            counter_offset += 16384; // 2^14
+        if (last_counter > (size_t)header.counter + 8192) {
+            counter_offset += 16384;  // 2^14
         }
 
-        size_t counter = header.counter+counter_offset - start_offset;
+        size_t counter = header.counter + counter_offset - start_offset;
         for (size_t j = 0; j < MCU_PER_PACKET; j++) {
             for (size_t y = 0; y < 8; y++) {
                 for (size_t x = 0; x < 8; x++) {
-                    size_t x1 = x + (j+seq)*8;
-                    size_t y1 = counter/(14*3 + 1) * 8 + y;
+                    size_t x1 = x + (j + seq) * 8;
+                    size_t y1 = counter / (14 * 3 + 1) * 8 + y;
 
                     if (y == 0) {
-                        time_t day = created/86400 * 86400;
-                        timestamps[Imager::MSUMR].resize(y1+1);
-                        timestamps[Imager::MSUMR][y1] = (double)day + (double)timestamp/1000.0 - 10800.0;
+                        time_t day = created / 86400 * 86400;
+                        timestamps[Imager::MSUMR].resize(y1 + 1);
+                        timestamps[Imager::MSUMR][y1] = (double)day + (double)timestamp / 1000.0 - 10800.0;
                     }
-                    images[Imager::MSUMR]->set_height(y1+1);
+                    images[Imager::MSUMR]->set_height(y1 + 1);
                     unsigned short *ch = images[Imager::MSUMR]->getChannel(header.apid - 64);
 
-                    ch[y1*1568 + x1] = pixels[j][y][x] * 256;
+                    ch[y1 * 1568 + x1] = pixels[j][y][x] * 256;
                 }
             }
         }

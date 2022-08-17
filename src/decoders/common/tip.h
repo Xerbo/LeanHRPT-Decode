@@ -11,16 +11,17 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "satinfo.h"
+#include <bitset>
+#include <map>
+
 #include "protocol/rawimage.h"
 #include "protocol/repack.h"
-#include <map>
-#include <bitset>
+#include "satinfo.h"
 
 #ifndef TIP_H
 #define TIP_H
@@ -31,7 +32,7 @@ inline bool tip_parity(const uint8_t *frame) {
     for (size_t i = 0; i < 6; i++) {
         size_t parity = 0;
         for (size_t j = 0; j < 17; j++) {
-            parity += std::bitset<8>(frame[2 + i*17 + j]).count();
+            parity += std::bitset<8>(frame[2 + i * 17 + j]).count();
         }
 
         // Remove last bit on block 5
@@ -39,7 +40,7 @@ inline bool tip_parity(const uint8_t *frame) {
             parity -= std::bitset<8>(frame[103]).test(0);
         }
 
-        if ((parity % 2) != std::bitset<8>(frame[103]).test(5-i)) {
+        if ((parity % 2) != std::bitset<8>(frame[103]).test(5 - i)) {
             ok = false;
         }
     }
@@ -49,8 +50,9 @@ inline bool tip_parity(const uint8_t *frame) {
 
 inline bool tip_work(std::map<Imager, RawImage *> &images, const uint8_t *frame) {
     // These are taken from the NOAA KLM Users Guide
-    const size_t offsets[36] = { 16, 17, 22, 23, 26, 27, 30, 31, 34, 35, 38, 39, 42, 43, 54, 55, 58, 59, 62, 63, 66, 67, 70, 71, 74, 75, 78, 79, 82, 83, 84, 85, 88, 89, 92, 93 };
-    const size_t channels[20] = { 1, 17, 2, 3, 13, 4, 18, 11, 19, 7, 8, 20, 10, 14, 6, 5, 15, 12, 16, 9 };
+    const size_t offsets[36] = {16, 17, 22, 23, 26, 27, 30, 31, 34, 35, 38, 39, 42, 43, 54, 55, 58, 59,
+                                62, 63, 66, 67, 70, 71, 74, 75, 78, 79, 82, 83, 84, 85, 88, 89, 92, 93};
+    const size_t channels[20] = {1, 17, 2, 3, 13, 4, 18, 11, 19, 7, 8, 20, 10, 14, 6, 5, 15, 12, 16, 9};
 
     // Extract HIRS/4 data
     uint8_t packet[36];
@@ -66,13 +68,13 @@ inline bool tip_work(std::map<Imager, RawImage *> &images, const uint8_t *frame)
     if (element_number > 55) return false;
 
     for (size_t j = 0; j < 20; j++) {
-        unsigned short *channel = images[Imager::HIRS]->getChannel(channels[j]-1);
+        unsigned short *channel = images[Imager::HIRS]->getChannel(channels[j] - 1);
 
-        bool sign_bit = words[j+2] >> 12;
-        int16_t val = words[j+2] & 0b111111111111;
+        bool sign_bit = words[j + 2] >> 12;
+        int16_t val = words[j + 2] & 0b111111111111;
         val = sign_bit ? val : -val;
 
-        channel[images[Imager::HIRS]->rows()*images[Imager::HIRS]->width() + element_number] = val*8 + 32768;
+        channel[images[Imager::HIRS]->rows() * images[Imager::HIRS]->width() + element_number] = val * 8 + 32768;
     }
 
     // New line

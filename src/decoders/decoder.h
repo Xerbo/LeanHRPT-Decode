@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -19,14 +19,14 @@
 #ifndef LEANHRPT_DECODERS_DECODER_H
 #define LEANHRPT_DECODERS_DECODER_H
 
-#include <istream>
-#include <fstream>
-#include <atomic>
-#include <QFileInfo>
 #include <QDateTime>
+#include <QFileInfo>
+#include <atomic>
+#include <fstream>
+#include <istream>
 
-#include "satinfo.h"
 #include "protocol/rawimage.h"
+#include "satinfo.h"
 
 #define BUFFER_SIZE 1024
 
@@ -37,85 +37,69 @@ struct Data {
     std::vector<bool> ch3a;
 };
 
-enum class FileType {
-    Raw,
-    CADU,
-    VCDU,
-    raw16,
-    HRP,
-    TIP,
-    Unknown
-};
+enum class FileType { Raw, CADU, VCDU, raw16, HRP, TIP, Unknown };
 
 class Decoder {
-    public:
-        Decoder() : is_running(true) {
-            buffer = new uint8_t[BUFFER_SIZE];
+   public:
+    Decoder() : is_running(true) { buffer = new uint8_t[BUFFER_SIZE]; }
+    virtual ~Decoder() {
+        for (auto image : images) {
+            delete image.second;
         }
-        virtual ~Decoder() {
-            for (auto image : images) {
-                delete image.second;
-            }
-            delete[] buffer;
-        }
+        delete[] buffer;
+    }
 
-        bool decodeFile(std::string filename, FileType filetype) {
-            d_filetype = filetype;
-            std::filebuf file;
-            if (!file.open(filename, std::ios::in | std::ios::binary)) {
-                return false;
-            }
-            std::istream stream(&file);
-            get_filesize(stream);
-            QDateTime _created = QFileInfo(QString::fromStdString(filename)).birthTime().toUTC();
-            if (!_created.isValid()) _created = QFileInfo(QString::fromStdString(filename)).lastModified().toUTC();
-            if (!_created.isValid()) _created = QDateTime::currentDateTimeUtc();
-            created = _created.toSecsSinceEpoch();
-
-            while (is_running && !stream.eof()) {
-                work(stream);
-                read = stream.tellg();
-            }
-
-            file.close();
-            return true;
+    bool decodeFile(std::string filename, FileType filetype) {
+        d_filetype = filetype;
+        std::filebuf file;
+        if (!file.open(filename, std::ios::in | std::ios::binary)) {
+            return false;
         }
-        float progress() {
-            return static_cast<float>(read) / static_cast<float>(filesize);
-        }
-        void stop() {
-            is_running = false;
+        std::istream stream(&file);
+        get_filesize(stream);
+        QDateTime _created = QFileInfo(QString::fromStdString(filename)).birthTime().toUTC();
+        if (!_created.isValid()) _created = QFileInfo(QString::fromStdString(filename)).lastModified().toUTC();
+        if (!_created.isValid()) _created = QDateTime::currentDateTimeUtc();
+        created = _created.toSecsSinceEpoch();
+
+        while (is_running && !stream.eof()) {
+            work(stream);
+            read = stream.tellg();
         }
 
-        Data get() {
-            return { images, timestamps, caldata, ch3a };
-        }
+        file.close();
+        return true;
+    }
+    float progress() { return static_cast<float>(read) / static_cast<float>(filesize); }
+    void stop() { is_running = false; }
 
-        static Decoder *make(Protocol protocol, SatID sat);
+    Data get() { return {images, timestamps, caldata, ch3a}; }
 
-    protected:
-        uint8_t *buffer;
-        std::map<Imager, RawImage *> images;
-        std::map<Imager, std::vector<double>> timestamps;
-        std::map<std::string, double> caldata;
-        std::vector<bool> ch3a;
-        virtual void work(std::istream &stream)=0;
-        FileType d_filetype;
-        time_t created;
+    static Decoder *make(Protocol protocol, SatID sat);
 
-    private:
-        std::atomic<bool> is_running;
-        size_t read = 0;
-        size_t filesize = 1;
+   protected:
+    uint8_t *buffer;
+    std::map<Imager, RawImage *> images;
+    std::map<Imager, std::vector<double>> timestamps;
+    std::map<std::string, double> caldata;
+    std::vector<bool> ch3a;
+    virtual void work(std::istream &stream) = 0;
+    FileType d_filetype;
+    time_t created;
 
-        void get_filesize(std::istream &stream) {
-            // Get filesize
-            stream.seekg(0, std::ios::end);
-            filesize = stream.tellg();
+   private:
+    std::atomic<bool> is_running;
+    size_t read = 0;
+    size_t filesize = 1;
 
-            // Seek back to the beginning
-            stream.seekg(stream.beg);
-        }
+    void get_filesize(std::istream &stream) {
+        // Get filesize
+        stream.seekg(0, std::ios::end);
+        filesize = stream.tellg();
+
+        // Seek back to the beginning
+        stream.seekg(stream.beg);
+    }
 };
 
 #endif

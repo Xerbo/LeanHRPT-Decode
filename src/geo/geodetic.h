@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -27,14 +27,10 @@ struct Geodetic {
     double longitude;
     double altitude;
 
-    public:
-        Geodetic(double lat, double lon, double alt)
-            : latitude(lat),
-              longitude(lon),
-              altitude(alt) { }
+   public:
+    Geodetic(double lat, double lon, double alt) : latitude(lat), longitude(lon), altitude(alt) {}
 
-        Geodetic(const predict_position &position) 
-            : Geodetic(position.latitude, position.longitude, position.altitude) { }
+    Geodetic(const predict_position &position) : Geodetic(position.latitude, position.longitude, position.altitude) {}
 };
 
 #endif

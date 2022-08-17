@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -19,9 +19,9 @@
 #ifndef GRADIENT_H
 #define GRADIENT_H
 
-#include <string>
 #include <QString>
 #include <map>
+#include <string>
 
 #include "config.h"
 
@@ -31,26 +31,24 @@ struct Gradient {
 };
 
 class GradientManager {
-    public:
-        GradientManager() {
-            reload();
-        }
-        void reload() {
-            Config ini("gradients.ini");
-            gradients.clear();
+   public:
+    GradientManager() { reload(); }
+    void reload() {
+        Config ini("gradients.ini");
+        gradients.clear();
 
-            for (auto &i : ini.sections) {
-                std::vector<QColor> stops;
+        for (auto &i : ini.sections) {
+            std::vector<QColor> stops;
 
-                for (const auto &x : QString::fromStdString(i.second["map"]).split(",")) {
-                    stops.push_back(QColor("#" + x));
-                }
-
-                gradients.insert({i.first, Gradient{i.second["author"], stops}});
+            for (const auto &x : QString::fromStdString(i.second["map"]).split(",")) {
+                stops.push_back(QColor("#" + x));
             }
-        }
 
-        std::map<std::string, Gradient> gradients;
+            gradients.insert({i.first, Gradient{i.second["author"], stops}});
+        }
+    }
+
+    std::map<std::string, Gradient> gradients;
 };
 
 #endif

@@ -11,28 +11,27 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "mainwindow.h"
-#include "projectdialog.h"
-#include "qt/ui_mainwindow.h"
 
-#include <QPushButton>
-#include <QFileDialog>
-#include <QtConcurrent/QtConcurrent>
-#include <QScrollBar>
-#include <QProgressBar>
 #include <QCloseEvent>
 #include <QDropEvent>
+#include <QFileDialog>
 #include <QMimeData>
-#include "map.h"
-
-#include "math.h"
+#include <QProgressBar>
+#include <QPushButton>
+#include <QScrollBar>
+#include <QtConcurrent/QtConcurrent>
 
 #include "decoders/decoder.h"
+#include "map.h"
+#include "math.h"
+#include "projectdialog.h"
+#include "qt/ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ui = new Ui::MainWindow;
@@ -45,19 +44,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ui->presetView->setScene(scene);
 
     // Keyboard shortcuts
-    zoomIn  = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Plus),  this);
+    zoomIn = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Plus), this);
     zoomOut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus), this);
 
-    QShortcut::connect(zoomIn,  &QShortcut::activated, std::bind(&MainWindow::incrementZoom, this,  1));
+    QShortcut::connect(zoomIn, &QShortcut::activated, std::bind(&MainWindow::incrementZoom, this, 1));
     QShortcut::connect(zoomOut, &QShortcut::activated, std::bind(&MainWindow::incrementZoom, this, -1));
 
     // Status bar
     status = new QLabel();
-    QLabel::connect(status, &QLabel::linkActivated, [this](const QString &link) {
-        QDesktopServices::openUrl(QUrl(link));
-    });
+    QLabel::connect(status, &QLabel::linkActivated, [this](const QString &link) { QDesktopServices::openUrl(QUrl(link)); });
     ui->statusbar->addPermanentWidget(status, 1);
-    QProgressBar * _progressBar = new QProgressBar();
+    QProgressBar *_progressBar = new QProgressBar();
     _progressBar->setRange(0, 100);
     _progressBar->setValue(0);
     _progressBar->setTextVisible(false);
@@ -85,12 +82,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     QTimer *timer = new QTimer(this);
     QTimer::connect(timer, &QTimer::timeout, this, [this, _progressBar]() {
         if (decoder != nullptr) {
-            _progressBar->setValue(decoder->progress()*100.0f);
+            _progressBar->setValue(decoder->progress() * 100.0f);
         } else {
             _progressBar->setValue(0);
         }
     });
-    timer->start(1000.0f/30.0f);
+    timer->start(1000.0f / 30.0f);
 
     // Decoding
     decodeWatcher = new QFutureWatcher<void>(this);
@@ -119,24 +116,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         return copy;
     });
     ProjectDialog::connect(project_diag, &ProjectDialog::get_points, [this](size_t n) -> std::vector<std::pair<xy, Geodetic>> {
-        size_t width  = compositors[sensor]->width();
+        size_t width = compositors[sensor]->width();
         size_t height = compositors[sensor]->height();
-        size_t y = round((double)height/(double)width * (double)n);
+        size_t y = round((double)height / (double)width * (double)n);
 
         return proj->calculate_gcps(timestamps[sensor], y, n, sensor, sat, width);
     });
-    ProjectDialog::connect(project_diag, &ProjectDialog::map_shapefile, [this]() -> QString {
-        return map_shapefile;
-    });
-    ProjectDialog::connect(project_diag, &ProjectDialog::map_color, [this]() -> QColor {
-        return map_color;
-    });
-    ProjectDialog::connect(project_diag, &ProjectDialog::map_enable, [this]() -> bool {
-        return ui->actionEnable_Map->isChecked();
-    });
-    ProjectDialog::connect(project_diag, &ProjectDialog::default_filename, [this]() -> QString {
-        return getDefaultFilename();
-    });
+    ProjectDialog::connect(project_diag, &ProjectDialog::map_shapefile, [this]() -> QString { return map_shapefile; });
+    ProjectDialog::connect(project_diag, &ProjectDialog::map_color, [this]() -> QColor { return map_color; });
+    ProjectDialog::connect(project_diag, &ProjectDialog::map_enable,
+                           [this]() -> bool { return ui->actionEnable_Map->isChecked(); });
+    ProjectDialog::connect(project_diag, &ProjectDialog::default_filename, [this]() -> QString { return getDefaultFilename(); });
 
     UpdateChecker *update_checker = new UpdateChecker();
     UpdateChecker::connect(update_checker, &UpdateChecker::updateAvailable, [this](QString url) {
@@ -174,9 +164,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     }
 }
 
-MainWindow::~MainWindow() {
-    delete ui;
-}
+MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
     if (savingImage) {
@@ -226,13 +214,14 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 }
 
 void MainWindow::incrementZoom(int amount) {
-    int newIndex = clamp(ui->zoomSelector->currentIndex() + amount, 0, ui->zoomSelector->count()-1);
+    int newIndex = clamp(ui->zoomSelector->currentIndex() + amount, 0, ui->zoomSelector->count() - 1);
     ui->zoomSelector->setCurrentIndex(newIndex);
     on_zoomSelector_activated(newIndex);
 }
 
 void MainWindow::setState(WindowState state) {
-    QWidget *items[] = { ui->groupBox, ui->menuGeo, ui->menuGeo, ui->menuOptions, ui->menuSensor, ui->stackedOptions, ui->zoomSelectorBox, ui->imageTabs, ui->gradientBox };
+    QWidget *items[] = {ui->groupBox,       ui->menuGeo,         ui->menuGeo,   ui->menuOptions, ui->menuSensor,
+                        ui->stackedOptions, ui->zoomSelectorBox, ui->imageTabs, ui->gradientBox};
 
     for (QWidget *item : items) {
         item->setEnabled(state == WindowState::Finished);
@@ -249,7 +238,7 @@ void MainWindow::setState(WindowState state) {
 }
 
 void MainWindow::populateChannelSelectors(size_t channels) {
-    QComboBox *comboBoxes[] = { ui->channelSelector, ui->redSelector, ui->greenSelector, ui->blueSelector };
+    QComboBox *comboBoxes[] = {ui->channelSelector, ui->redSelector, ui->greenSelector, ui->blueSelector};
 
     for (QComboBox *comboBox : comboBoxes) {
         comboBox->clear();
@@ -262,7 +251,8 @@ void MainWindow::populateChannelSelectors(size_t channels) {
 }
 
 void MainWindow::on_actionOpen_triggered() {
-    QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Supported formats (*.bin *.cadu *.raw16 *.hrp *.vcdu *.tip)");
+    QString filename =
+        QFileDialog::getOpenFileName(this, "Open File", "", "Supported formats (*.bin *.cadu *.raw16 *.hrp *.vcdu *.tip)");
 
     if (!filename.isEmpty()) {
         decodeWatcher->setFuture(QtConcurrent::run(this, &MainWindow::startDecode, filename.toStdString()));
@@ -322,7 +312,7 @@ void MainWindow::startDecode(std::string filename) {
         for (const bool &x : data.ch3a) {
             sum += x;
         }
-        compositors[sensor2.first]->has_ch3a = (sum/(float)data.ch3a.size() > 0.5f);
+        compositors[sensor2.first]->has_ch3a = (sum / (float)data.ch3a.size() > 0.5f);
     }
 
     if (compositors.count(satellite.default_imager)) {
@@ -332,6 +322,7 @@ void MainWindow::startDecode(std::string filename) {
     }
     sensor_actions.at(sensor_info.at(sensor).name)->setChecked(true);
 
+    // clang-format off
     std::map<SatID, std::string> tle_names = {
         { SatID::MetOpA, "METOP-A"},
         { SatID::MetOpB, "METOP-B"},
@@ -345,6 +336,7 @@ void MainWindow::startDecode(std::string filename) {
         { SatID::FengYun3B, "FENGYUN 3B"},
         { SatID::FengYun3C, "FENGYUN 3C"},
     };
+    // clang-format oN
     if (tle_manager.catalog.count(tle_names[sat])) {
         proj = new Projector(tle_manager.catalog[tle_names[sat]]);
     }

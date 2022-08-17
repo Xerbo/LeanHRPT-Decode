@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -19,48 +19,51 @@
 #ifndef PROJECTDIALOG_H
 #define PROJECTDIALOG_H
 
-#include "satinfo.h"
-#include "projection.h"
-
+#include <QColor>
 #include <QDialog>
+#include <QFutureWatcher>
+#include <QGraphicsScene>
 #include <QProcess>
 #include <QTimer>
-#include <QGraphicsScene>
-#include <QColor>
-#include <QFutureWatcher>
+
+#include "projection.h"
+#include "satinfo.h"
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class ProjectDialog; }
+namespace Ui {
+class ProjectDialog;
+}
 QT_END_NAMESPACE
 
 class ProjectDialog : public QDialog {
     Q_OBJECT
-    public:
-        ProjectDialog(QWidget *parent = nullptr);
-        ~ProjectDialog();
-    private:
-        Ui::ProjectDialog *ui;
-        QGraphicsScene *scene;
-        QFutureWatcher<void> *render_finished;
-        QImage render(QSize dimensions);
-        QSize calculate_dimensions(size_t resolution);
-        void write_wld_file(QString filename);
+   public:
+    ProjectDialog(QWidget *parent = nullptr);
+    ~ProjectDialog();
 
-        QRectF bounds;
-        double pixelsize;
+   private:
+    Ui::ProjectDialog *ui;
+    QGraphicsScene *scene;
+    QFutureWatcher<void> *render_finished;
+    QImage render(QSize dimensions);
+    QSize calculate_dimensions(size_t resolution);
+    void write_wld_file(QString filename);
 
-        virtual void resizeEvent(QResizeEvent *event) override;
-    private slots:
-        void on_preview_clicked();
-        void on_render_clicked();
-    signals:
-        QImage get_viewport();
-        std::vector<std::pair<xy, Geodetic>> get_points(size_t n);
+    QRectF bounds;
+    double pixelsize;
 
-        QString map_shapefile();
-        QColor map_color();
-        bool map_enable();
-        QString default_filename();
+    virtual void resizeEvent(QResizeEvent *event) override;
+   private slots:
+    void on_preview_clicked();
+    void on_render_clicked();
+   signals:
+    QImage get_viewport();
+    std::vector<std::pair<xy, Geodetic>> get_points(size_t n);
+
+    QString map_shapefile();
+    QColor map_color();
+    bool map_enable();
+    QString default_filename();
 };
 
 #endif

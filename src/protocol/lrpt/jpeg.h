@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -19,14 +19,14 @@
 #ifndef DECODERS_LRPT_JPEG_H
 #define DECODERS_LRPT_JPEG_H
 
-#include <cstdint>
 #include <array>
+#include <cstdint>
 
 namespace jpeg {
-	template<typename T>
-	using block = std::array<std::array<T, 8>, 8>;
+template <typename T>
+using block = std::array<std::array<T, 8>, 8>;
 
-	void decode_block(const std::array<int16_t, 64> &in, jpeg::block<uint8_t> &out, uint8_t q);
-}
+void decode_block(const std::array<int16_t, 64> &in, jpeg::block<uint8_t> &out, uint8_t q);
+}  // namespace jpeg
 
 #endif

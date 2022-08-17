@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -35,21 +35,22 @@ void MeteorHRPTDecoder::work(std::istream &stream) {
 
 void MeteorHRPTDecoder::frame_work(uint8_t *ptr) {
     // See Table 1 - Structure of a transport frame
-    std::memcpy(&msumrBuffer[238*0], &ptr[ 23-1], 238);
-    std::memcpy(&msumrBuffer[238*1], &ptr[279-1], 238);
-    std::memcpy(&msumrBuffer[238*2], &ptr[535-1], 238);
-    std::memcpy(&msumrBuffer[238*3], &ptr[791-1], 234);
+    std::memcpy(&msumrBuffer[238 * 0], &ptr[23 - 1], 238);
+    std::memcpy(&msumrBuffer[238 * 1], &ptr[279 - 1], 238);
+    std::memcpy(&msumrBuffer[238 * 2], &ptr[535 - 1], 238);
+    std::memcpy(&msumrBuffer[238 * 3], &ptr[791 - 1], 234);
 
     if (MSUMRDeframer.work(msumrBuffer, msumrFrame, 948)) {
         int hours = msumrFrame[8];
-        hours = (hours-3) % 24; // Moscow to UTC
+        hours = (hours - 3) % 24;  // Moscow to UTC
         int minutes = msumrFrame[9];
         int seconds = msumrFrame[10];
         int delay = msumrFrame[10];
 
         if (hours < 24 && minutes < 60 && seconds < 60) {
-            time_t day = created/86400 * 86400;
-            msumr_timestamp = (double)day + (double)hours*3600.0 + (double)minutes*60.0 + (double)seconds + (double)delay/255.0;
+            time_t day = created / 86400 * 86400;
+            msumr_timestamp =
+                (double)day + (double)hours * 3600.0 + (double)minutes * 60.0 + (double)seconds + (double)delay / 255.0;
         } else {
             msumr_timestamp = 0.0;
         }
@@ -60,17 +61,17 @@ void MeteorHRPTDecoder::frame_work(uint8_t *ptr) {
 
     uint8_t mtvza_buffer[32];
     uint8_t mtvza_frame[248];
-    std::memcpy(&mtvza_buffer[8*0], &ptr[ 15-1], 8);
-    std::memcpy(&mtvza_buffer[8*1], &ptr[271-1], 8);
-    std::memcpy(&mtvza_buffer[8*2], &ptr[527-1], 8);
-    std::memcpy(&mtvza_buffer[8*3], &ptr[783-1], 8);
+    std::memcpy(&mtvza_buffer[8 * 0], &ptr[15 - 1], 8);
+    std::memcpy(&mtvza_buffer[8 * 1], &ptr[271 - 1], 8);
+    std::memcpy(&mtvza_buffer[8 * 2], &ptr[527 - 1], 8);
+    std::memcpy(&mtvza_buffer[8 * 3], &ptr[783 - 1], 8);
 
     if (mtvza_deframer.work(mtvza_buffer, mtvza_frame, 32)) {
         // Frame type, only type 255 contains imagery
         if (mtvza_frame[4] != 255) return;
 
         // X position
-        uint8_t x = mtvza_frame[5]-2;
+        uint8_t x = mtvza_frame[5] - 2;
         if (x > 24) return;
 
         mtvza_work(x, 0, &mtvza_frame[8]);
@@ -85,8 +86,9 @@ void MeteorHRPTDecoder::frame_work(uint8_t *ptr) {
 }
 
 void MeteorHRPTDecoder::mtvza_work(uint8_t x, size_t offset, uint8_t *ptr) {
-    const size_t channel_length[30] = { 1, 1, 1, 1, 1, 4, 4,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2 };
-    const size_t channel_offset[30] = { 0, 1, 2, 3, 4, 5, 9, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53, 55, 57 };
+    const size_t channel_length[30] = {1, 1, 1, 1, 1, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
+    const size_t channel_offset[30] = {0,  1,  2,  3,  4,  5,  9,  13, 15, 17, 19, 21, 23, 25, 27,
+                                       29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53, 55, 57};
 
     for (size_t i = 0; i < 30; i++) {
         unsigned short *channel = images[Imager::MTVZA]->getChannel(i);
@@ -96,11 +98,11 @@ void MeteorHRPTDecoder::mtvza_work(uint8_t x, size_t offset, uint8_t *ptr) {
             if (channel_length[i] == 4) {
                 ch += j;
             } else if (channel_length[i] == 2) {
-                ch += j/2;
+                ch += j / 2;
             }
 
-            int16_t val = ptr[ch*2+1] << 8 | ptr[ch*2];
-            channel[images[Imager::MTVZA]->rows()*images[Imager::MTVZA]->width() + x*8 + j + offset] = val+32768;
+            int16_t val = ptr[ch * 2 + 1] << 8 | ptr[ch * 2];
+            channel[images[Imager::MTVZA]->rows() * images[Imager::MTVZA]->width() + x * 8 + j + offset] = val + 32768;
         }
     }
 }

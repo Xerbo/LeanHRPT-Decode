@@ -11,24 +11,22 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "deframer.h"
 
+#include <bitset>
 #include <cstring>
 #include <stdexcept>
-#include <bitset>
 
 // Constructor
 template <typename ASM_T, ASM_T ASM, unsigned int ASM_SIZE, unsigned int FRAME_SIZE>
 ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::ArbitraryDeframer(unsigned int incorrectBitThreshold, bool checkInverted)
-    : frameBuffer(new uint8_t[FRAME_SIZE / 8]),
-      checkInverted(checkInverted),
-      incorrectBitThreshold(incorrectBitThreshold) {
-    if (ASM_SIZE > sizeof(ASM_T)*8) {
+    : frameBuffer(new uint8_t[FRAME_SIZE / 8]), checkInverted(checkInverted), incorrectBitThreshold(incorrectBitThreshold) {
+    if (ASM_SIZE > sizeof(ASM_T) * 8) {
         throw std::runtime_error("ArbitraryDeframer: ASM size larger than what ASM_T allows");
     }
 }
@@ -50,7 +48,7 @@ void ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::pushBit(bool bit) {
     byteBuffer = byteBuffer << 1 | bit;
     bufferBitPosition++;
 
-    if(bufferBitPosition == 8){
+    if (bufferBitPosition == 8) {
         pushByte(byteBuffer);
         bufferBitPosition = 0;
     }
@@ -75,17 +73,17 @@ template <typename ASM_T, ASM_T ASM, unsigned int ASM_SIZE, unsigned int FRAME_S
 bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::work(const uint8_t *data, uint8_t *out, unsigned int len) {
     bool complete_frame = false;
 
-    for(size_t i = 0; i < len; i++) {
-        for(int j = 7; j >= 0; j--) {
+    for (size_t i = 0; i < len; i++) {
+        for (int j = 7; j >= 0; j--) {
             bool bit = std::bitset<ASM_SIZE>(data[i]).test(j);
-            if(invert) bit = !bit;
+            if (invert) bit = !bit;
 
             shifter = shifter << 1 | bit;
 
-            if(writingData) {
+            if (writingData) {
                 // Append syncword, backwards
-                if(bitsWritten == 0) {
-                    for(int ASMBit = ASM_SIZE-1; ASMBit >= 0; ASMBit--) {
+                if (bitsWritten == 0) {
+                    for (int ASMBit = ASM_SIZE - 1; ASMBit >= 0; ASMBit--) {
                         pushBit(std::bitset<ASM_SIZE>(ASM).test(ASMBit));
                     }
                     bitsWritten += ASM_SIZE;
@@ -95,7 +93,7 @@ bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::work(const uint8_t *da
                 bitsWritten++;
 
                 // At the end of a frame, copy the data into the output pointer and reset
-                if(bitsWritten == FRAME_SIZE) {
+                if (bitsWritten == FRAME_SIZE) {
                     writingData = false;
                     bitsWritten = 0;
 
@@ -107,9 +105,9 @@ bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::work(const uint8_t *da
             }
 
             if (!writingData) {
-                if(fuzzyBitCompare(shifter, ASM, incorrectBitThreshold)) {
+                if (fuzzyBitCompare(shifter, ASM, incorrectBitThreshold)) {
                     startWriting();
-                } else if(checkInverted && fuzzyBitCompare(shifter, ~ASM, incorrectBitThreshold)) {
+                } else if (checkInverted && fuzzyBitCompare(shifter, ~ASM, incorrectBitThreshold)) {
                     startWriting();
                     invert = !invert;
                 }
@@ -122,7 +120,7 @@ bool ArbitraryDeframer<ASM_T, ASM, ASM_SIZE, FRAME_SIZE>::work(const uint8_t *da
 
 // Standard 8192 bit CCSDS frames
 // DEPRECATED: Use ccsds::Deframer instead
-//template class ArbitraryDeframer<uint32_t, 0x1ACFFC1D, 32, 8192>;
+// template class ArbitraryDeframer<uint32_t, 0x1ACFFC1D, 32, 8192>;
 
 // Meteor MSU-MR
 template class ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8>;
@@ -138,7 +136,7 @@ template class ArbitraryDeframer<uint64_t, 0b10100001000101101111110101110001100
 // NOAA GAC, reverse, two bits appended in front to achieve byte alignment
 template class ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270>;
 // NOAA DSB
-//template class ArbitraryDeframer<uint32_t, 0b11101101111000100000, 20, 832>;
+// template class ArbitraryDeframer<uint32_t, 0b11101101111000100000, 20, 832>;
 
 // Fengyun VIRR
 template class ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 208400>;

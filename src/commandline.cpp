@@ -11,23 +11,24 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "commandline.h"
-#include "satinfo.h"
-#include "fingerprint.h"
-#include "imagecompositor.h"
-#include "decoders/decoder.h"
-#include "config/preset.h"
-#include "geometry.h"
 
-#include <QLocale>
 #include <QDir>
-#include <iostream>
+#include <QLocale>
 #include <array>
+#include <iostream>
+
+#include "config/preset.h"
+#include "decoders/decoder.h"
+#include "fingerprint.h"
+#include "geometry.h"
+#include "imagecompositor.h"
+#include "satinfo.h"
 
 static ulong str2ulong(QString str) {
     QLocale l(QLocale::C);
@@ -60,7 +61,8 @@ int parseCommandLine(QCommandLineParser &parser) {
 
     Decoder *decoder = Decoder::make(protocol, sat);
 
-    std::cout << "Decoding" << std::endl;;
+    std::cout << "Decoding" << std::endl;
+
     decoder->decodeFile(filename.toStdString(), type);
     Data data = decoder->get();
     std::cout << "Finished decoding" << std::endl;
@@ -72,7 +74,7 @@ int parseCommandLine(QCommandLineParser &parser) {
         std::vector<double> medianv = data.timestamps[default_imager];
         std::sort(medianv.begin(), medianv.end());
         medianv.erase(std::remove(medianv.begin(), medianv.end(), 0.0), medianv.end());
-        timestamp.setSecsSinceEpoch(medianv[medianv.size()/2]);
+        timestamp.setSecsSinceEpoch(medianv[medianv.size() / 2]);
     }
 
     inipp::Ini<char> ini;
@@ -85,20 +87,24 @@ int parseCommandLine(QCommandLineParser &parser) {
         ini.parse(ifs);
         ifs.close();
     } else {
+        // clang-format off
         std::map<std::string, std::string> settings = {
             { "sensors", "AVHRR|MSU-MR|VIRR|MHS" },
             { "preset", "Automatic" }
         };
+        // clang-format on
         ini.sections["{sat}_{time}_{sensor}_Automatic.png"] = settings;
         settings["equalization"] = "histogram";
         ini.sections["{sat}_{time}_{sensor}_Automatic_EQU.png"] = settings;
         settings["equalization"] = "stretch";
         ini.sections["{sat}_{time}_{sensor}_Automatic_CONT.png"] = settings;
 
+        // clang-format off
         settings = {
             { "sensors", "AVHRR|MSU-MR|VIRR" },
             { "preset", "Thermal" }
         };
+        // clang-format on
         ini.sections["{sat}_{time}_{sensor}_Thermal.png"] = settings;
         settings["equalization"] = "histogram";
         ini.sections["{sat}_{time}_{sensor}_Thermal_EQU.png"] = settings;
@@ -130,9 +136,9 @@ int parseCommandLine(QCommandLineParser &parser) {
                 std::cout << "Image \"" << file.first << "\" doesn't specify what sensors it works on, skipping" << std::endl;
                 continue;
             }
-            std::string equalization   = file.second.count("equalization")   ? file.second["equalization"]   : "none";
+            std::string equalization = file.second.count("equalization") ? file.second["equalization"] : "none";
             std::string brightnessonly = file.second.count("brightnessonly") ? file.second["brightnessonly"] : "true";
-            std::string corrected      = file.second.count("corrected")      ? file.second["corrected"]      : "true";
+            std::string corrected = file.second.count("corrected") ? file.second["corrected"] : "true";
 
             // Skip if it doesn't work for this imager
             if (sensors.find(sensor_info.at(imager).name) == std::string::npos) {
@@ -155,7 +161,7 @@ int parseCommandLine(QCommandLineParser &parser) {
             } else if (file.second.count("composite")) {
                 // RGB composite
                 QStringList _channels = QString::fromStdString(file.second["composite"]).split(",");
-                std::array<size_t, 3> channels = { str2ulong(_channels[0]), str2ulong(_channels[1]), str2ulong(_channels[2]) };
+                std::array<size_t, 3> channels = {str2ulong(_channels[0]), str2ulong(_channels[1]), str2ulong(_channels[2])};
                 compositors[imager].getComposite(image, channels);
             } else {
                 std::cout << "Image \"" << file.first << "\" has no source, skipping" << std::endl;

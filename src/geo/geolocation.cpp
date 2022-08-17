@@ -1,21 +1,21 @@
 /*
  * Modified from https://github.com/Digitelektro/MeteorDemod
  * Its license is as follows:
- * 
+ *
  * MIT License
- * 
+ *
  * Copyright (c) 2020 Digitelektro
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,18 +26,19 @@
  */
 
 #include "geolocation.h"
-#include "math.h"
+
 #include <limits>
 
-Vector locationToVector(const Geodetic &location)
-{
+#include "math.h"
+
+Vector locationToVector(const Geodetic &location) {
     double cosLat = cos(location.latitude);
     double sinLat = sin(location.latitude);
     double cosLon = cos(location.longitude);
     double sinLon = sin(location.longitude);
 
     double radA = 6378.137;
-    double f = 1.0 / 298.257223563;  //Flattening factor WGS84 Model
+    double f = 1.0 / 298.257223563;  // Flattening factor WGS84 Model
     double radB = radA * (1 - f);
 
     double N = pow(radA, 2) / sqrt(pow(radA, 2) * pow(cosLat, 2) + pow(radB, 2) * pow(sinLat, 2));
@@ -46,13 +47,12 @@ Vector locationToVector(const Geodetic &location)
     double y = (N + location.altitude) * cosLat * sinLon;
     double z = ((pow(radB, 2) / pow(radA, 2)) * N + location.altitude) * sinLat;
 
-    return Vector(x,y, z);
+    return Vector(x, y, z);
 }
 
-Geodetic vectorToLocation(const Vector &vector)
-{
+Geodetic vectorToLocation(const Vector &vector) {
     double a = 6378.137;
-    double f = 1.0 / 298.257223563;  //Flattening factor WGS84 Model
+    double f = 1.0 / 298.257223563;  // Flattening factor WGS84 Model
     double b = a * (1 - f);
 
     double r = sqrt(pow(vector.x, 2) + pow(vector.y, 2) + pow(vector.z, 2));
@@ -69,14 +69,12 @@ Geodetic vectorToLocation(const Vector &vector)
     return Geodetic(lat, lon, 0);
 }
 
-Geodetic los_to_earth(const Geodetic &position, double roll, double pitch, double yaw)
-{
+Geodetic los_to_earth(const Geodetic &position, double roll, double pitch, double yaw) {
     Vector vector = locationToVector(position);
     return los_to_earth(vector, roll, pitch, yaw);
 }
 
-Geodetic los_to_earth(const Vector &position, double roll, double pitch, double yaw)
-{
+Geodetic los_to_earth(const Vector &position, double roll, double pitch, double yaw) {
     double a = 6371.0087714;
     double b = 6371.0087714;
     double c = 6356.752314245;
@@ -85,11 +83,7 @@ Geodetic los_to_earth(const Vector &position, double roll, double pitch, double 
     double y = position.y;
     double z = position.z;
 
-    Matrix4x4 matrix (
-        1, 0, 0, position.x,
-        0, 1, 0, position.y,
-        0, 0, 1, position.z,
-        0, 0, 0, 1);
+    Matrix4x4 matrix(1, 0, 0, position.x, 0, 1, 0, position.y, 0, 0, 1, position.z, 0, 0, 0, 1);
 
     Vector lookVector(0, 0, 0);
     Matrix4x4 lookMatrix = lookAt(position, lookVector, Vector(0, 0, 1));
@@ -105,23 +99,25 @@ Geodetic los_to_earth(const Vector &position, double roll, double pitch, double 
     double w = vector3.z;
 
     double value = -pow(a, 2) * pow(b, 2) * w * z - pow(a, 2) * pow(c, 2) * v * y - pow(b, 2) * pow(c, 2) * u * x;
-    double radical = pow(a, 2) * pow(b, 2) * pow(w, 2) + pow(a, 2) * pow(c, 2) * pow(v, 2) - pow(a, 2) * pow(v, 2) * pow(z, 2) + 2 * pow(a, 2) * v * w * y * z - pow(a, 2) * pow(w, 2) * pow(y, 2) + pow(b, 2) * pow(c, 2) * pow(u, 2) - pow(b, 2) * pow(u, 2) * pow(z, 2) + 2 * pow(b, 2) * u * w * x * z - pow(b, 2) * pow(w, 2) * pow(x, 2) - pow(c, 2) * pow(u, 2) * pow(y, 2) + 2 * pow(c, 2) * u * v * x * y - pow(c, 2) * pow(v, 2) * pow(x, 2);
+    double radical = pow(a, 2) * pow(b, 2) * pow(w, 2) + pow(a, 2) * pow(c, 2) * pow(v, 2) - pow(a, 2) * pow(v, 2) * pow(z, 2) +
+                     2 * pow(a, 2) * v * w * y * z - pow(a, 2) * pow(w, 2) * pow(y, 2) + pow(b, 2) * pow(c, 2) * pow(u, 2) -
+                     pow(b, 2) * pow(u, 2) * pow(z, 2) + 2 * pow(b, 2) * u * w * x * z - pow(b, 2) * pow(w, 2) * pow(x, 2) -
+                     pow(c, 2) * pow(u, 2) * pow(y, 2) + 2 * pow(c, 2) * u * v * x * y - pow(c, 2) * pow(v, 2) * pow(x, 2);
     double magnitude = pow(a, 2) * pow(b, 2) * pow(w, 2) + pow(a, 2) * pow(c, 2) * pow(v, 2) + pow(b, 2) * pow(c, 2) * pow(u, 2);
 
     /*double t = -(1 / (pow(c, 2) * (pow(u, 2) + pow(v, 2)) + pow(a, 2) * pow(w, 2))) *
        (pow(c, 2) * (u * x + v * y) + pow(a, 2) * w * z +
-       0.5 * sqrt(4 * pow((pow(a, 2) * (u * x + v * y) + pow(a, 2) * w * z), 2) - 4 * (pow(a, 2) * (pow(u, 2) + pow(v, 2)) + pow(a, 2) * pow(w, 2)) * (pow(c, 2) * (-pow(a, 2) + pow(x, 2) + pow(y, 2)) + pow(a, 2) * pow(z, 2))));
+       0.5 * sqrt(4 * pow((pow(a, 2) * (u * x + v * y) + pow(a, 2) * w * z), 2) - 4 * (pow(a, 2) * (pow(u, 2) + pow(v, 2)) +
+       pow(a, 2) * pow(w, 2)) * (pow(c, 2) * (-pow(a, 2) + pow(x, 2) + pow(y, 2)) + pow(a, 2) * pow(z, 2))));
     */
 
-    if (radical < 0)
-    {
+    if (radical < 0) {
         return Geodetic(0, 0, 0);
     }
 
     double d = (value - a * b * c * sqrt(radical)) / magnitude;
 
-    if (d < 0)
-    {
+    if (d < 0) {
         return Geodetic(0, 0, 0);
     }
 
@@ -132,9 +128,9 @@ Geodetic los_to_earth(const Vector &position, double roll, double pitch, double 
     return vectorToLocation(Vector(x, y, z));
 }
 
-//Todo: More precise calculation maybe required, example: https://github.com/airbreather/Gavaghan.Geodesy/blob/master/Source/Gavaghan.Geodesy/GeodeticCalculator.cs
-double calculateBearingAngle(const Geodetic &start, const Geodetic &end)
-{
+// Todo: More precise calculation maybe required, example:
+// https://github.com/airbreather/Gavaghan.Geodesy/blob/master/Source/Gavaghan.Geodesy/GeodeticCalculator.cs
+double calculateBearingAngle(const Geodetic &start, const Geodetic &end) {
     double alpha = end.longitude - start.longitude;
     double y = sin(alpha) * cos(end.latitude);
     double x = cos(start.latitude) * sin(end.latitude) - sin(start.latitude) * cos(end.latitude) * cos(alpha);
@@ -143,12 +139,10 @@ double calculateBearingAngle(const Geodetic &start, const Geodetic &end)
     return theta;
 }
 
-Matrix4x4 lookAt(const Vector3 &position, const Vector3 &target, const Vector3 &up)
-{
+Matrix4x4 lookAt(const Vector3 &position, const Vector3 &target, const Vector3 &up) {
     Vector3 k = Vector3(target) - position;
     double m = k.DistanceSquared();
-    if (m < std::numeric_limits<double>::epsilon())
-    {
+    if (m < std::numeric_limits<double>::epsilon()) {
         return Matrix4x4();
     }
     k = k * (1.0 / sqrt(m));
@@ -159,10 +153,5 @@ Matrix4x4 lookAt(const Vector3 &position, const Vector3 &target, const Vector3 &
     Vector3 j = k.Cross(i);
     j.Normalize();
 
-    return Matrix4x4(
-        i.x, j.x, k.x, 0.0,
-        i.y, j.y, k.y, 0.0,
-        i.z, j.z, k.z, 0.0,
-        0.0, 0.0, 0.0, 1.0
-    );
+    return Matrix4x4(i.x, j.x, k.x, 0.0, i.y, j.y, k.y, 0.0, i.z, j.z, k.z, 0.0, 0.0, 0.0, 0.0, 1.0);
 }

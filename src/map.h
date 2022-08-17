@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -19,34 +19,37 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include <vector>
+#include <QImage>
+#include <QLineF>
 #include <array>
 #include <string>
-#include <QLineF>
+#include <vector>
+
 #include "projection.h"
-#include <QImage>
 
 namespace map {
-    // Checks that a Shapefile is readable and supported (Polyline/Polygon)
-    bool verify_shapefile(std::string filename);
+// Checks that a Shapefile is readable and supported (Polyline/Polygon)
+bool verify_shapefile(std::string filename);
 
-    // Decompose a Polyline/Polygon Shapefile into a list of line segments
-    std::vector<QLineF> read_shapefile(std::string filename);
+// Decompose a Polyline/Polygon Shapefile into a list of line segments
+std::vector<QLineF> read_shapefile(std::string filename);
 
-    // Sort line segments into 10x10 "buckets"
-    std::array<std::vector<QLineF>, 36*18> index_line_segments(const std::vector<QLineF> &line_segments);
+// Sort line segments into 10x10 "buckets"
+std::array<std::vector<QLineF>, 36 * 18> index_line_segments(const std::vector<QLineF> &line_segments);
 
-    // Warp an (indexed) map to fit a pass based off a point grid
-    std::vector<QLineF> warp_to_pass(const std::array<std::vector<QLineF>, 36*18> &buckets, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn);
-    
-    // Project a pass into Rectangular projection
-    QImage project(const QImage &image, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn, QSize resolution, double xa, double xb, double ya, double yb);
+// Warp an (indexed) map to fit a pass based off a point grid
+std::vector<QLineF> warp_to_pass(const std::array<std::vector<QLineF>, 36 * 18> &buckets,
+                                 const std::vector<std::pair<xy, Geodetic>> &points, size_t xn);
 
-    // Render a map overlay on an image with Rectangular projection
-    void add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor color, double xa, double xb, double ya, double yb);
+// Project a pass into Rectangular projection
+QImage project(const QImage &image, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn, QSize resolution, double xa,
+               double xb, double ya, double yb);
 
-    // Calculate bounds of a pass, height is inverted
-    QRectF bounds(const std::vector<std::pair<xy, Geodetic>> &points);
-}
+// Render a map overlay on an image with Rectangular projection
+void add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor color, double xa, double xb, double ya, double yb);
+
+// Calculate bounds of a pass, height is inverted
+QRectF bounds(const std::vector<std::pair<xy, Geodetic>> &points);
+}  // namespace map
 
 #endif

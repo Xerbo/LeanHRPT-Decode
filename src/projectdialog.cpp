@@ -11,19 +11,19 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "projectdialog.h"
-#include "qt/ui_projectdialog.h"
-#include "map.h"
 
 #include <QFileDialog>
-#include <QtConcurrent/QtConcurrent>
-#include <QFileDialog>
 #include <QMessageBox>
+#include <QtConcurrent/QtConcurrent>
+
+#include "map.h"
+#include "qt/ui_projectdialog.h"
 
 ProjectDialog::ProjectDialog(QWidget *parent) : QDialog(parent) {
     ui = new Ui::ProjectDialog;
@@ -33,19 +33,14 @@ ProjectDialog::ProjectDialog(QWidget *parent) : QDialog(parent) {
     ui->projectionPreview->setScene(scene);
 
     render_finished = new QFutureWatcher<void>(this);
-    QFutureWatcher<void>::connect(render_finished, &QFutureWatcher<void>::finished, [=]() {
-        ui->render->setEnabled(true);
-    });
+    QFutureWatcher<void>::connect(render_finished, &QFutureWatcher<void>::finished, [=]() { ui->render->setEnabled(true); });
 }
 
-ProjectDialog::~ProjectDialog() {
-    delete ui;
-}
+ProjectDialog::~ProjectDialog() { delete ui; }
 
 void ProjectDialog::write_wld_file(QString filename) {
     QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        return;
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return;
 
     QTextStream out(&file);
 
@@ -63,20 +58,21 @@ QSize ProjectDialog::calculate_dimensions(size_t resolution) {
         bounds = map::bounds(get_points(31));
     }
 
-    double scale = EARTH_CIRCUMFRANCE/ui->resolution->value();
-    pixelsize = 360.0/scale;
-    QSize dimensions(bounds.width()/360.0 * scale, bounds.height()/360.0 * scale);
+    double scale = EARTH_CIRCUMFRANCE / ui->resolution->value();
+    pixelsize = 360.0 / scale;
+    QSize dimensions(bounds.width() / 360.0 * scale, bounds.height() / 360.0 * scale);
     ui->details->setText(QString("Final size: %1x%2").arg(dimensions.width()).arg(dimensions.height()));
 
     if (resolution != 0) {
-        dimensions = QSize(resolution*2, resolution);
+        dimensions = QSize(resolution * 2, resolution);
     }
 
     return dimensions;
 }
 
 QImage ProjectDialog::render(QSize dimensions) {
-    QImage image = map::project(get_viewport(), get_points(31), 31, dimensions, bounds.width(), bounds.x(), bounds.height(), bounds.y());
+    QImage image =
+        map::project(get_viewport(), get_points(31), 31, dimensions, bounds.width(), bounds.x(), bounds.height(), bounds.y());
 
     if (map_enable()) {
         std::vector<QLineF> map = map::read_shapefile(map_shapefile().toStdString());
@@ -96,9 +92,11 @@ void ProjectDialog::on_preview_clicked() {
 
 void ProjectDialog::on_render_clicked() {
     QSize dimensions = calculate_dimensions(0);
-    if (dimensions.width()*dimensions.height() > 64000000) {
+    if (dimensions.width() * dimensions.height() > 64000000) {
         QMessageBox confirm;
-        confirm.setText(QString("Generating a large (%1x%2) image, this may cause slowdowns/crashes!").arg(dimensions.width()).arg(dimensions.height()));
+        confirm.setText(QString("Generating a large (%1x%2) image, this may cause slowdowns/crashes!")
+                            .arg(dimensions.width())
+                            .arg(dimensions.height()));
         confirm.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
         confirm.setDefaultButton(QMessageBox::Cancel);
         confirm.setIcon(QMessageBox::Warning);
@@ -107,7 +105,8 @@ void ProjectDialog::on_render_clicked() {
         }
     }
 
-    QString filename = QFileDialog::getSaveFileName(this, "Save Projected Image", QString("%1.png").arg(default_filename()), "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);;BMP (*.bmp)");
+    QString filename = QFileDialog::getSaveFileName(this, "Save Projected Image", QString("%1.png").arg(default_filename()),
+                                                    "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);;BMP (*.bmp)");
     if (filename.isEmpty()) return;
 
     QFuture<void> future = QtConcurrent::run([=]() {

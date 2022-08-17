@@ -11,16 +11,18 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include "jpeg.h"
+
 #include <cmath>
 #include <cstddef>
 
 namespace jpeg {
+// clang-format off
 	// IJG standard (Q=50) quantization table
 	const int jpeg_qtable[8][8] = {
 		{ 16, 11, 10, 16, 24,  40,  51,  61  },
@@ -70,67 +72,68 @@ namespace jpeg {
 		{ 0.707107f, -0.83147f,  0.382684f,  0.195091f, -0.707107f,  0.980785f, -0.923879f,  0.55557f  },
 		{ 0.707107f, -0.980785f, 0.92388f,  -0.83147f,   0.707107f, -0.55557f,   0.382684f, -0.19509f  }
 	};
+// clang-format on
 
-	void unzigzag(const std::array<int16_t, 64> &in, jpeg::block<int16_t> &out) {
-		for (size_t y = 0; y < 8; y++) {
-			for (size_t x = 0; x < 8; x++) {
-				int pos = jpeg_zigzag[y][x];
-				out[y][x] = in[pos];
-			}
-		}
-	}
-
-	// See https://web.archive.org/web/20150223223556/http://meteor.robonuka.ru/for-experts/soft/
-	int qfactor(size_t x, size_t y, uint8_t q) {
-		float f;
-		if (q < 50) {
-			f = 5000.0f/(float)q;
-		} else {
-			f = 200.0f - 2.0f*(float)q;
-		}
-
-		int ptk = roundf(f/100.0f * (float)jpeg_qtable[y][x]);
-		if (ptk > 1) {
-			return ptk;
-		} else {
-			return 1;
-		}
-	}
-
-	void dequantize(jpeg::block<int16_t> &block, uint8_t q) {
-		for (size_t y = 0; y < 8; y++) {
-			for (size_t x = 0; x < 8; x++) {
-				block[y][x] *= qfactor(x, y, q);
-			}
-		}
-	}
-
-	// 2D 8x8 inverse DCT
-	void idct(const jpeg::block<int16_t> &in, jpeg::block<uint8_t> &out) {
-		for (size_t y = 0; y < 8; y++) {
-			for (size_t x = 0; x < 8; x++) {
-				float sum = 0.0;
-
-				for (size_t i = 0; i < 8; i++) {
-					for (size_t j = 0; j < 8; j++) {
-						sum += in[j][i] * cosine_lut[x][i] * cosine_lut[y][j];
-					}
-				}
-
-				sum = sum/4.0f + 128.0f;
-				out[y][x] = std::min(std::max(sum, 0.0f), 255.0f);
-			}
-		}
-	}
-
-	void decode_block(const std::array<int16_t, 64> &in, jpeg::block<uint8_t> &out, uint8_t q) {
-		if (q < 20 || q > 100) {
-			return;
-		}
-
-		jpeg::block<int16_t> tmp;
-		unzigzag(in, tmp);
-		dequantize(tmp, q);
-		idct(tmp, out);
-	}
+void unzigzag(const std::array<int16_t, 64> &in, jpeg::block<int16_t> &out) {
+    for (size_t y = 0; y < 8; y++) {
+        for (size_t x = 0; x < 8; x++) {
+            int pos = jpeg_zigzag[y][x];
+            out[y][x] = in[pos];
+        }
+    }
 }
+
+// See https://web.archive.org/web/20150223223556/http://meteor.robonuka.ru/for-experts/soft/
+int qfactor(size_t x, size_t y, uint8_t q) {
+    float f;
+    if (q < 50) {
+        f = 5000.0f / (float)q;
+    } else {
+        f = 200.0f - 2.0f * (float)q;
+    }
+
+    int ptk = roundf(f / 100.0f * (float)jpeg_qtable[y][x]);
+    if (ptk > 1) {
+        return ptk;
+    } else {
+        return 1;
+    }
+}
+
+void dequantize(jpeg::block<int16_t> &block, uint8_t q) {
+    for (size_t y = 0; y < 8; y++) {
+        for (size_t x = 0; x < 8; x++) {
+            block[y][x] *= qfactor(x, y, q);
+        }
+    }
+}
+
+// 2D 8x8 inverse DCT
+void idct(const jpeg::block<int16_t> &in, jpeg::block<uint8_t> &out) {
+    for (size_t y = 0; y < 8; y++) {
+        for (size_t x = 0; x < 8; x++) {
+            float sum = 0.0;
+
+            for (size_t i = 0; i < 8; i++) {
+                for (size_t j = 0; j < 8; j++) {
+                    sum += in[j][i] * cosine_lut[x][i] * cosine_lut[y][j];
+                }
+            }
+
+            sum = sum / 4.0f + 128.0f;
+            out[y][x] = std::min(std::max(sum, 0.0f), 255.0f);
+        }
+    }
+}
+
+void decode_block(const std::array<int16_t, 64> &in, jpeg::block<uint8_t> &out, uint8_t q) {
+    if (q < 20 || q > 100) {
+        return;
+    }
+
+    jpeg::block<int16_t> tmp;
+    unzigzag(in, tmp);
+    dequantize(tmp, q);
+    idct(tmp, out);
+}
+}  // namespace jpeg
