@@ -5,7 +5,7 @@ Thanks for showing an interest in improving LeanHRPT, these guidelines outline h
 ## Did you find a bug?
 
 1. Make sure the bug has not already been reported.
-2. If an issue already exists, leave a "Thumbs Up" in order to show your interest
+2. If an issue already exists, leave a thumbs up to "bump" the issue
 3. If an issue doesn't exist, open a new one with a clear title and description and, if relevant, any files that cause the behaviour
 
 ## Do you have a patch that fixes a bug/adds a feature?
@@ -18,10 +18,9 @@ If you don't have a GitHub account, you can email me the patch at `xerbo (at) pr
 
 ## Coding style
 
-- Use LF line endings
-- Whitespace should be denoted with spaces
-- Prefer readable code to fast code
-- If you're making large changes, discuss it before creating a PR
+The coding style of LeanHRPT is based off the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) with minor modifications (see `.clang-format`), in addition to this all files should use LF line endings and end in a newline.
+
+To automate this LeanHRPT comes with [pre-commit](https://pre-commit.com/) hooks which will enforce these rules.
 
 ## Commit message style
 

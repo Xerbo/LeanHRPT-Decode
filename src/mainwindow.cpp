@@ -44,8 +44,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ui->presetView->setScene(scene);
 
     // Keyboard shortcuts
-    zoomIn = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Plus), this);
-    zoomOut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus), this);
+    zoomIn = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Plus), this);
+    zoomOut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Minus), this);
 
     QShortcut::connect(zoomIn, &QShortcut::activated, std::bind(&MainWindow::incrementZoom, this, 1));
     QShortcut::connect(zoomOut, &QShortcut::activated, std::bind(&MainWindow::incrementZoom, this, -1));
@@ -255,7 +255,7 @@ void MainWindow::on_actionOpen_triggered() {
         QFileDialog::getOpenFileName(this, "Open File", "", "Supported formats (*.bin *.cadu *.raw16 *.hrp *.vcdu *.tip)");
 
     if (!filename.isEmpty()) {
-        decodeWatcher->setFuture(QtConcurrent::run(this, &MainWindow::startDecode, filename.toStdString()));
+        decodeWatcher->setFuture(QtConcurrent::run([=]() { startDecode(filename.toStdString()); }));
     }
 }
 
@@ -662,7 +662,9 @@ void MainWindow::dragEnterEvent(QDragEnterEvent* e) {
 void MainWindow::dropEvent(QDropEvent* e) {
     for (const QUrl &url : e->mimeData()->urls()) {
         QString filename = url.toLocalFile();
-        decodeWatcher->setFuture(QtConcurrent::run(this, &MainWindow::startDecode, filename.toStdString()));
+        decodeWatcher->setFuture(QtConcurrent::run([=]() {
+            startDecode(filename.toStdString());
+        }));
     }
 }
 
