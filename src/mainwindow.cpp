@@ -480,7 +480,7 @@ void MainWindow::reloadPresets() {
     } else {
         ui->presetSelector->setCurrentIndex(0);
     }
-    on_presetSelector_activated(ui->presetSelector->currentText());
+    on_presetSelector_textActivated(ui->presetSelector->currentText());
 }
 
 // Zoom selector combo box
@@ -644,7 +644,7 @@ void MainWindow::save_gcp() {
     proj->save_gcp_file(timestamps[sensor], (double)height/(double)width * 21.0, 21, sensor, sat, filename.toStdString(), width);
 }
 
-void MainWindow::on_presetSelector_activated(QString text) {
+void MainWindow::on_presetSelector_textActivated(QString text) {
     Preset preset = selected_presets.at(text.toStdString());
     ui->presetDescription->setText(QString::fromStdString(preset.description));
     ui->presetAuthor->setText(QString::fromStdString(preset.author));

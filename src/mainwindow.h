@@ -199,7 +199,7 @@ class MainWindow : public QMainWindow {
 
     void on_zoomSelector_activated(int index);
     void on_imageTabs_currentChanged(int index);
-    void on_presetSelector_activated(QString text);
+    void on_presetSelector_textActivated(QString text);
     void on_presetReload_clicked() {
         manager.reload();
         reloadPresets();
