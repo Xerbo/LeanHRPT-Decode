@@ -29,9 +29,6 @@ if (USE_ADDRESS_SANITIZER)
     target_link_options(LeanHRPT-Decode PRIVATE -fsanitize=address)
 endif()
 
-# If you CPU doesn't have SSE 4.2 then get a newer CPU
-target_compile_options(LeanHRPT-Decode PRIVATE -msse4.2)
-
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Network REQUIRED)
