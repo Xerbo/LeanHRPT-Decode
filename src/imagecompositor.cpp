@@ -260,6 +260,7 @@ void ImageCompositor::getComposite(QImage &image, std::array<size_t, 3> chs) {
 void ImageCompositor::getExpression(QImage &image, std::string expression) {
     std::vector<double> ch(m_channels);
     double sunz_val = 0.0;
+    double scan = 0.0;
     mu::Parser p;
 
     for (size_t i = 0; i < m_channels; i++) {
@@ -272,6 +273,7 @@ void ImageCompositor::getExpression(QImage &image, std::string expression) {
     p.DefineVar("NIR", &ch[1]);
     p.DefineVar("RED", &ch[0]);
     p.DefineVar("sunz", &sunz_val);
+    p.DefineVar("scan", &scan);
     p.SetExpr(expression);
 
     int channels;
@@ -291,6 +293,7 @@ void ImageCompositor::getExpression(QImage &image, std::string expression) {
                 std::make_tuple(reinterpret_cast<QRgba64 *>(image.scanLine(y)), reinterpret_cast<quint16 *>(image.scanLine(y)));
 
             for (size_t x = 0; x < m_width; x++) {
+                scan = (double)x / (double)m_width;
                 for (size_t i = 0; i < m_channels; i++) {
                     ch[i] = (double)rawbits[i][x] / (double)UINT16_MAX;
                 }
