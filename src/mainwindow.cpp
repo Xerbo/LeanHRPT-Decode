@@ -346,6 +346,9 @@ void MainWindow::startDecode(std::string filename) {
 
     // Anomaly detection and interpolation
     for (auto &sensor : timestamps) {
+        if (sensor.second.size() == 0) {
+            continue;
+        }
         if (protocol == Protocol::GACReverse) {
             for (size_t i = 0; i < sensor.second.size()/2; i++) {
                 std::swap(sensor.second[i], sensor.second[(sensor.second.size()-1) - i]);
@@ -400,7 +403,7 @@ void MainWindow::startDecode(std::string filename) {
         pass_timestamp = timestamps[sensor][timestamps[sensor].size()/2];
     }
 
-    if (have_tles && timestamps.count(default_sensor)) {
+    if (have_tles && timestamps.at(default_sensor).size() > 0) {
         ui->actionFlip->setChecked(proj->is_northbound(timestamps.at(default_sensor)));
     }
 
