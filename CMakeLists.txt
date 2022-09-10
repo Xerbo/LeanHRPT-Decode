@@ -58,7 +58,7 @@ endif()
 target_compile_definitions(LeanHRPT-Decode PRIVATE "VERSION=\"${VERSION}\"")
 
 # Binaries
-install(TARGETS LeanHRPT-Decode)
+install(TARGETS LeanHRPT-Decode RUNTIME DESTINATION bin)
 # Desktop file and icon
 install(FILES ${CMAKE_SOURCE_DIR}/LeanHRPT-Decode.desktop DESTINATION share/applications)
 install(FILES ${CMAKE_SOURCE_DIR}/logo128.png DESTINATION share/icons/hicolor/128x128/apps RENAME LeanHRPT-Decode.png)
