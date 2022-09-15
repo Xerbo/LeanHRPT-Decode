@@ -208,7 +208,7 @@ jobs:
 
     - name: Install OpenSSL
       run: 'wget https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-openssl-1.1.1.q-1-any.pkg.tar.zst &&
-            tar -xf mingw-w64-x86_64-openssl-1.1.1.h-1-any.pkg.tar.zst'
+            tar -xf mingw-w64-x86_64-openssl-1.1.1.q-1-any.pkg.tar.zst'
 
     - name: Patch Qt
       run: 'rm $WIN_TEMP_PATH/bin/moc.exe &&
