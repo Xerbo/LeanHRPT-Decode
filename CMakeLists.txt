@@ -10,7 +10,34 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-file(GLOB_RECURSE CXX_SOURCE_FILES src/*.cpp)
+file(GLOB_RECURSE CXX_SOURCE_FILES
+    src/commandline.cpp
+    src/decoders/decoder.cpp
+    src/decoders/fengyun_hrpt.cpp
+    src/decoders/meteor_hrpt.cpp
+    src/decoders/meteor_lrpt.cpp
+    src/decoders/metop_hrpt.cpp
+    src/decoders/noaa_gac.cpp
+    src/decoders/noaa_hrpt.cpp
+    src/fingerprint.cpp
+    src/geo/geolocation.cpp
+    src/geometry.cpp
+    src/imagecompositor.cpp
+    src/main.cpp
+    src/mainwindow.cpp
+    src/map.cpp
+    src/network.cpp
+    src/projectdialog.cpp
+    src/projection.cpp
+    src/protocol/ccsds/deframer.cpp
+    src/protocol/ccsds/demuxer.cpp
+    src/protocol/deframer.cpp
+    src/protocol/lrpt/huffman.cpp
+    src/protocol/lrpt/jpeg.cpp
+    src/protocol/lrpt/packet.cpp
+    src/protocol/rawimage.cpp
+    src/protocol/repack.cpp
+)
 IF (WIN32)
 add_executable(LeanHRPT-Decode WIN32 ${CXX_SOURCE_FILES})
 ELSE()
