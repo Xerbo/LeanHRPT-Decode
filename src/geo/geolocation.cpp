@@ -29,7 +29,7 @@
 
 #include <limits>
 
-#include "math.h"
+#include "util.h"
 
 Vector locationToVector(const Geodetic &location) {
     double cosLat = cos(location.latitude);

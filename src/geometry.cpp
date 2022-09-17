@@ -20,8 +20,8 @@
 
 #include <cmath>
 
-#include "math.h"
 #include "projection.h"
+#include "util.h"
 
 // Based off https://github.com/Xerbo/meteor_corrector
 QImage correct_geometry(QImage image, SatID satellite, Imager sensor, size_t width) {

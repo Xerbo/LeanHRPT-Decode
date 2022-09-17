@@ -30,7 +30,7 @@
 
 #include "config/config.h"
 #include "geometry.h"
-#include "math.h"
+#include "util.h"
 
 static double str2double(std::string str) {
     QLocale l(QLocale::C);

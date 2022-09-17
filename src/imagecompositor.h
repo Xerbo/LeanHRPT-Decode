@@ -26,9 +26,9 @@
 #include <vector>
 
 #include "map.h"
-#include "math.h"
 #include "protocol/rawimage.h"
 #include "satinfo.h"
+#include "util.h"
 
 enum Equalization { None, Histogram, Stretch };
 

@@ -27,7 +27,7 @@
 #include <set>
 
 #include "geo/crs.h"
-#include "math.h"
+#include "util.h"
 
 bool map::verify_shapefile(std::string filename) {
     SHPHandle shapefile = SHPOpen(filename.c_str(), "rb");

@@ -22,6 +22,9 @@
 #ifndef M_PI_2
 #define M_PI_2 (M_PI / 2.0)
 #endif
+#ifndef M_PI_4
+#define M_PI_4 (M_PI / 2.0)
+#endif
 
 #ifndef LEANHRPT_MATH_H
 #define LEANHRPT_MATH_H

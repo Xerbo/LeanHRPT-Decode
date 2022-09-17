@@ -29,9 +29,9 @@
 
 #include "decoders/decoder.h"
 #include "map.h"
-#include "math.h"
 #include "projectdialog.h"
 #include "qt/ui_mainwindow.h"
+#include "util.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ui = new Ui::MainWindow;

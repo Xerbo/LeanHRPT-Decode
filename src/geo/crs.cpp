@@ -18,7 +18,7 @@
 
 #include "crs.h"
 
-#include "math.h"
+#include "util.h"
 
 transform::XY forward_equdistant(transform::Geo geo) {
     double lon = geo.x();

@@ -22,7 +22,7 @@
 #include <QPainter>
 #include <QWidget>
 
-#include "math.h"
+#include "util.h"
 
 class QPaletteView : public QWidget {
    public:
