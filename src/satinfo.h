@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -23,58 +23,23 @@
 #include <string>
 #include <vector>
 
-enum class Protocol {
-    Unknown,
-    LRPT,
-    HRPT,
-    AHRPT,
-    MeteorHRPT,
-    FengYunHRPT,
-    GAC,
-    GACReverse,
-    DSB
-};
+enum class Protocol { Unknown, LRPT, HRPT, AHRPT, MeteorHRPT, FengYunHRPT, GAC, GACReverse, DSB };
 
-enum Mission {
-    POES,
-    MeteorM,
-    FengYun3,
-    MetOp
-};
+enum Mission { POES, MeteorM, FengYun3, MetOp };
 
-enum SatID {
-    MetOpA,
-    MetOpB,
-    MetOpC,
-    FengYun3A,
-    FengYun3B,
-    FengYun3C,
-    NOAA15,
-    NOAA18,
-    NOAA19,
-    MeteorM2,
-    MeteorM22,
-    Unknown
-};
+enum SatID { MetOpA, MetOpB, MetOpC, FengYun3A, FengYun3B, FengYun3C, NOAA15, NOAA18, NOAA19, MeteorM2, MeteorM22, Unknown };
 
-enum Imager {
-    AVHRR,
-    VIRR,
-    MSUMR,
-    MHS,
-    MTVZA,
-    HIRS
-};
+enum Imager { AVHRR, VIRR, MSUMR, MHS, MTVZA, HIRS };
 
 struct SensorInfo {
     std::string name;
-    float swath; // in km
-    float resolution; // in km/px
+    float swath;       // in km
+    float resolution;  // in km/px
     size_t width;
 };
 
 struct SatelliteInfo {
-    float orbit_height; // in km
+    float orbit_height;  // in km
     Mission mission;
     std::string name;
     Imager default_imager;

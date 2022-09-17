@@ -34,6 +34,10 @@ ProjectDialog::ProjectDialog(QWidget *parent) : QDialog(parent) {
 
     render_finished = new QFutureWatcher<void>(this);
     QFutureWatcher<void>::connect(render_finished, &QFutureWatcher<void>::finished, [=]() { ui->render->setEnabled(true); });
+
+    for (const std::string &crs : transform::CRS_NAMES) {
+        ui->projection->addItem(QString::fromStdString(crs));
+    }
 }
 
 ProjectDialog::~ProjectDialog() { delete ui; }
@@ -54,8 +58,10 @@ void ProjectDialog::write_wld_file(QString filename) {
 
 QSize ProjectDialog::calculate_dimensions(size_t resolution) {
     bounds = QRectF(-180, -90, 360, 180);
+    target_bounds = QRectF(0, 0, 1, 1);
     if (ui->bounds->currentText() == "Auto") {
         bounds = map::bounds(get_points(31));
+        target_bounds = map::bounds_crs(get_points(31), crs);
     }
 
     double scale = EARTH_CIRCUMFRANCE / ui->resolution->value();
@@ -71,12 +77,12 @@ QSize ProjectDialog::calculate_dimensions(size_t resolution) {
 }
 
 QImage ProjectDialog::render(QSize dimensions) {
-    QImage image =
-        map::project(get_viewport(), get_points(31), 31, dimensions, bounds.width(), bounds.x(), bounds.height(), bounds.y());
+    QImage image = map::project(get_viewport(), get_points(31), 31, dimensions, bounds);
+    image = map::reproject(image, crs, bounds, target_bounds);
 
     if (map_enable()) {
         std::vector<QLineF> map = map::read_shapefile(map_shapefile().toStdString());
-        map::add_overlay(image, map, map_color(), bounds.width(), bounds.x(), bounds.height(), bounds.y());
+        map::add_overlay(image, map, map_color(), crs, target_bounds);
     }
 
     return image;
@@ -111,8 +117,10 @@ void ProjectDialog::on_render_clicked() {
 
     QFuture<void> future = QtConcurrent::run([=]() {
         QImage image = render(dimensions);
-        QFileInfo fi(filename);
-        write_wld_file(fi.absolutePath() + "/" + fi.completeBaseName() + ".wld");
+        if (crs == transform::CRS::Equdistant) {
+            QFileInfo fi(filename);
+            write_wld_file(fi.absolutePath() + "/" + fi.completeBaseName() + ".wld");
+        }
         image.save(filename);
     });
 
@@ -123,4 +131,13 @@ void ProjectDialog::on_render_clicked() {
 void ProjectDialog::resizeEvent(QResizeEvent *event) {
     Q_UNUSED(event);
     ui->projectionPreview->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+}
+
+void ProjectDialog::on_projection_textActivated(QString text) {
+    for (size_t i = 0; i < transform::CRS_NAMES.size(); i++) {
+        if (text.toStdString() == transform::CRS_NAMES[i]) {
+            crs = (transform::CRS)i;
+            return;
+        }
+    }
 }

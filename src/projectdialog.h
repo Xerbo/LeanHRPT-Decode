@@ -26,6 +26,7 @@
 #include <QProcess>
 #include <QTimer>
 
+#include "geo/crs.h"
 #include "projection.h"
 #include "satinfo.h"
 
@@ -49,13 +50,16 @@ class ProjectDialog : public QDialog {
     QSize calculate_dimensions(size_t resolution);
     void write_wld_file(QString filename);
 
+    transform::CRS crs = transform::CRS::Equdistant;
     QRectF bounds;
+    QRectF target_bounds;
     double pixelsize;
 
     virtual void resizeEvent(QResizeEvent *event) override;
    private slots:
     void on_preview_clicked();
     void on_render_clicked();
+    void on_projection_textActivated(QString text);
    signals:
     QImage get_viewport();
     std::vector<std::pair<xy, Geodetic>> get_points(size_t n);

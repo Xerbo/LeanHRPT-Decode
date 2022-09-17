@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MAP_H
-#define MAP_H
+#ifndef LEANHRPT_MAP_H_
+#define LEANHRPT_MAP_H_
 
 #include <QImage>
 #include <QLineF>
@@ -25,6 +25,7 @@
 #include <string>
 #include <vector>
 
+#include "geo/crs.h"
 #include "projection.h"
 
 namespace map {
@@ -42,14 +43,17 @@ std::vector<QLineF> warp_to_pass(const std::array<std::vector<QLineF>, 36 * 18> 
                                  const std::vector<std::pair<xy, Geodetic>> &points, size_t xn);
 
 // Project a pass into Rectangular projection
-QImage project(const QImage &image, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn, QSize resolution, double xa,
-               double xb, double ya, double yb);
+QImage project(const QImage &image, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn, QSize resolution,
+               QRectF bounds);
+
+QImage reproject(const QImage &image, transform::CRS crs, QRectF source_bounds, QRectF target_bounds);
 
 // Render a map overlay on an image with Rectangular projection
-void add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor color, double xa, double xb, double ya, double yb);
+void add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor color, transform::CRS crs, QRectF bounds);
 
 // Calculate bounds of a pass, height is inverted
 QRectF bounds(const std::vector<std::pair<xy, Geodetic>> &points);
+QRectF bounds_crs(const std::vector<std::pair<xy, Geodetic>> &points, transform::CRS crs);
 }  // namespace map
 
 #endif

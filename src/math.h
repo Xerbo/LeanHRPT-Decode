@@ -19,12 +19,16 @@
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+#ifndef M_PI_2
+#define M_PI_2 (M_PI / 2.0)
+#endif
 
 #ifndef LEANHRPT_MATH_H
 #define LEANHRPT_MATH_H
 
 #include <QColor>
 #include <QImage>
+#include <QPointF>
 #include <cmath>
 
 #define RAD2DEG (180.0 / M_PI)
@@ -32,6 +36,8 @@
 
 inline double deg2rad(double deg) { return deg * DEG2RAD; }
 inline double rad2deg(double rad) { return rad * RAD2DEG; }
+inline QPointF deg2rad(QPointF deg) { return QPointF(deg.x() * DEG2RAD, deg.y() * DEG2RAD); }
+inline QPointF rad2deg(QPointF rad) { return QPointF(rad.x() * RAD2DEG, rad.y() * RAD2DEG); }
 
 template <typename T>
 inline T clamp(T v, T lo, T hi) {
