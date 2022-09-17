@@ -123,9 +123,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         return proj->calculate_gcps(timestamps[sensor], y, n, sensor, sat, width);
     });
     ProjectDialog::connect(project_diag, &ProjectDialog::map_shapefile, [this]() -> QString { return map_shapefile; });
+    ProjectDialog::connect(project_diag, &ProjectDialog::landmark_file, [this]() -> QString { return landmark_file; });
     ProjectDialog::connect(project_diag, &ProjectDialog::map_color, [this]() -> QColor { return map_color; });
+    ProjectDialog::connect(project_diag, &ProjectDialog::landmark_color, [this]() -> QColor { return landmark_color; });
     ProjectDialog::connect(project_diag, &ProjectDialog::map_enable,
                            [this]() -> bool { return ui->actionEnable_Map->isChecked(); });
+    ProjectDialog::connect(project_diag, &ProjectDialog::landmark_enable,
+                           [this]() -> bool { return ui->actionEnable_Landmarks->isChecked(); });
     ProjectDialog::connect(project_diag, &ProjectDialog::default_filename, [this]() -> QString { return getDefaultFilename(); });
 
     UpdateChecker *update_checker = new UpdateChecker();
@@ -149,6 +153,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         ui->actionMap_Color->setText(QString("Map Color (%1)").arg(color.name()));
         on_actionEnable_Map_triggered();
     });
+    landmark_color_dialog = new QColorDialog(this);
+    landmark_color_dialog->setCurrentColor(map_color);
+    QColorDialog::connect(landmark_color_dialog, &QColorDialog::colorSelected, this, [this](QColor color) {
+        QSettings settings;
+        settings.setValue("landmark/color", color);
+
+        landmark_color = color;
+        ui->actionLandmark_Color->setText(QString("Landmark Color (%1)").arg(color.name()));
+        on_actionEnable_Landmarks_triggered();
+    });
 
     setAcceptDrops(true);
 
@@ -158,9 +172,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         ui->actionMap_Shapefile->setText(QString("Map Shapefile (%1)").arg(QFileInfo(map_shapefile).completeBaseName()));
         ui->actionEnable_Map->setEnabled(true);
     }
+    if (settings.contains("landmark/file")) {
+        landmark_file = settings.value("landmark/file").toString();
+        ui->actionLandmark_File->setText(QString("Landmark File (%1)").arg(QFileInfo(landmark_file).completeBaseName()));
+        ui->actionEnable_Landmarks->setEnabled(true);
+    }
     if (settings.contains("map/color")) {
         map_color = settings.value("map/color").value<QColor>();
         ui->actionMap_Color->setText(QString("Map Color (%1)").arg(map_color.name()));
+        color_dialog->setCurrentColor(map_color);
+    }
+    if (settings.contains("landmark/color")) {
+        landmark_color = settings.value("landmark/color").value<QColor>();
+        ui->actionLandmark_Color->setText(QString("Landmark Color (%1)").arg(landmark_color.name()));
+        landmark_color_dialog->setCurrentColor(landmark_color);
     }
 }
 
@@ -706,6 +731,28 @@ void MainWindow::on_actionMap_Shapefile_triggered() {
     }
 }
 
+void MainWindow::on_actionLandmark_File_triggered() {
+    QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Landmark Files (*.csv)");
+    if (filename.isEmpty()) return;
+
+    if (map::read_landmarks(filename.toStdString()).size() == 0) {
+        QMessageBox::critical(this, "Error", "Unable to open Landmark file.");
+        return;
+    }
+
+    ui->actionLandmark_File->setText(QString("Map Shapefile (%1)").arg(QFileInfo(filename).completeBaseName()));
+    ui->actionEnable_Landmarks->setEnabled(true);
+    bool update = !landmark_file.isEmpty();
+    landmark_file = filename;
+
+    QSettings settings;
+    settings.setValue("landmark/file", landmark_file);
+
+    if (update) {
+        on_actionEnable_Landmarks_triggered();
+    }
+}
+
 void MainWindow::on_actionEnable_Map_triggered() {
     if (!ui->actionEnable_Map->isChecked()) {
         compositors[sensor]->enable_map = false;
@@ -722,6 +769,25 @@ void MainWindow::on_actionEnable_Map_triggered() {
     compositors[sensor]->map_color = map_color;
     compositors[sensor]->overlay = map::warp_to_pass(buckets, points, xn);
     compositors[sensor]->enable_map = true;
+
+    updateDisplay();
+}
+
+void MainWindow::on_actionEnable_Landmarks_triggered() {
+    if (!ui->actionEnable_Landmarks->isChecked()) {
+        compositors[sensor]->enable_landmarks = false;
+        updateDisplay();
+        return;
+    }
+
+    size_t yn = (double)compositors[sensor]->height()/(double)compositors[sensor]->width() * 21.0;
+    size_t xn = 21;
+    auto points = proj->calculate_gcps(timestamps[sensor], yn, xn, sensor, sat, compositors[sensor]->width());
+
+    std::vector<Landmark> landmarks = map::read_landmarks(landmark_file.toStdString());
+    compositors[sensor]->landmark_color = landmark_color;
+    compositors[sensor]->landmarks = map::warp_to_pass(landmarks, points, xn);
+    compositors[sensor]->enable_landmarks = true;
 
     updateDisplay();
 }

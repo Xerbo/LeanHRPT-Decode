@@ -24,6 +24,7 @@
 #include "satinfo.h"
 
 QImage correct_geometry(QImage image, SatID satellite, Imager sensor, size_t width);
+void correct_points(std::vector<QPointF> &points, SatID satellite, Imager sensor, size_t width);
 void correct_lines(std::vector<QLineF> &lines, SatID satellite, Imager sensor, size_t width);
 
 #endif

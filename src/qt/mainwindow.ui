@@ -517,9 +517,12 @@
     </property>
     <addaction name="actionProjector"/>
     <addaction name="separator"/>
+    <addaction name="actionLandmark_File"/>
+    <addaction name="actionLandmark_Color"/>
     <addaction name="actionMap_Shapefile"/>
     <addaction name="actionMap_Color"/>
     <addaction name="actionEnable_Map"/>
+    <addaction name="actionEnable_Landmarks"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuGeo"/>
@@ -632,6 +635,27 @@
    </property>
    <property name="text">
     <string>Enable Map</string>
+   </property>
+  </action>
+  <action name="actionLandmark_File">
+   <property name="text">
+    <string>Landmarks File (N/A)</string>
+   </property>
+  </action>
+  <action name="actionLandmark_Color">
+   <property name="text">
+    <string>Landmark Color (#ff0000)</string>
+   </property>
+  </action>
+  <action name="actionEnable_Landmarks">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Enable Landmarks</string>
    </property>
   </action>
  </widget>

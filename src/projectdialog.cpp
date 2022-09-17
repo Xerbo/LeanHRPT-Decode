@@ -84,6 +84,10 @@ QImage ProjectDialog::render(QSize dimensions) {
         std::vector<QLineF> map = map::read_shapefile(map_shapefile().toStdString());
         map::add_overlay(image, map, map_color(), crs, target_bounds);
     }
+    if (landmark_enable()) {
+        std::vector<Landmark> landmarks = map::read_landmarks(landmark_file().toStdString());
+        map::add_landmarks(image, landmarks, landmark_color(), crs, target_bounds);
+    }
 
     return image;
 }

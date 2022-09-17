@@ -25,6 +25,7 @@
 #include <cmath>
 #include <vector>
 
+#include "map.h"
 #include "math.h"
 #include "protocol/rawimage.h"
 #include "satinfo.h"
@@ -54,6 +55,10 @@ class ImageCompositor {
     std::vector<QColor> stops;
     std::vector<bool> ch3a;
     bool has_ch3a = false;
+
+    bool enable_landmarks = false;
+    QColor landmark_color;
+    std::vector<Landmark> landmarks;
 
     void postprocess(QImage &image, bool correct = false);
 

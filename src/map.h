@@ -28,12 +28,19 @@
 #include "geo/crs.h"
 #include "projection.h"
 
+struct Landmark {
+    QPointF geo;
+    QString text;
+};
+
 namespace map {
 // Checks that a Shapefile is readable and supported (Polyline/Polygon)
 bool verify_shapefile(std::string filename);
 
 // Decompose a Polyline/Polygon Shapefile into a list of line segments
 std::vector<QLineF> read_shapefile(std::string filename);
+// Read a landmark CSV file
+std::vector<Landmark> read_landmarks(std::string filename);
 
 // Sort line segments into 10x10 "buckets"
 std::array<std::vector<QLineF>, 36 * 18> index_line_segments(const std::vector<QLineF> &line_segments);
@@ -41,6 +48,8 @@ std::array<std::vector<QLineF>, 36 * 18> index_line_segments(const std::vector<Q
 // Warp an (indexed) map to fit a pass based off a point grid
 std::vector<QLineF> warp_to_pass(const std::array<std::vector<QLineF>, 36 * 18> &buckets,
                                  const std::vector<std::pair<xy, Geodetic>> &points, size_t xn);
+std::vector<Landmark> warp_to_pass(const std::vector<Landmark> &landmarks, const std::vector<std::pair<xy, Geodetic>> &points,
+                                   size_t xn);
 
 // Project a pass into Rectangular projection
 QImage project(const QImage &image, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn, QSize resolution,
@@ -50,6 +59,7 @@ QImage reproject(const QImage &image, transform::CRS crs, QRectF source_bounds, 
 
 // Render a map overlay on an image with Rectangular projection
 void add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor color, transform::CRS crs, QRectF bounds);
+void add_landmarks(QImage &image, const std::vector<Landmark> &landmarks, QColor color, transform::CRS crs, QRectF bounds);
 
 // Calculate bounds of a pass, height is inverted
 QRectF bounds(const std::vector<std::pair<xy, Geodetic>> &points);

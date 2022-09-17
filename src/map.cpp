@@ -20,6 +20,7 @@
 
 #include <shapefil.h>
 
+#include <QFile>
 #include <QPainter>
 #include <QPolygonF>
 #include <QTransform>
@@ -75,6 +76,23 @@ std::vector<QLineF> map::read_shapefile(std::string filename) {
     return line_segments;
 }
 
+std::vector<Landmark> map::read_landmarks(std::string filename) {
+    QFile file(QString::fromStdString(filename));
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+
+    std::vector<Landmark> landmarks;
+    while (!file.atEnd()) {
+        QString string = QString::fromUtf8(file.readLine());
+        QStringList list = string.split(",");
+        if (list.length() != 3) continue;
+
+        Landmark landmark = {QPointF(list[2].toDouble(), list[1].toDouble()), list[0]};
+        landmarks.push_back(landmark);
+    }
+
+    return landmarks;
+}
+
 std::array<std::vector<QLineF>, 36 * 18> map::index_line_segments(const std::vector<QLineF> &line_segments) {
     std::array<std::vector<QLineF>, 36 * 18> buckets;
 
@@ -128,6 +146,41 @@ std::vector<QLineF> map::warp_to_pass(const std::array<std::vector<QLineF>, 36 *
                         QPointF p2 = buckets[indice][i].p2();
                         warped.push_back(QLineF(trans.map(p1), trans.map(p2)));
                     }
+                }
+            }
+        }
+    }
+
+    return warped;
+}
+
+std::vector<Landmark> map::warp_to_pass(const std::vector<Landmark> &landmarks,
+                                        const std::vector<std::pair<xy, Geodetic>> &points, size_t xn) {
+    std::vector<Landmark> warped;
+
+    for (size_t y = 0; y < points.size() / xn - 1; y++) {
+        for (size_t x = 0; x < xn - 1; x++) {
+            //                     top left      top right     bottom right  bottom left
+            size_t vertices[4] = {(y + 0) * xn + x + 0, (y + 0) * xn + x + 1, (y + 1) * xn + x + 1, (y + 1) * xn + x + 0};
+
+            QPolygonF geo, pixels;
+            for (size_t vertex : vertices) {
+                geo << QPointF(points[vertex].second.longitude * RAD2DEG, points[vertex].second.latitude * RAD2DEG);
+                pixels << QPointF(points[vertex].first.first, points[vertex].first.second);
+            }
+
+            // TODO: phase unwrapping
+            QRectF bounds = geo.boundingRect();
+            if (bounds.width() > 180) continue;
+
+            // Create the transformation
+            QTransform trans;
+            if (!QTransform::quadToQuad(geo, pixels, trans)) continue;
+
+            // Warp lines within the selected buckets
+            for (const Landmark &landmark : landmarks) {
+                if (geo.containsPoint(landmark.geo, Qt::OddEvenFill)) {
+                    warped.push_back({trans.map(landmark.geo), landmark.text});
                 }
             }
         }
@@ -269,6 +322,34 @@ void map::add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor 
         if (image.rect().contains(p1.toPoint()) && image.rect().contains(p2.toPoint())) {
             painter.drawLine(p1, p2);
         }
+    }
+}
+
+void map::add_landmarks(QImage &image, const std::vector<Landmark> &landmarks, QColor color, transform::CRS crs, QRectF bounds) {
+    double xa = bounds.width();
+    double xb = bounds.x();
+    double ya = bounds.height();
+    double yb = bounds.y();
+
+    if (image.format() != QImage::Format_RGBX64) {
+        image = image.convertToFormat(QImage::Format_RGBX64);
+    }
+
+    QPainter painter(&image);
+    painter.setBrush(QBrush(color, Qt::SolidPattern));
+    painter.setPen(color);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QFont font = painter.font();
+    font.setPixelSize(image.width() / 130);
+    painter.setFont(font);
+
+    for (const Landmark &landmark : landmarks) {
+        QPointF p1 = transform::forward(deg2rad(landmark.geo), crs);
+        p1.rx() = r2px((p1.x() - xb) / xa, image.width());
+        p1.ry() = r2px((p1.y() - yb) / ya, image.height());
+
+        painter.drawEllipse(p1, image.width() / 500, image.width() / 500);
+        painter.drawText(p1.x() - 500, p1.y() + 2.5, 1000, 250, Qt::AlignHCenter, landmark.text);
     }
 }
 

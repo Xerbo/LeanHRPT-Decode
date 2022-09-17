@@ -102,8 +102,11 @@ class MainWindow : public QMainWindow {
     Projector *proj;
     bool have_tles;
     QColorDialog *color_dialog;
+    QColorDialog *landmark_color_dialog;
     QColor map_color = QColor(255, 255, 0);
+    QColor landmark_color = QColor(255, 0, 0);
     QString map_shapefile;
+    QString landmark_file;
 
     // Sensor selection
     Imager sensor;
@@ -171,8 +174,11 @@ class MainWindow : public QMainWindow {
     // menuGeo
     void on_actionProjector_triggered() { project_diag->show(); };
     void on_actionMap_Shapefile_triggered();
+    void on_actionLandmark_File_triggered();
     void on_actionMap_Color_triggered() { color_dialog->show(); };
+    void on_actionLandmark_Color_triggered() { landmark_color_dialog->show(); };
     void on_actionEnable_Map_triggered();
+    void on_actionEnable_Landmarks_triggered();
     // menuOptions
     void on_actionFlip_triggered();
     void on_actionIR_Blend_triggered();

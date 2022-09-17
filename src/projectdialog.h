@@ -65,8 +65,11 @@ class ProjectDialog : public QDialog {
     std::vector<std::pair<xy, Geodetic>> get_points(size_t n);
 
     QString map_shapefile();
+    QString landmark_file();
     QColor map_color();
+    QColor landmark_color();
     bool map_enable();
+    bool landmark_enable();
     QString default_filename();
 };
 

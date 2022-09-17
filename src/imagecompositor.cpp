@@ -165,6 +165,34 @@ void ImageCompositor::postprocess(QImage &image, bool correct) {
         painter.drawLines(_overlay.data(), _overlay.size());
     }
 
+    if (enable_landmarks) {
+        auto _landmarks = landmarks;
+        if (correct) {
+            std::vector<QPointF> points(_landmarks.size());
+            for (size_t i = 0; i < points.size(); i++) {
+                points[i] = _landmarks[i].geo;
+            }
+            correct_points(points, m_satellite, m_sensor, m_width);
+            for (size_t i = 0; i < points.size(); i++) {
+                _landmarks[i].geo = points[i];
+            }
+        }
+
+        image = image.convertToFormat(QImage::Format_RGBX64);
+        QPainter painter(&image);
+        painter.setBrush(QBrush(landmark_color, Qt::SolidPattern));
+        painter.setPen(landmark_color);
+        painter.setRenderHint(QPainter::Antialiasing);
+        QFont font = painter.font();
+        font.setPixelSize(image.width() / 130);
+        painter.setFont(font);
+
+        for (const Landmark &landmark : _landmarks) {
+            painter.drawEllipse(landmark.geo, image.width() / 500, image.width() / 500);
+            painter.drawText(landmark.geo.x() - 500, landmark.geo.y() + 2.5, 1000, 250, Qt::AlignHCenter, landmark.text);
+        }
+    }
+
     if (m_isFlipped) {
         image = image.mirrored(true, true);
     }
