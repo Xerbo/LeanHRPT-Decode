@@ -397,7 +397,8 @@ QImage map::reproject(const QImage &image, transform::CRS crs, QRectF source_bou
     double ya2 = target_bounds.height();
     double yb2 = target_bounds.y();
 
-    QImage projected(image.width(), image.width(), image.format());
+    QImage projected(image.width(), image.width() * (double)target_bounds.height() / (double)target_bounds.width(),
+                     image.format());
     projected.fill(0);
 
 #pragma omp parallel for

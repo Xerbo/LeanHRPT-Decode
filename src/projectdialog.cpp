@@ -67,6 +67,9 @@ QSize ProjectDialog::calculate_dimensions(size_t resolution) {
     double scale = EARTH_CIRCUMFRANCE / ui->resolution->value();
     pixelsize = 360.0 / scale;
     QSize dimensions(bounds.width() / 360.0 * scale, bounds.height() / 360.0 * scale);
+    if (crs != transform::CRS::Equdistant) {
+        dimensions.rheight() = dimensions.width() * (double)target_bounds.height() / (double)target_bounds.width();
+    }
     ui->details->setText(QString("Final size: %1x%2").arg(dimensions.width()).arg(dimensions.height()));
 
     if (resolution != 0) {
