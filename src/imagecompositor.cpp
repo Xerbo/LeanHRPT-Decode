@@ -165,6 +165,10 @@ void ImageCompositor::postprocess(QImage &image, bool correct) {
         painter.drawLines(_overlay.data(), _overlay.size());
     }
 
+    if (m_isFlipped) {
+        image = image.mirrored(true, true);
+    }
+
     if (enable_landmarks) {
         auto _landmarks = landmarks;
         if (correct) {
@@ -188,13 +192,14 @@ void ImageCompositor::postprocess(QImage &image, bool correct) {
         painter.setFont(font);
 
         for (const Landmark &landmark : _landmarks) {
-            painter.drawEllipse(landmark.geo, image.width() / 500, image.width() / 500);
-            painter.drawText(landmark.geo.x() - 500, landmark.geo.y() + 2.5, 1000, 250, Qt::AlignHCenter, landmark.text);
+            QPointF point = landmark.geo;
+            if (m_isFlipped) {
+                point.rx() = image.width() - point.x();
+                point.ry() = image.height() - point.y();
+            }
+            painter.drawEllipse(point, image.width() / 500, image.width() / 500);
+            painter.drawText(point.x() - 500, point.y() + 2.5, 1000, 250, Qt::AlignHCenter, landmark.text);
         }
-    }
-
-    if (m_isFlipped) {
-        image = image.mirrored(true, true);
     }
 }
 

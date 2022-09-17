@@ -108,8 +108,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         QImage copy(display);
         compositors[sensor]->equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
         compositors[sensor]->enable_map = false;
+        compositors[sensor]->enable_landmarks = false;
         compositors[sensor]->postprocess(copy);
         compositors[sensor]->enable_map = ui->actionEnable_Map->isChecked();
+        compositors[sensor]->enable_landmarks = ui->actionEnable_Landmarks->isChecked();
         if (compositors[sensor]->flipped()) {
             copy = copy.mirrored(true, true);
         }
