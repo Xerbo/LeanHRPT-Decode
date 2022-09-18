@@ -23,6 +23,41 @@
 #include "matrix.h"
 #include "vector.h"
 
+struct GeodeticCurve {
+   public:
+    GeodeticCurve(double ellipsoidalDistanceMeters, double azimuth, double reverseAzimuth) {
+        this->EllipsoidalDistanceMeters = ellipsoidalDistanceMeters;
+        this->Azimuth = azimuth;
+        this->ReverseAzimuth = reverseAzimuth;
+    }
+    double EllipsoidalDistanceMeters;
+    double Azimuth;
+    double ReverseAzimuth;
+};
+
+struct Ellipsoid {
+   public:
+    Ellipsoid(double semiMajorAxisMeters, double semiMinorAxisMeters, double flattening, double inverseFlattening) {
+        this->SemiMajorAxisMeters = semiMajorAxisMeters;
+        this->SemiMinorAxisMeters = semiMinorAxisMeters;
+        this->Flattening = flattening;
+        this->InverseFlattening = inverseFlattening;
+    }
+    Ellipsoid(double semiMajorAxisMeters, double inverseFlattening) {
+        double f = 1.0 / inverseFlattening;
+        double b = (1.0 - f) * semiMajorAxisMeters;
+
+        Ellipsoid(semiMajorAxisMeters, b, f, inverseFlattening);
+    }
+    double SemiMajorAxisMeters;
+    double SemiMinorAxisMeters;
+    double Flattening;
+    double InverseFlattening;
+};
+
+const Ellipsoid WGS84(6378137.0, 298.257223563);
+
+GeodeticCurve CalculateGeodeticCurve(Ellipsoid ellipsoid, Geodetic start, Geodetic end, double tolerance = 1e-13);
 Vector locationToVector(const Geodetic &location);
 Geodetic vectorToLocation(const Vector &vector);
 Geodetic los_to_earth(const Geodetic &position, double roll, double pitch, double yaw);

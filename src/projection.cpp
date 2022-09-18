@@ -63,12 +63,8 @@ std::vector<std::pair<xy, Geodetic>> Projector::calculate_gcps(const std::vector
         double azimuth;
         {
             struct predict_position b = predictor.predict(timestamp + 0.1);
-            azimuth = deg2rad(90) - calculateBearingAngle(Geodetic(orbit), Geodetic(b));
-            if (azimuth > M_PI) {
-                azimuth += deg2rad(yaw);
-            } else {
-                azimuth -= deg2rad(yaw);
-            }
+            azimuth = deg2rad(90) - CalculateGeodeticCurve(WGS84, Geodetic(orbit), Geodetic(b)).Azimuth;
+            azimuth += deg2rad(yaw);
         }
 
         auto scan = calculate_scan(Geodetic(orbit), azimuth, fov, roll, pitch, pitchscale, curved, pointsx);

@@ -28,6 +28,7 @@
 #include "geolocation.h"
 
 #include <limits>
+#include <stdexcept>
 
 #include "util.h"
 
@@ -128,15 +129,155 @@ Geodetic los_to_earth(const Vector &position, double roll, double pitch, double 
     return vectorToLocation(Vector(x, y, z));
 }
 
-// Todo: More precise calculation maybe required, example:
-// https://github.com/airbreather/Gavaghan.Geodesy/blob/master/Source/Gavaghan.Geodesy/GeodeticCalculator.cs
-double calculateBearingAngle(const Geodetic &start, const Geodetic &end) {
-    double alpha = end.longitude - start.longitude;
-    double y = sin(alpha) * cos(end.latitude);
-    double x = cos(start.latitude) * sin(end.latitude) - sin(start.latitude) * cos(end.latitude) * cos(alpha);
-    double theta = atan2(y, x);
+GeodeticCurve CalculateGeodeticCurve(Ellipsoid ellipsoid, Geodetic start, Geodetic end, double tolerance) {
+    //
+    // All equation numbers refer back to Vincenty's publication:
+    // See http://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf
+    //
 
-    return theta;
+    // get constants
+    double a = ellipsoid.SemiMajorAxisMeters;
+    double b = ellipsoid.SemiMinorAxisMeters;
+    double f = ellipsoid.Flattening;
+
+    // get parameters as radians
+    double phi1 = start.latitude;
+    double lambda1 = start.longitude;
+    double phi2 = end.latitude;
+    double lambda2 = end.longitude;
+
+    // calculations
+    double a2 = a * a;
+    double b2 = b * b;
+    double a2b2b2 = (a2 - b2) / b2;
+
+    double omega = lambda2 - lambda1;
+
+    double tanphi1 = tan(phi1);
+    double tanU1 = (1.0 - f) * tanphi1;
+    double U1 = atan(tanU1);
+    double sinU1 = sin(U1);
+    double cosU1 = cos(U1);
+
+    double tanphi2 = tan(phi2);
+    double tanU2 = (1.0 - f) * tanphi2;
+    double U2 = atan(tanU2);
+    double sinU2 = sin(U2);
+    double cosU2 = cos(U2);
+
+    double sinU1sinU2 = sinU1 * sinU2;
+    double cosU1sinU2 = cosU1 * sinU2;
+    double sinU1cosU2 = sinU1 * cosU2;
+    double cosU1cosU2 = cosU1 * cosU2;
+
+    // eq. 13
+    double lambda = omega;
+
+    // intermediates we'll need to compute 's'
+    double A = 0.0;
+    double B = 0.0;
+    double sigma = 0.0;
+    double deltasigma = 0.0;
+    double lambda0;
+    bool converged = false;
+
+    for (int i = 0; i < 20; i++) {
+        lambda0 = lambda;
+
+        double sinlambda = sin(lambda);
+        double coslambda = cos(lambda);
+
+        // eq. 14
+        double cosU1sinU2_sinU2cosU2coslambda = cosU1sinU2 - sinU1cosU2 * coslambda;
+        double sin2sigma =
+            (cosU2 * sinlambda * cosU2 * sinlambda) + (cosU1sinU2_sinU2cosU2coslambda * cosU1sinU2_sinU2cosU2coslambda);
+        double sinsigma = sqrt(sin2sigma);
+
+        // eq. 15
+        double cossigma = sinU1sinU2 + (cosU1cosU2 * coslambda);
+
+        // eq. 16
+        sigma = atan2(sinsigma, cossigma);
+
+        // eq. 17    Careful!  sin2sigma might be almost 0!
+        double sinalpha = (sin2sigma == 0) ? 0.0 : cosU1cosU2 * sinlambda / sinsigma;
+        double alpha = asin(sinalpha);
+        double cosalpha = cos(alpha);
+        double cos2alpha = cosalpha * cosalpha;
+
+        // eq. 18    Careful!  cos2alpha might be almost 0!
+        double cos2sigmam = cos2alpha == 0.0 ? 0.0 : cossigma - 2 * sinU1sinU2 / cos2alpha;
+        double u2 = cos2alpha * a2b2b2;
+
+        double cos2sigmam2 = cos2sigmam * cos2sigmam;
+
+        // eq. 3
+        A = 1.0 + u2 / 16384 * (4096 + u2 * (-768 + u2 * (320 - 175 * u2)));
+
+        // eq. 4
+        B = u2 / 1024 * (256 + u2 * (-128 + u2 * (74 - 47 * u2)));
+
+        // eq. 6
+        deltasigma =
+            B * sinsigma *
+            (cos2sigmam +
+             B / 4 * (cossigma * (-1 + 2 * cos2sigmam2) - B / 6 * cos2sigmam * (-3 + 4 * sin2sigma) * (-3 + 4 * cos2sigmam2)));
+
+        // eq. 10
+        double C = f / 16 * cos2alpha * (4 + f * (4 - 3 * cos2alpha));
+
+        // eq. 11 (modified)
+        lambda = omega + (1 - C) * f * sinalpha * (sigma + C * sinsigma * (cos2sigmam + C * cossigma * (-1 + 2 * cos2sigmam2)));
+
+        if (i < 2) {
+            continue;
+        }
+
+        // see how much improvement we got
+        double change = abs((lambda - lambda0) / lambda);
+
+        if (change < tolerance) {
+            converged = true;
+            break;
+        }
+    }
+
+    // eq. 19
+    double s = b * A * (sigma - deltasigma);
+    double alpha1;
+    double alpha2;
+
+    // didn't converge?  must be N/S
+    if (!converged) {
+        if (phi1 > phi2) {
+            alpha1 = 180 * DEG2RAD;
+            alpha2 = 0;
+        } else if (phi1 < phi2) {
+            alpha1 = 0;
+            alpha2 = 180 * DEG2RAD;
+        } else {
+            alpha1 = NAN;
+            alpha2 = NAN;
+            throw std::out_of_range("Well fuck");
+        }
+    } else {
+        double radians;
+
+        // eq. 20
+        radians = atan2(cosU2 * sin(lambda), (cosU1sinU2 - sinU1cosU2 * cos(lambda)));
+        if (radians < 0.0) radians += M_2PI;
+        alpha1 = radians;
+
+        // eq. 21
+        radians = atan2(cosU1 * sin(lambda), (-sinU1cosU2 + cosU1sinU2 * cos(lambda))) + M_PI;
+        if (radians < 0.0) radians += M_2PI;
+        alpha2 = radians;
+    }
+
+    if (alpha1 >= M_2PI) alpha1 -= M_2PI;
+    if (alpha2 >= M_2PI) alpha2 -= M_2PI;
+
+    return GeodeticCurve(s, alpha1, alpha2);
 }
 
 Matrix4x4 lookAt(const Vector3 &position, const Vector3 &target, const Vector3 &up) {
