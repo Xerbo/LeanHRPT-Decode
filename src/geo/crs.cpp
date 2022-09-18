@@ -18,6 +18,8 @@
 
 #include "crs.h"
 
+#include <stdexcept>
+
 #include "util.h"
 
 transform::XY forward_equdistant(transform::Geo geo) {
