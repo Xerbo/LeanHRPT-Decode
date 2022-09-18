@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_DECODERS_FENGYUN_H
-#define LEANHRPT_DECODERS_FENGYUN_H
+#ifndef LEANHRPT_DECODERS_FENGYUN_HRPT_H_
+#define LEANHRPT_DECODERS_FENGYUN_HRPT_H_
 
 #include <cstdint>
 

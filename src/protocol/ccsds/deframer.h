@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_CCSDS_DEFRAMER_H
-#define LEANHRPT_CCSDS_DEFRAMER_H
+#ifndef LEANHRPT_PROTOCOL_CCSDS_DEFRAMER_H_
+#define LEANHRPT_PROTOCOL_CCSDS_DEFRAMER_H_
 
 #include <cstddef>
 #include <cstdint>

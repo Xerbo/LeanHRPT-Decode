@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_SATINFO_H
-#define LEANHRPT_SATINFO_H
+#ifndef LEANHRPT_SATINFO_H_
+#define LEANHRPT_SATINFO_H_
 
 #include <map>
 #include <string>

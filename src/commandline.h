@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_COMMANDLINE_H
-#define LEANHRPT_COMMANDLINE_H
+#ifndef LEANHRPT_COMMANDLINE_H_
+#define LEANHRPT_COMMANDLINE_H_
 
 #include <QCommandLineParser>
 

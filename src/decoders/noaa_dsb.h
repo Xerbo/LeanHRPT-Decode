@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef NOAA_DSB_H
-#define NOAA_DSB_H
+#ifndef LEANHRPT_DECODERS_NOAA_DSB_H_
+#define LEANHRPT_DECODERS_NOAA_DSB_H_
 
 #include "common/tip.h"
 #include "decoder.h"

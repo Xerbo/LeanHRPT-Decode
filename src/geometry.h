@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_GEOMETRY_H
-#define LEANHRPT_GEOMETRY_H
+#ifndef LEANHRPT_GEOMETRY_H_
+#define LEANHRPT_GEOMETRY_H_
 
 #include <QImage>
 

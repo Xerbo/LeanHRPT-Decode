@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_GENERIC_RAWIMAGE_H
-#define LEANHRPT_GENERIC_RAWIMAGE_H
+#ifndef LEANHRPT_PROTOCOL_RAWIMAGE_H_
+#define LEANHRPT_PROTOCOL_RAWIMAGE_H_
 
 #include <cstdint>
 #include <stdexcept>

@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef NOAA_GAC_H
-#define NOAA_GAC_H
+#ifndef LEANHRPT_DECODERS_NOAA_GAC_H_
+#define LEANHRPT_DECODERS_NOAA_GAC_H_
 
 #include "common/aip.h"
 #include "decoder.h"

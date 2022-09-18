@@ -23,8 +23,8 @@
 #include "protocol/repack.h"
 #include "satinfo.h"
 
-#ifndef TIP_H
-#define TIP_H
+#ifndef LEANHRPT_DECODERS_COMMON_TIP_H_
+#define LEANHRPT_DECODERS_COMMON_TIP_H_
 
 /**
  * Check parity of a TIP frame

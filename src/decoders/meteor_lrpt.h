@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef DECODERS_METEOR_LRPT_H
-#define DECODERS_METEOR_LRPT_H
+#ifndef LEANHRPT_DECODERS_METEOR_LRPT_H_
+#define LEANHRPT_DECODERS_METEOR_LRPT_H_
 
 #include "decoder.h"
 #include "protocol/ccsds/demuxer.h"

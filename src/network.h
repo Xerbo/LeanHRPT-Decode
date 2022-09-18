@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_TLE_H
-#define LEANHRPT_TLE_H
+#ifndef LEANHRPT_TLE_H_
+#define LEANHRPT_TLE_H_
 
 #include <QObject>
 #include <map>

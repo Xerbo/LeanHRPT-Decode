@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_PRESET_H
-#define LEANHRPT_PRESET_H
+#ifndef LEANHRPT_CONFIG_PRESET_H
+#define LEANHRPT_CONFIG_PRESET_H
 
 #include <map>
 #include <set>

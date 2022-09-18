@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_CCSDS_DEMUXER_H
-#define LEANHRPT_CCSDS_DEMUXER_H
+#ifndef LEANHRPT_PROTOCOL_CCSDS_DEMUXER_H_
+#define LEANHRPT_PROTOCOL_CCSDS_DEMUXER_H_
 
 #include <cstddef>
 #include <cstdint>

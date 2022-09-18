@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef QPALETTEVIEW_H
-#define QPALETTEVIEW_H
+#ifndef LEANHRPT_QT_QPALETTEVIEW
+#define LEANHRPT_QT_QPALETTEVIEW
 
 #include <QPainter>
 #include <QWidget>

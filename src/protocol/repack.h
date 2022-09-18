@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef REPACK_H
-#define REPACK_H
+#ifndef LEANHRPT_PROTOCOL_REPACK_H_
+#define LEANHRPT_PROTOCOL_REPACK_H_
 
 #include <cstddef>
 #include <cstdint>

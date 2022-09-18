@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_GEO_GEODETIC_H
-#define LEANHRPT_GEO_GEODETIC_H
+#ifndef LEANHRPT_GEO_GEODETIC_H_
+#define LEANHRPT_GEO_GEODETIC_H_
 
 #include <predict/predict.h>
 

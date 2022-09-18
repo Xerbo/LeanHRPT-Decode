@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PROJECTDIALOG_H
-#define PROJECTDIALOG_H
+#ifndef LEANHRPT_PROJECTDIALOG_H_
+#define LEANHRPT_PROJECTDIALOG_H_
 
 #include <QColor>
 #include <QDialog>

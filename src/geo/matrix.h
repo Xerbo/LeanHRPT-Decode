@@ -25,8 +25,8 @@
  * SOFTWARE.
  */
 
-#ifndef MATRIX4X4_H
-#define MATRIX4X4_H
+#ifndef LEANHRPT_GEO_MATRIX_H_
+#define LEANHRPT_GEO_MATRIX_H_
 
 #include <algorithm>
 #include <array>

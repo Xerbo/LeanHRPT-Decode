@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef GRADIENT_H
-#define GRADIENT_H
+#ifndef LEANHRPT_CONFIG_GRADIENT_H_
+#define LEANHRPT_CONFIG_GRADIENT_H_
 
 #include <QString>
 #include <map>

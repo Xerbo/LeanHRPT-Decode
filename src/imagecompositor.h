@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_IMAGECOMPOSITOR_H
-#define LEANHRPT_IMAGECOMPOSITOR_H
+#ifndef LEANHRPT_IMAGECOMPOSITOR_H_
+#define LEANHRPT_IMAGECOMPOSITOR_H_
 
 #include <QImage>
 #include <QPainter>

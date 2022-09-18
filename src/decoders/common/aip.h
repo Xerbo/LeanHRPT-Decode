@@ -22,8 +22,8 @@
 #include "protocol/repack.h"
 #include "satinfo.h"
 
-#ifndef AIP_H
-#define AIP_H
+#ifndef LEANHRPT_DECODERS_COMMON_AIP_H_
+#define LEANHRPT_DECODERS_COMMON_AIP_H_
 
 #include <cstring>
 

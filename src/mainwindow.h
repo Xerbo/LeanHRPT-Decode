@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef LEANHRPT_MAINWINDOW_H_
+#define LEANHRPT_MAINWINDOW_H_
 
 #include <QActionGroup>
 #include <QColorDialog>

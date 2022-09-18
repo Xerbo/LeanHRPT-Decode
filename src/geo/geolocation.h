@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_GEO_GEOLOCATION_H
-#define LEANHRPT_GEO_GEOLOCATION_H
+#ifndef LEANHRPT_GEO_GEOLOCATION_H_
+#define LEANHRPT_GEO_GEOLOCATION_H_
 
 #include "geodetic.h"
 #include "matrix.h"

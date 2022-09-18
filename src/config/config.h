@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_CONFIG_H
-#define LEANHRPT_CONFIG_H
+#ifndef LEANHRPT_CONFIG_CONFIG_H_
+#define LEANHRPT_CONFIG_CONFIG_H_
 
 #include <config/inipp.h>
 

@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_PROJECTION_H
-#define LEANHRPT_PROJECTION_H
+#ifndef LEANHRPT_PROJECTION_H_
+#define LEANHRPT_PROJECTION_H_
 
 #include <cmath>
 #include <utility>

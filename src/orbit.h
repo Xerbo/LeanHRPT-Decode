@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_ORBIT_H
-#define LEANHRPT_ORBIT_H
+#ifndef LEANHRPT_ORBIT_H_
+#define LEANHRPT_ORBIT_H_
 
 #include <predict/predict.h>
 

@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef DECODERS_LRPT_MCU_H
-#define DECODERS_LRPT_MCU_H
+#ifndef LEANHRPT_PROTOCOL_LRPT_PACKET_H_
+#define LEANHRPT_PROTOCOL_LRPT_PACKET_H_
 
 #include <cstddef>
 #include <cstdint>
