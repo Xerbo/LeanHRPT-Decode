@@ -61,16 +61,20 @@ class ProjectDialog : public QDialog {
     void on_render_clicked();
     void on_projection_textActivated(QString text);
    signals:
+    /// @cond
     QImage get_viewport();
     std::vector<std::pair<xy, Geodetic>> get_points(size_t n);
 
     QString map_shapefile();
-    QString landmark_file();
     QColor map_color();
-    QColor landmark_color();
     bool map_enable();
+
+    QString landmark_file();
+    QColor landmark_color();
     bool landmark_enable();
+
     QString default_filename();
+    /// @endcond
 };
 
 #endif

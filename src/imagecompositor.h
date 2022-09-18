@@ -34,19 +34,63 @@ enum Equalization { None, Histogram, Stretch };
 
 class ImageCompositor {
    public:
+    /**
+     * Loads raw data from a Decoder
+     *
+     * @param image The actual image data itself
+     * @param satellite The satellite
+     * @param sensor The sensor
+     * @param caldata A map of data containing information used for dynamic calibration
+     * @param reverse Flips the image vertically, used for reverse transmissions
+     */
     void import(RawImage *image, SatID satellite, Imager sensor, std::map<std::string, double> caldata, double reverse = false);
 
-    // Manipulation functions
-    void setFlipped(bool state);
-    bool flipped() { return m_isFlipped; }
-
+    /// Get a channel and write the result into `image`
     void getChannel(QImage &image, size_t channel);
+    /// Create a composite and write the result into `image`
     void getComposite(QImage &image, std::array<size_t, 3> chs);
+    /// @copydoc getComposite
+    void getComposite(QImage &image, size_t r, size_t g, size_t b) { getComposite(image, {r, g, b}); }
+    /// Evaluate an expression and write the result into `image`
     void getExpression(QImage &image, std::string expression);
 
+    /**
+     * Adds overlays and final effects to an image
+     *
+     * - Geometry correction
+     * - Map overlays
+     * - Landmark overlays
+     * - Flipping
+     * - IR Blend
+     */
+    void postprocess(QImage &image, bool correct = false);
+    /**
+     * Equalises an image
+     *
+     * @param image The image to equalise
+     * @param equalization The type of equalization
+     * @param clipLimit Clips the histogram, multiplier of the maximum histogram value
+     * @param brightness_only Only change the brightness of the image
+     */
+    static void equalise(QImage &image, Equalization equalization, float clipLimit, bool brightness_only);
+
+    /// Gets the width of currenty loaded image
     size_t width() { return m_width; };
+    /// Gets the height of currenty loaded image
     size_t height() { return m_height; };
+    /// Gets the number of channels in the currenty loaded image
     size_t channels() { return m_channels; };
+    /// If the image is currently flipped
+    bool flipped() { return m_isFlipped; }
+
+    /// Set weather the image is flipped or not
+    void setFlipped(bool state);
+    /**
+     * Set weather the image has a thermal overlay
+     *
+     * Channel 5 on meteor, 4 on all other satellites
+     */
+    void enableIRBlend(bool enable) { ir_blend = enable; }
 
     std::vector<QLineF> overlay;
     bool enable_map = false;
@@ -59,12 +103,6 @@ class ImageCompositor {
     bool enable_landmarks = false;
     QColor landmark_color;
     std::vector<Landmark> landmarks;
-
-    void postprocess(QImage &image, bool correct = false);
-
-    void enableIRBlend(bool enable) { ir_blend = enable; }
-
-    static void equalise(QImage &image, Equalization equalization, float clipLimit, bool brightness_only);
 
    private:
     size_t m_width;

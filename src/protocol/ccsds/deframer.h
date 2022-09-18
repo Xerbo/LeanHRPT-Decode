@@ -27,7 +27,7 @@ enum SyncMachineState { State0, State1, State2, State3 };
 
 using asm_t = uint32_t;
 
-// A deframer based on http://www.sat.cc.ua/data/CADU%20Frame%20Synchro.pdf
+/// A deframer based on http://www.sat.cc.ua/data/CADU%20Frame%20Synchro.pdf
 class Deframer {
    public:
     Deframer();

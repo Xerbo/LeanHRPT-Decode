@@ -20,11 +20,12 @@
 
 #include <bitset>
 
-// Provides bit level access to an array
+/// Provides bit level access to an array
 class BitArray {
    public:
     BitArray(const uint8_t *data) : d_data(data) {}
 
+    /// Get `n` bits
     uint32_t peek(size_t n) {
         uint32_t result = 0;
         for (size_t i = 0; i < n; i++) {
@@ -36,8 +37,10 @@ class BitArray {
         return result;
     }
 
+    /// Seek `n` bits forward
     void advance(size_t n) { d_pos += n; }
 
+    /// Get `n` bits and see forward
     uint32_t fetch(size_t n) {
         uint32_t result = peek(n);
         advance(n);

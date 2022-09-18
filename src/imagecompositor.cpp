@@ -270,7 +270,6 @@ void ImageCompositor::calibrate_linear(size_t ch, double a, double b) {
 
 void ImageCompositor::getChannel(QImage &image, size_t channel) { image = rawChannels[channel - 1]; }
 
-// Composites 3 Grayscale16 images into each channel of a RGB16 image
 void ImageCompositor::getComposite(QImage &image, std::array<size_t, 3> chs) {
     if (image.format() != QImage::Format_RGBX64) {
         image = QImage(image.width(), image.height(), QImage::Format_RGBX64);
@@ -289,7 +288,6 @@ void ImageCompositor::getComposite(QImage &image, std::array<size_t, 3> chs) {
     }
 }
 
-// Evaluate `expression` and store the results in `image`
 void ImageCompositor::getExpression(QImage &image, std::string expression) {
     std::vector<double> ch(m_channels);
     double sunz_val = 0.0;

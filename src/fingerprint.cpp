@@ -11,7 +11,7 @@
 #include "protocol/repack.h"
 #include "protocol/reverse.h"
 
-// Finds the most common value of T
+/// Finds the most common value of T
 template <typename T>
 class Scoreboard {
    public:

@@ -46,14 +46,27 @@ class Projector {
    public:
     Projector(std::pair<std::string, std::string> tle) : predictor(tle) {}
 
+    /**
+     * Create a GCP grid
+     *
+     * @returns A vector containing geographical tags for an image
+     */
     std::vector<std::pair<xy, Geodetic>> calculate_gcps(const std::vector<double> &timestamps, size_t pointsy, size_t pointsx,
                                                         Imager sensor, SatID sat, size_t width);
 
+    /**
+     * Saves GCPs into a file, format is `x,y,lat,lon`
+     */
     void save_gcp_file(const std::vector<double> &timestamps, size_t pointsy, size_t pointsx, Imager sensor, SatID sat,
                        std::string filename, size_t width);
     std::vector<float> calculate_sunz(const std::vector<double> &timestamps, Imager sensor, SatID sat, size_t width);
 
-    bool is_northbound(const std::vector<double> &timestampts);
+    /**
+     * If the provided timestamps represent a northbound pass
+     *
+     * Internally this takes the lower and upper quartile positions, and calculates the azimuth from them
+     */
+    bool is_northbound(const std::vector<double> &timestamps);
 
    private:
     std::vector<std::pair<double, Geodetic>> calculate_scan(const Geodetic &position, double azimuth, double fov, double roll,

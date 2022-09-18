@@ -24,18 +24,27 @@
 #include <vector>
 
 namespace transform {
+/// List of supported projections
 enum class CRS { Equdistant, Mercator, North_Polar, South_Polar };
-
+/// Human readable names of CRS
 const std::vector<std::string> CRS_NAMES = {"Equdistant", "Mercator", "North Polar", "South Polar"};
 
-// Lat/Long in radians
+/// Used to enforce stricter typing
 using Geo = QPointF;
-// XY in relative units (0 to 1)
+/// @copydoc Geo
 using XY = QPointF;
 
-// Input in radians, output in XY (0 to 1)
+/**
+ * Forward transform, coordinates to pixel
+ *
+ * Input in radians, output in XY (0 to 1)
+ */
 XY forward(Geo geo, CRS crs);
-// Input in XY (0 to 1), output in radians
+/**
+ * Reverse transform, pixel coordinates
+ *
+ * Input in XY (0 to 1), output in radians
+ */
 Geo reverse(XY xy, CRS crs);
 }  // namespace transform
 

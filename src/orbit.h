@@ -35,6 +35,12 @@ class OrbitPredictor {
     }
     ~OrbitPredictor() { predict_destroy_orbital_elements(orbital_elements); }
 
+    /**
+     * Gets orbital information at the specified timestamp
+     *
+     * @param timestamp UNIX timestamp
+     * @return A predict_position struct
+     */
     struct predict_position predict(double timestamp) {
         // UNIX to Julian date
         predict_julian_date_t prediction_time = (timestamp / 86400.0) - 3651.0;

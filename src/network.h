@@ -32,6 +32,12 @@
 class TLEManager {
    public:
     TLEManager();
+
+    /**
+     * Get the currently loaded catalog of TLEs
+     *
+     * @returns A map of the object name to the actual elements
+     */
     std::map<std::string, std::pair<std::string, std::string>> catalog;
 
    private:

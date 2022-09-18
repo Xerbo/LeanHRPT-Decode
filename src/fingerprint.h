@@ -17,8 +17,19 @@ const std::map<std::string, FileType> known_extensions = {
 class Fingerprint {
    public:
     Fingerprint() : is_running(true) {}
+
+    /**
+     * Start fingerprinting a file
+     *
+     * @returns The detected satellite, filetype and protocol
+     */
     std::tuple<SatID, FileType, Protocol> file(std::string filename);
 
+    /**
+     * Stop fingerprinting a file
+     *
+     * This is a only used when running in a thread
+     */
     void stop() { is_running = false; }
 
    private:

@@ -39,7 +39,7 @@ struct CPPDUHeader {
     CPPDUHeader(const std::vector<uint8_t> &header) : CPPDUHeader(header.data()) {}
 };
 
-// A (fast) demuxer that can only handle one packet per frame
+/// A (fast) demuxer that can only handle one packet per frame
 class SimpleDemuxer {
    public:
     SimpleDemuxer(bool insert_zone = true) : fhp_offset(insert_zone ? 12 : 10), mpdu_size(insert_zone ? 882 : 884) {}
@@ -56,7 +56,7 @@ class SimpleDemuxer {
 enum DemuxerState { IDLE, HEADER, DATA };
 enum DemuxerStatus { PROCEED, FRAGMENT, PARSED };
 
-// Demuxer that can handle an arbitrary amount of packets per frame
+/// Demuxer that can handle an arbitrary amount of packets per frame
 class Demuxer {
    public:
     Demuxer(bool insert_zone = true) : fhp_offset(insert_zone ? 12 : 10), mpdu_size(insert_zone ? 882 : 884), packet(65536) {}

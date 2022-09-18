@@ -29,6 +29,11 @@
 
 class AIPDecoder {
    public:
+    /**
+     * Decode a MHS Line
+     *
+     * @return If a line was decoded
+     */
     bool work(std::map<Imager, RawImage *> &images, const uint8_t *frame) {
         uint8_t mhs_status = frame[7];
         if (mhs_status >= 80) return false;

@@ -26,6 +26,11 @@
 #ifndef TIP_H
 #define TIP_H
 
+/**
+ * Check parity of a TIP frame
+ *
+ * @return If the parity was correct
+ */
 inline bool tip_parity(const uint8_t *frame) {
     bool ok = true;
 
@@ -48,6 +53,11 @@ inline bool tip_parity(const uint8_t *frame) {
     return ok;
 }
 
+/**
+ * Decode a HIRS Line
+ *
+ * @return If a line was decoded
+ */
 inline bool tip_work(std::map<Imager, RawImage *> &images, const uint8_t *frame) {
     // These are taken from the NOAA KLM Users Guide
     const size_t offsets[36] = {16, 17, 22, 23, 26, 27, 30, 31, 34, 35, 38, 39, 42, 43, 54, 55, 58, 59,

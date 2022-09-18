@@ -33,13 +33,13 @@ enum Imager { AVHRR, VIRR, MSUMR, MHS, MTVZA, HIRS };
 
 struct SensorInfo {
     std::string name;
-    float swath;       // in km
-    float resolution;  // in km/px
+    float swath;       /// in km
+    float resolution;  /// in km/px
     size_t width;
 };
 
 struct SatelliteInfo {
-    float orbit_height;  // in km
+    float orbit_height;  /// in km
     Mission mission;
     std::string name;
     Imager default_imager;

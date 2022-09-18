@@ -163,9 +163,9 @@ std::vector<std::pair<double, Geodetic>> Projector::calculate_scan(const Geodeti
     return scan;
 }
 
-bool Projector::is_northbound(const std::vector<double> &timestampts) {
-    double lower_quartile = timestampts[timestampts.size() / 4 * 1];
-    double upper_quartile = timestampts[timestampts.size() / 4 * 3];
+bool Projector::is_northbound(const std::vector<double> &timestamps) {
+    double lower_quartile = timestamps[timestamps.size() / 4 * 1];
+    double upper_quartile = timestamps[timestamps.size() / 4 * 3];
 
     struct predict_position a = predictor.predict(lower_quartile);
     struct predict_position b = predictor.predict(upper_quartile);
