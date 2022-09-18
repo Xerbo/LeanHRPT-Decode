@@ -165,11 +165,7 @@ bool Projector::is_northbound(const std::vector<double> &timestamps) {
 
     struct predict_position a = predictor.predict(lower_quartile);
     struct predict_position b = predictor.predict(upper_quartile);
-    double azimuth = calculateBearingAngle(Geodetic(a), Geodetic(b));
+    double azimuth = CalculateGeodeticCurve(WGS84, Geodetic(a), Geodetic(b)).Azimuth;
 
-    if (azimuth < -M_PI / 2.0 || azimuth > M_PI / 2.0) {
-        return false;
-    } else {
-        return true;
-    }
+    return azimuth > M_PI * 1.5;
 }

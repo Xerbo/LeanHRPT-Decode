@@ -64,6 +64,12 @@ QSize ProjectDialog::calculate_dimensions(size_t resolution) {
         target_bounds = map::bounds_crs(get_points(31), crs);
     }
 
+    // So big it might as well be the entire earth
+    if (bounds.width() * bounds.height() > (360 * 180) * 0.95) {
+        bounds = QRectF(-180, -90, 360, 180);
+        target_bounds = QRectF(0, 0, 1, 1);
+    }
+
     double scale = EARTH_CIRCUMFRANCE / ui->resolution->value();
     pixelsize = 360.0 / scale;
     QSize dimensions(bounds.width() / 360.0 * scale, bounds.height() / 360.0 * scale);
