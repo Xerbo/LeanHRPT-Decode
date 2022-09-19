@@ -40,7 +40,7 @@ file(GLOB_RECURSE CXX_SOURCE_FILES
     src/protocol/repack.cpp
 )
 IF (WIN32)
-add_executable(LeanHRPT-Decode WIN32 ${CXX_SOURCE_FILES})
+add_executable(LeanHRPT-Decode WIN32 ${CXX_SOURCE_FILES} LeanHRPT-Decode.rc)
 ELSE()
 add_executable(LeanHRPT-Decode ${CXX_SOURCE_FILES})
 ENDIF()
