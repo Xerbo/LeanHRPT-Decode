@@ -67,6 +67,8 @@ void MeteorLRPTDecoder::frame_work() {
             counter_offset += 16384;  // 2^14
         }
 
+        time_t day = created / 86400 * 86400;
+
         size_t counter = header.counter + counter_offset - start_offset;
         for (size_t j = 0; j < MCU_PER_PACKET; j++) {
             for (size_t y = 0; y < 8; y++) {
@@ -75,10 +77,10 @@ void MeteorLRPTDecoder::frame_work() {
                     size_t y1 = counter / (14 * 3 + 1) * 8 + y;
 
                     if (y == 0) {
-                        time_t day = created / 86400 * 86400;
-                        timestamps[Imager::MSUMR].resize(y1 + 1);
-                        timestamps[Imager::MSUMR][y1] = (double)day + (double)timestamp / 1000.0 - 10800.0;
+                        timestamps[Imager::MSUMR].resize(y1 + 8);
                     }
+                    timestamps[Imager::MSUMR][y1] = (double)day + (double)timestamp / 1000.0 - 10800.0 + y * 0.205;
+
                     images[Imager::MSUMR]->set_height(y1 + 1);
                     unsigned short *ch = images[Imager::MSUMR]->getChannel(header.apid - 64);
 
