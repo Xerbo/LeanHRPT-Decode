@@ -383,15 +383,26 @@ void MainWindow::startDecode(std::string filename) {
         }
 
         std::vector<double> &timestamp = sensor.second;
-        std::vector<double> filtered(timestamp.size());
+        std::vector<double> copy = sensor.second;
 
-        for (size_t i = 1; i < filtered.size()-1; i++) {
-            // TODO: store seconds per line in satinfo
-            if ((timestamp[i-1] == 0 && timestamp[i+1] == 0) || (timestamp[i] - timestamp[i-1] < 10.0 && timestamp[i+1] - timestamp[i] < 10.0)) {
-                filtered[i] = timestamp[i];
+        for (int i = 9; i < copy.size()-9; i++) {
+            double average = 0.0;
+            for (int j = 0; j < 19; j++) {
+                average += copy[i + (j-9)];
+            }
+            average /= 19.0;
+
+            if (abs(copy[i] - average) > 2) {
+                timestamp[i] = 0;
             }
         }
-        timestamp = filtered;
+
+        for (size_t i = 0; i < 9; i++) {
+            timestamp[i] = 0;
+        }
+        for (size_t i = copy.size()-9; i < copy.size(); i++) {
+            timestamp[i] = 0;
+        }
 
         int first = -1, last = -1;
         for (size_t i = 0; i < timestamp.size(); i++) {
