@@ -150,6 +150,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     QColorDialog::connect(color_dialog, &QColorDialog::colorSelected, this, [this](QColor color) {
         QSettings settings;
         settings.setValue("map/color", color);
+        settings.sync();
 
         map_color = color;
         ui->actionMap_Color->setText(QString("Map Color (%1)").arg(color.name()));
@@ -160,6 +161,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     QColorDialog::connect(landmark_color_dialog, &QColorDialog::colorSelected, this, [this](QColor color) {
         QSettings settings;
         settings.setValue("landmark/color", color);
+        settings.sync();
 
         landmark_color = color;
         ui->actionLandmark_Color->setText(QString("Landmark Color (%1)").arg(color.name()));
@@ -278,8 +280,8 @@ void MainWindow::populateChannelSelectors(size_t channels) {
 }
 
 void MainWindow::on_actionOpen_triggered() {
-    QString filename =
-        QFileDialog::getOpenFileName(this, "Open File", "", "Supported formats (*.bin *.cadu *.raw16 *.hrp *.vcdu *.tip *.dec)");
+    QString filename = QFileDialog::getOpenFileName(
+        this, "Open File", "", "Supported formats (*.bin *.cadu *.raw16 *.hrp *.vcdu *.tip *.dec);;All files (*)");
 
     if (!filename.isEmpty()) {
         decodeWatcher->setFuture(QtConcurrent::run([=]() { startDecode(filename.toStdString()); }));
@@ -738,6 +740,7 @@ void MainWindow::on_actionMap_Shapefile_triggered() {
 
     QSettings settings;
     settings.setValue("map/shapefile", map_shapefile);
+    settings.sync();
 
     if (update) {
         on_actionEnable_Map_triggered();
@@ -760,6 +763,7 @@ void MainWindow::on_actionLandmark_File_triggered() {
 
     QSettings settings;
     settings.setValue("landmark/file", landmark_file);
+    settings.sync();
 
     if (update) {
         on_actionEnable_Landmarks_triggered();

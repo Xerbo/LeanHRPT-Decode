@@ -415,7 +415,7 @@ QImage map::reproject(const QImage &image, transform::CRS crs, QRectF source_bou
             point = transform::forward(point, transform::CRS::Equdistant);
             point.rx() = r2px(point.x(), image.width());
             point.ry() = r2px(point.y(), image.height());
-            if (point.x() > 0 && point.x() < image.width() && point.y() > 0 && point.y() < image.height()) {
+            if (point.x() > 0 && point.x() < image.width() - 1 && point.y() > 0 && point.y() < image.height() - 1) {
                 projected.setPixelColor(x, y, lerp2(image, point));
             }
         }
