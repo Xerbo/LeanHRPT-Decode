@@ -1,6 +1,8 @@
 /*
- * Modified from https://github.com/Digitelektro/MeteorDemod
- * Its license is as follows:
+ * This file contains modified code from https://github.com/Digitelektro/MeteorDemod
+ * and https://github.com/airbreather/Gavaghan.Geodesy
+ *
+ * MeteorDemod's license is as follows:
  *
  * MIT License
  *
@@ -23,6 +25,21 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
+ * Gavaghan.Geodesy's license is as follows:
+ *
+ * Original code used the following boilerplate:
+ *
+ * -----BEGIN ORIGINAL LICENSE-----
+ * Gavaghan.Geodesy by Mike Gavaghan
+ *
+ * http://www.gavaghan.org/blog/free-source-code/geodesy-library-vincentys-formula/
+ *
+ * This code may be freely used and modified on any personal or professional
+ * project.  It comes with no warranty.
+ *
+ * BitCoin tips graciously accepted at 1FB63FYQMy7hpC2ANVhZ5mSgAZEtY1aVLf
+ * -----END ORIGNAL LICENSE-----
  */
 
 #include "geolocation.h"
