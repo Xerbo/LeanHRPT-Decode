@@ -59,7 +59,15 @@ A high quality, easy to use HRPT decoder\
 <li><code>Ctrl+F</code> Flip image</li>\
 </ul>\
 Licensed under GPL-3.0.\
-<p>This program uses <a href=\"https://github.com/mcmtroffaes/inipp\">inipp</a>, <a href=\"https://github.com/beltoforion/muparser\">muparser</a>, <a href=\"https://github.com/la1k/libpredict\">libpredict</a> and parts of <a href=\"https://github.com/Digitelektro/MeteorDemod\">MeteorDemod</a> which are licensed under the MIT, BSD 2-Clause \"Simplified\", GPL-2.0 and MIT license respectively.</p>"
+<p>This program uses:</p>\
+<ul>\
+<li><a href=\"https://github.com/mcmtroffaes/inipp\">inipp</a> - Licensed under MIT</li>\
+<li><a href=\"https://github.com/beltoforion/muparser\">muparser</a> - Licensed under BSD 2-Clause \"Simplified\"</li>\
+<li><a href=\"https://github.com/la1k/libpredict\">libpredict</a> - Licensed under GPL-2.0</li>\
+<li><a href=\"https://github.com/OSGeo/shapelib\">shapelib</a> - Licensed under GPL-2.0</li>\
+<li>Parts of <a href=\"https://github.com/Digitelektro/MeteorDemod\">MeteorDemod</a> - Licensed under MIT</li>\
+<li>Parts of <a href=\"https://github.com/airbreather/Gavaghan.Geodesy\">Gavaghan.Geodesy</a> - Public domain</li>\
+</ul>"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
