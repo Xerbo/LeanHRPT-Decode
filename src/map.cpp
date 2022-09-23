@@ -204,8 +204,8 @@ QImage map::project(const QImage &image, const std::vector<std::pair<xy, Geodeti
     double ya = bounds.height();
     double yb = bounds.y();
 
-    QImage warped(resolution, image.format());
-    warped.fill(0);
+    QImage warped(resolution, QImage::Format_RGBA64);
+    warped.fill(Qt::transparent);
 
     int height = resolution.height();
     int width = resolution.width();
@@ -302,10 +302,6 @@ void map::add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor 
     double ya = bounds.height();
     double yb = bounds.y();
 
-    if (image.format() != QImage::Format_RGBX64) {
-        image = image.convertToFormat(QImage::Format_RGBX64);
-    }
-
     QPainter painter(&image);
     painter.setPen(color);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -330,10 +326,6 @@ void map::add_landmarks(QImage &image, const std::vector<Landmark> &landmarks, Q
     double xb = bounds.x();
     double ya = bounds.height();
     double yb = bounds.y();
-
-    if (image.format() != QImage::Format_RGBX64) {
-        image = image.convertToFormat(QImage::Format_RGBX64);
-    }
 
     QPainter painter(&image);
     painter.setBrush(QBrush(color, Qt::SolidPattern));
@@ -399,7 +391,6 @@ QImage map::reproject(const QImage &image, transform::CRS crs, QRectF source_bou
 
     QImage projected(image.width(), image.width() * (double)target_bounds.height() / (double)target_bounds.width(),
                      image.format());
-    projected.fill(0);
 
 #pragma omp parallel for
     for (size_t y = 0; y < projected.height(); y++) {
