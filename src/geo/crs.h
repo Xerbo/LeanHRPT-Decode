@@ -28,6 +28,8 @@ namespace transform {
 enum class CRS { Equdistant, Mercator, North_Polar, South_Polar };
 /// Human readable names of CRS
 const std::vector<std::string> CRS_NAMES = {"Equdistant", "Mercator", "North Polar", "South Polar"};
+/// EPSG names of projections
+const std::vector<std::string> CRS_EPSG_NAMES = {"EPSG:4326", "EPSG:3857", "EPSG:3995", "EPSG:3031"};
 
 /// Used to enforce stricter typing
 using Geo = QPointF;

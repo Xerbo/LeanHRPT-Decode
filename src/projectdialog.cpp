@@ -56,6 +56,16 @@ void ProjectDialog::write_wld_file(QString filename) {
     out << bounds.bottom() << "\n";
 }
 
+void ProjectDialog::write_pam_file(QString filename, std::string srs) {
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return;
+
+    QTextStream out(&file);
+    out << "<PAMDataset><SRS>";
+    out << QString::fromStdString(srs);
+    out << "</SRS></PAMDataset>";
+}
+
 QSize ProjectDialog::calculate_dimensions(size_t resolution) {
     bounds = QRectF(-180, -90, 360, 180);
     target_bounds = QRectF(0, 0, 1, 1);
@@ -135,6 +145,7 @@ void ProjectDialog::on_render_clicked() {
         if (crs == transform::CRS::Equdistant) {
             QFileInfo fi(filename);
             write_wld_file(fi.absolutePath() + "/" + fi.completeBaseName() + ".wld");
+            write_pam_file(filename + ".aux.xml", transform::CRS_EPSG_NAMES[(size_t)crs]);
         }
         image.save(filename);
     });

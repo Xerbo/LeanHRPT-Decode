@@ -49,6 +49,7 @@ class ProjectDialog : public QDialog {
     QImage render(QSize dimensions);
     QSize calculate_dimensions(size_t resolution);
     void write_wld_file(QString filename);
+    void write_pam_file(QString filename, std::string srs);
 
     transform::CRS crs = transform::CRS::Equdistant;
     QRectF bounds;
