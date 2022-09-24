@@ -61,7 +61,7 @@ inline QRgba64 lerp(QRgba64 a, QRgba64 b, double x) {
         a.red()   * (1.0 - x) + b.red()   * x,
         a.green() * (1.0 - x) + b.green() * x,
         a.blue()  * (1.0 - x) + b.blue()  * x,
-        UINT16_MAX
+        a.alpha() * (1.0 - x) + b.alpha() * x
     );
 }
 
@@ -69,7 +69,8 @@ inline QColor lerp(QColor a, QColor b, double x) {
     return QColor::fromRgbF(
         a.redF()   * (1.0 - x) + b.redF()   * x,
         a.greenF() * (1.0 - x) + b.greenF() * x,
-        a.blueF()  * (1.0 - x) + b.blueF()  * x
+        a.blueF()  * (1.0 - x) + b.blueF()  * x,
+        a.alphaF() * (1.0 - x) + b.alphaF() * x
     );
 }
 // clang-format on
@@ -81,7 +82,12 @@ inline QColor lerp2(const QImage &image, double x, double y) {
     QColor a = lerp(image.pixelColor(floor(x), floor(y)), image.pixelColor(ceil(x), floor(y)), fmod(x, 1.0));
     QColor b = lerp(image.pixelColor(floor(x),  ceil(y)), image.pixelColor(ceil(x),  ceil(y)), fmod(x, 1.0));
 
-    return lerp(a, b, fmod(y, 1.0));
+    QColor c = lerp(a, b, fmod(y, 1.0));
+    if (c.alphaF() != 1.0) {
+        return Qt::transparent;
+    } else {
+        return c;
+    }
 }
 // clang-format on
 
