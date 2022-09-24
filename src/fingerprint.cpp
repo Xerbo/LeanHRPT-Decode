@@ -54,6 +54,12 @@ std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
         case FileType::CADU:
         case FileType::VCDU: {
             SatID id = fingerprint_ccsds(stream, filetype);
+            if (id == SatID::MeteorM2) {
+                id = fingerprint_meteor(stream, FileType::CADU);
+                file.close();
+                return {id, FileType::CADU, Protocol::MeteorHRPT};
+            }
+
             file.close();
             return {id, filetype, *ccsds_downlinks(id).begin()};
         }
@@ -105,6 +111,7 @@ std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
 SatID Fingerprint::fingerprint_ccsds(std::istream &stream, FileType type) {
     Scoreboard<SatID> s;
     uint8_t frame[1024];
+    size_t n = 0;
 
     while (is_running && !stream.eof()) {
         if (type == FileType::VCDU) {
@@ -127,6 +134,9 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream, FileType type) {
         }
         // clang-format on
 
+        if (n++ > 1000) {
+            return SatID::MeteorM2;
+        }
         if (s.max() != SatID::Unknown) return s.max();
     }
 
@@ -292,6 +302,9 @@ SatID Fingerprint::fingerprint_meteor(std::istream &stream, FileType type) {
             if (deframer.work(buffer.data(), frame.data(), 1024)) {
                 have_frame = true;
             }
+        } else if (type == FileType::CADU) {
+            stream.read((char *)frame.data(), 1024);
+            have_frame = true;
         }
 
         if (have_frame) {
