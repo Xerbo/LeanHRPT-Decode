@@ -125,11 +125,7 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
     uint16_t days = repacked[8] >> 1;
     uint32_t ms = (repacked[9] & 0b1111111) << 20 | repacked[10] << 10 | repacked[11];
     timestamp = (double)year + (double)days * 86400.0 + (double)ms / 1000.0;
-    if (line_ok) {
-        timestamps[Imager::AVHRR].push_back(timestamp);
-    } else {
-        timestamps[Imager::AVHRR].push_back(0.0);
-    }
+    timestamps[Imager::AVHRR].push_back(timestamp);
 
     for (size_t i = 0; i < 11090; i++) {
         ptr[i] *= 64;

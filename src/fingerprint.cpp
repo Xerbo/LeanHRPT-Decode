@@ -163,10 +163,10 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
             s.add(Protocol::HRPT, 3);
         }
         if (gac_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::GAC, 3);
+            s.add(Protocol::GAC, 1);
         }
         if (gac_reverse_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::GACReverse, 3);
+            s.add(Protocol::GACReverse, 1);
         }
 
         if (s.max() != Protocol::Unknown) return s.max();
