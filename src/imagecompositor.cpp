@@ -69,15 +69,23 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
 
         if (ini.sections.count(name)) {
             std::map<std::string, std::string> coefficients = ini.sections.at(name);
+            std::string type = "linear";
+            if (coefficients.count("type")) {
+                type = coefficients.at("type");
+            }
 
-            if (coefficients.count("a1")) {
+            if (type == "linear") {
+                double a = str2double(coefficients.at("a"));
+                double b = str2double(coefficients.at("b"));
+                calibrate_linear(i + 1, a, b);
+            } else if (type == "split_linear") {
                 double a1 = str2double(coefficients.at("a1"));
                 double b1 = str2double(coefficients.at("b1"));
                 double a2 = str2double(coefficients.at("a2"));
                 double b2 = str2double(coefficients.at("b2"));
                 double c = str2double(coefficients.at("c"));
                 calibrate_avhrr(i + 1, a1, b1, a2, b2, c);
-            } else if (coefficients.count("ns")) {
+            } else if (type == "radiance") {
                 double ns = str2double(coefficients.at("ns"));
                 double b0 = str2double(coefficients.at("b0"));
                 double b1 = str2double(coefficients.at("b1"));
@@ -86,10 +94,6 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
                 double a = str2double(coefficients.at("a"));
                 double b = str2double(coefficients.at("b"));
                 calibrate_ir(i + 1, ns, b0, b1, b2, vc, a, b);
-            } else if (coefficients.count("a")) {
-                double a = str2double(coefficients.at("a"));
-                double b = str2double(coefficients.at("b"));
-                calibrate_linear(i + 1, a, b);
             }
         }
     }
@@ -233,7 +237,7 @@ void ImageCompositor::calibrate_ir(size_t ch, double Ns, double b0, double b1, d
             // Convert to celsius
             Te -= 273.15;
 
-            Te = (Te + 80.0) / 160.0 * (double)UINT16_MAX;
+            Te = (60.0 - Te) / 160.0 * (double)UINT16_MAX;
             line[x] = clamp(Te, 0.0, (double)UINT16_MAX);
         }
     }
