@@ -54,7 +54,7 @@ std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
         case FileType::CADU:
         case FileType::VCDU: {
             SatID id = fingerprint_ccsds(stream, filetype);
-            if (id == SatID::MeteorM2) {
+            if (id == SatID::MeteorM22) {
                 id = fingerprint_meteor(stream, FileType::CADU);
                 file.close();
                 return {id, FileType::CADU, Protocol::MeteorHRPT};
@@ -135,7 +135,7 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream, FileType type) {
         // clang-format on
 
         if (n++ > 1000) {
-            return SatID::MeteorM2;
+            return SatID::MeteorM22;
         }
         if (s.max() != SatID::Unknown) return s.max();
     }
