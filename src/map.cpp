@@ -391,6 +391,7 @@ QImage map::reproject(const QImage &image, transform::CRS crs, QRectF source_bou
 
     QImage projected(image.width(), image.width() * (double)target_bounds.height() / (double)target_bounds.width(),
                      image.format());
+    projected.fill(Qt::transparent);
 
 #pragma omp parallel for
     for (size_t y = 0; y < projected.height(); y++) {
