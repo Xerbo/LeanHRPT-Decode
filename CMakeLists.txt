@@ -10,7 +10,9 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+# Generate with `find src/ | grep "\\.cpp" | sort`
 file(GLOB_RECURSE CXX_SOURCE_FILES
+    src/calibration.cpp
     src/commandline.cpp
     src/decoders/decoder.cpp
     src/decoders/fengyun_hrpt.cpp
