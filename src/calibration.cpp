@@ -18,6 +18,8 @@
 
 #include "calibration.h"
 
+#include <QLocale>
+
 #include "util.h"
 
 static double str2double(std::string str) {
