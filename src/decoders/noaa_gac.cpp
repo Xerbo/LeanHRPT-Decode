@@ -118,6 +118,7 @@ void NOAAGACDecoder::frame_work(uint16_t *ptr) {
                 timestamps[Imager::MHS].push_back(0);
                 timestamps[Imager::MHS].push_back(0);
                 timestamps[Imager::MHS].push_back(timestamp);
+                timestamps[Imager::AMSUA].push_back(timestamp);
             }
         }
     }

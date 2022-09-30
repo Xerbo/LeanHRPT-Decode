@@ -65,7 +65,7 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
 
     Calibrator(d_caldata, ch3a).calibrate(satellite, sensor, rawChannels);
 
-    if (sensor == Imager::MHS || sensor == Imager::HIRS) {
+    if (sensor == Imager::MHS || sensor == Imager::HIRS || sensor == Imager::AMSUA) {
         for (size_t i = 0; i < m_channels; i++) {
             rawChannels[i] = rawChannels[i].mirrored(true, false);
         }

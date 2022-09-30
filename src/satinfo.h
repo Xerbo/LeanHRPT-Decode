@@ -29,7 +29,7 @@ enum Mission { POES, MeteorM, FengYun3, MetOp };
 
 enum SatID { MetOpA, MetOpB, MetOpC, FengYun3A, FengYun3B, FengYun3C, NOAA15, NOAA18, NOAA19, MeteorM2, MeteorM22, Unknown };
 
-enum Imager { AVHRR, VIRR, MSUMR, MHS, MTVZA, HIRS };
+enum Imager { AVHRR, VIRR, MSUMR, MHS, MTVZA, HIRS, AMSUA };
 
 struct SensorInfo {
     std::string name;
@@ -53,6 +53,7 @@ const std::map<Imager, SensorInfo> sensor_info = {
     { Imager::MHS,   SensorInfo {"MHS",    2180.0f, 16.0f, 90   } },
     { Imager::MTVZA, SensorInfo {"MTVZA",  1500.0f, 4.0f,  200  } },
     { Imager::HIRS,  SensorInfo {"HIRS",   2160.0f, 40.0f, 56   } },
+    { Imager::AMSUA, SensorInfo {"AMSU-A", 2343.0f, 78.0f, 30   } },
 };
 
 const std::map<std::string, Imager> sensors = {
@@ -62,6 +63,7 @@ const std::map<std::string, Imager> sensors = {
     { "MHS",    Imager::MHS },
     { "MTVZA",  Imager::MTVZA },
     { "HIRS",   Imager::HIRS },
+    { "AMSU-A", Imager::AMSUA },
 };
 
 const std::map<SatID, SatelliteInfo> satellite_info {

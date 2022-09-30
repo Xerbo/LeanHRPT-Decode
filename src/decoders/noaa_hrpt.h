@@ -31,6 +31,7 @@ class NOAAHRPTDecoder : public Decoder {
         images[Imager::AVHRR] = new RawImage(2048, 5);
         images[Imager::MHS] = new RawImage(90, 6);
         images[Imager::HIRS] = new RawImage(56, 20);
+        images[Imager::AMSUA] = new RawImage(30, 15);
 
         caldata["prt"] = 0.0;
         caldata["ptrn"] = 0.0;
