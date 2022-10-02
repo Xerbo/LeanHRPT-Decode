@@ -134,7 +134,7 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream, FileType type) {
         }
         // clang-format on
 
-        if (n++ > 1000) {
+        if (n++ > 200) {
             return SatID::MeteorM22;
         }
         if (s.max() != SatID::Unknown) return s.max();

@@ -21,6 +21,8 @@
 #include <cstring>
 #include <ctime>
 
+#include "protocol/repack.h"
+
 void MeteorHRPTDecoder::work(std::istream &stream) {
     if (d_filetype == FileType::CADU) {
         stream.read(reinterpret_cast<char *>(frame), 1024);
@@ -57,6 +59,16 @@ void MeteorHRPTDecoder::frame_work(uint8_t *ptr) {
         timestamps[Imager::MSUMR].push_back(msumr_timestamp);
 
         images[Imager::MSUMR]->push10Bit(&msumrFrame[50], 0);
+
+        uint16_t out[12];
+        repack10(&msumrFrame[35], out, 12);
+        caldata["wl1_sum"] += out[0];
+        caldata["bl1_sum"] += out[1];
+        caldata["wl2_sum"] += out[2];
+        caldata["bl2_sum"] += out[3];
+        caldata["wl3_sum"] += out[4];
+        caldata["bl3_sum"] += out[5];
+        caldata["n"] += 1.0;
     }
 
     uint8_t mtvza_buffer[32];

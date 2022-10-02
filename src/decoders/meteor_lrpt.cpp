@@ -22,6 +22,7 @@
 #include <cstring>
 
 #include "protocol/lrpt/packet.h"
+#include "protocol/repack.h"
 
 void MeteorLRPTDecoder::work(std::istream &stream) {
     if (d_filetype == FileType::CADU) {
@@ -45,6 +46,19 @@ void MeteorLRPTDecoder::frame_work() {
                 start_offset = header.counter + 1;
             }
             continue;
+        }
+        if (header.apid == 70 && header.length == 58) {
+            const uint8_t *data = &packet[14];
+
+            uint16_t out[12];
+            repack10(&data[35], out, 12);
+            caldata["wl1_sum"] += out[0];
+            caldata["bl1_sum"] += out[1];
+            caldata["wl2_sum"] += out[2];
+            caldata["bl2_sum"] += out[3];
+            caldata["wl3_sum"] += out[4];
+            caldata["bl3_sum"] += out[5];
+            caldata["n"] += 1.0;
         }
         if (header.apid < 64 || header.apid > 69) continue;
 

@@ -28,6 +28,23 @@ static double str2double(std::string str) {
 }
 
 void Calibrator::calibrate(SatID id, Imager imager, std::vector<QImage> &channels) {
+    // MSU-MR Calibration
+#if 0
+    if (d_caldata.count("wl1_sum")) {
+        for (size_t i = 0; i < 3; i++) {
+            double wl = d_caldata["wl" + std::to_string(i + 1) + "_sum"] / d_caldata["n"] * 4.0;
+            double bl = d_caldata["bl" + std::to_string(i + 1) + "_sum"] / d_caldata["n"] * 4.0;
+
+            // Solve for a linear equasion which maps bl to 0 and wl to 100
+            double a = (100.0 - 0.0) / (wl - bl);
+            double b = 0.0 - bl * a;
+            calibrate_linear(i + 1, channels[i], a, b);
+        }
+
+        return;
+    }
+#endif
+
     for (size_t i = 0; i < channels.size(); i++) {
         std::string name = satellite_info.at(id).name + "_" + sensor_info.at(imager).name + "/" + std::to_string(i + 1);
         if (!config.sections.count(name)) continue;

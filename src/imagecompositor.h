@@ -115,10 +115,6 @@ class ImageCompositor {
     std::map<std::string, double> d_caldata;
     bool ir_blend = false;
 
-    void calibrate_avhrr(size_t ch, double a1, double b1, double a2, double b2, double c);
-    void calibrate_linear(size_t ch, double a, double b);
-    void calibrate_ir(size_t ch, double Ns, double b0, double b1, double b2, double Vc, double A, double B);
-
     template <typename T, size_t A, size_t B>
     static std::vector<size_t> create_histogram(QImage &image, float clip_limit = 1.0f);
     template <typename T>
