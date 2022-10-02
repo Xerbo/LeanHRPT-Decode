@@ -27,7 +27,20 @@ enum class Protocol { Unknown, LRPT, HRPT, AHRPT, MeteorHRPT, FengYunHRPT, GAC, 
 
 enum Mission { POES, MeteorM, FengYun3, MetOp };
 
-enum SatID { MetOpA, MetOpB, MetOpC, FengYun3A, FengYun3B, FengYun3C, NOAA15, NOAA18, NOAA19, MeteorM2, MeteorM22, Unknown };
+enum SatID {
+    Unknown = 0,
+    MetOpA = 29499,
+    MetOpB = 38771,
+    MetOpC = 43689,
+    FengYun3A = 32958,
+    FengYun3B = 37214,
+    FengYun3C = 39260,
+    NOAA15 = 25338,
+    NOAA18 = 28654,
+    NOAA19 = 33591,
+    MeteorM2 = 40069,
+    MeteorM22 = 44387
+};
 
 enum Imager { AVHRR, VIRR, MSUMR, MHS, MTVZA, HIRS, AMSUA };
 
