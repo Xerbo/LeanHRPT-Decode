@@ -63,10 +63,12 @@ void TLEManager::parse(std::string filename) {
 
     while (!tle.atEnd()) {
         std::string name = tle.readLine().simplified().toStdString();
-        std::string line1 = tle.readLine().toStdString();
-        std::string line2 = tle.readLine().toStdString();
+        QString line1 = tle.readLine();
+        QString line2 = tle.readLine();
+        int norad = line2.split(" ")[1].toInt();
 
-        catalog.insert({name, {line1, line2}});
+        catalog.insert({name, {line1.toStdString(), line2.toStdString()}});
+        catalog_by_norad.insert({norad, {line1.toStdString(), line2.toStdString()}});
     }
 }
 

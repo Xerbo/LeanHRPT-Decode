@@ -39,6 +39,12 @@ class TLEManager {
      * @returns A map of the object name to the actual elements
      */
     std::map<std::string, std::pair<std::string, std::string>> catalog;
+    /**
+     * Get the currently loaded catalog of TLEs
+     *
+     * @returns A map of the NORAD ID to the actual elements
+     */
+    std::map<int, std::pair<std::string, std::string>> catalog_by_norad;
 
    private:
     void parse(std::string filename);
