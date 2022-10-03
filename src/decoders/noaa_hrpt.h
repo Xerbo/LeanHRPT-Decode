@@ -32,17 +32,6 @@ class NOAAHRPTDecoder : public Decoder {
         images[Imager::MHS] = new RawImage(90, 6);
         images[Imager::HIRS] = new RawImage(56, 20);
         images[Imager::AMSUA] = new RawImage(30, 15);
-
-        caldata["prt"] = 0.0;
-        caldata["ptrn"] = 0.0;
-        caldata["ch1_space"] = 0.0;
-        caldata["ch2_space"] = 0.0;
-        caldata["ch3_space"] = 0.0;
-        caldata["ch4_space"] = 0.0;
-        caldata["ch5_space"] = 0.0;
-        caldata["ch3_cal"] = 0.0;
-        caldata["ch4_cal"] = 0.0;
-        caldata["ch5_cal"] = 0.0;
     }
     ~NOAAHRPTDecoder() {
         delete[] frame;

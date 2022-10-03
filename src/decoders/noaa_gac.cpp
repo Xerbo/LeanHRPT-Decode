@@ -123,6 +123,28 @@ void NOAAGACDecoder::frame_work(uint16_t *ptr) {
         }
     }
 
+    // Extract calibration data
+    if (ptr[17] == ptr[18] && ptr[18] == ptr[19] && ptr[17] != 0) {
+        caldata["prt"] += 276.6 + ptr[17] * 0.0511;
+        caldata["prtn"] += 1.0;
+    }
+    for (size_t i = 0; i < 5; i++) {
+        double sum = 0.0;
+        for (size_t x = 0; x < 10; x++) {
+            sum += ptr[52 + x * 5 + i];
+        }
+
+        caldata["ch" + std::to_string(i + 1) + "_space"] += sum / 10.0;
+    }
+    for (size_t i = 0; i < 3; i++) {
+        double sum = 0.0;
+        for (size_t x = 0; x < 10; x++) {
+            sum += ptr[22 + x * 3 + i];
+        }
+
+        caldata["ch" + std::to_string(i + 3) + "_cal"] += sum / 10.0;
+    }
+
     // Calculate the timestamp of the start of the year
     int _year = QDateTime::fromSecsSinceEpoch(created).date().year();
     double year = QDate(_year, 1, 1).startOfDay(Qt::UTC).toSecsSinceEpoch() - 86400.0;
