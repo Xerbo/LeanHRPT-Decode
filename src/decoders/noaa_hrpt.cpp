@@ -98,7 +98,7 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
 
     // Extract calibration data
     if (ptr[17] == ptr[18] && ptr[18] == ptr[19] && ptr[17] != 0) {
-        caldata["prt"] += ptr[17];
+        caldata["prt"] += 276.6 + ptr[17] * 0.0511;
         caldata["prtn"] += 1.0;
     }
     for (size_t i = 0; i < 5; i++) {

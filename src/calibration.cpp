@@ -125,7 +125,7 @@ void Calibrator::calibrate_ir(size_t ch, QImage &image, double Ns, double b0, do
     for (int y = 0; y < image.height(); y++) {
         quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
 
-        for (int x = 0; x < image.height(); x++) {
+        for (int x = 0; x < image.width(); x++) {
             double Ce = line[x] / 64;                                // Earth count
             double Nlin = Ns + (Nbb - Ns) * (Cs - Ce) / (Cs - Cbb);  // Linear radiance estimate
             double Ncor = b0 + b1 * Nlin + b2 * pow(Nlin, 2);        // Non-linear correction
