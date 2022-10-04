@@ -97,10 +97,7 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
     }
 
     // Extract calibration data
-    if (ptr[17] == ptr[18] && ptr[18] == ptr[19] && ptr[17] != 0) {
-        caldata["prt"] += 276.6 + ptr[17] * 0.0511;
-        caldata["prtn"] += 1.0;
-    }
+    caldata["blackbody_temperature_sum"] += 276.6 + ptr[17] * 0.0511;
     for (size_t i = 0; i < 5; i++) {
         double sum = 0.0;
         for (size_t x = 0; x < 10; x++) {
@@ -117,6 +114,7 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
 
         caldata["ch" + std::to_string(i + 3) + "_cal"] += sum / 10.0;
     }
+    caldata["n"] += 1.0;
 
     // Calculate the timestamp of the start of the year
     int _year = QDateTime::fromSecsSinceEpoch(created).date().year();

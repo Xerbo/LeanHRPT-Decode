@@ -58,6 +58,13 @@ void MeteorLRPTDecoder::frame_work() {
             caldata["bl2_sum"] += out[3];
             caldata["wl3_sum"] += out[4];
             caldata["bl3_sum"] += out[5];
+            caldata["ch4_space"] += out[6];
+            caldata["ch4_cal"] += out[7];
+            caldata["ch5_space"] += out[8];
+            caldata["ch5_cal"] += out[9];
+            caldata["ch6_space"] += out[10];
+            caldata["ch6_cal"] += out[11];
+            caldata["blackbody_temperature_sum"] += 300;
             caldata["n"] += 1.0;
         }
         if (header.apid < 64 || header.apid > 69) continue;

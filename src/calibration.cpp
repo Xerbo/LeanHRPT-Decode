@@ -30,7 +30,7 @@ static double str2double(std::string str) {
 void Calibrator::calibrate(SatID id, Imager imager, std::vector<QImage> &channels) {
     // MSU-MR Calibration
 #if 0
-    if (d_caldata.count("wl1_sum")) {
+    if (imager == Imager::MSUMR && d_caldata.count("wl1_sum")) {
         for (size_t i = 0; i < 3; i++) {
             double wl = d_caldata["wl" + std::to_string(i + 1) + "_sum"] / d_caldata["n"] * 4.0;
             double bl = d_caldata["bl" + std::to_string(i + 1) + "_sum"] / d_caldata["n"] * 4.0;
@@ -40,8 +40,6 @@ void Calibrator::calibrate(SatID id, Imager imager, std::vector<QImage> &channel
             double b = 0.0 - bl * a;
             calibrate_linear(i + 1, channels[i], a, b);
         }
-
-        return;
     }
 #endif
 
@@ -112,15 +110,15 @@ void Calibrator::calibrate_split_linear(size_t ch, QImage &image, double a1, dou
 
 void Calibrator::calibrate_ir(size_t ch, QImage &image, double Ns, double b0, double b1, double b2, double Vc, double A,
                               double B) {
-    double Tbb = d_caldata["prt"] / d_caldata["prtn"];  // Blackbody temperature
-    double Tbbstar = A + B * Tbb;                       // Effective blackbody temperature
+    double Tbb = d_caldata["blackbody_temperature_sum"] / d_caldata["n"];  // Blackbody temperature
+    double Tbbstar = A + B * Tbb;                                          // Effective blackbody temperature
 
     const double c1 = 1.1910427e-5;                                 // mW/(m^2-sr-cm^-4)
     const double c2 = 1.4387752;                                    // cm-K
     double Nbb = c1 * pow(Vc, 3) / (exp(c2 * Vc / Tbbstar) - 1.0);  // Blackbody radiance
 
-    double Cs = d_caldata["ch" + std::to_string(ch) + "_space"] / static_cast<double>(image.height());  // Average space count
-    double Cbb = d_caldata["ch" + std::to_string(ch) + "_cal"] / static_cast<double>(image.height());   // Average backscan count
+    double Cs = d_caldata["ch" + std::to_string(ch) + "_space"] / d_caldata["n"];  // Average space count
+    double Cbb = d_caldata["ch" + std::to_string(ch) + "_cal"] / d_caldata["n"];   // Average backscan count
 
     for (int y = 0; y < image.height(); y++) {
         quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
