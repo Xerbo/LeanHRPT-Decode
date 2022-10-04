@@ -28,8 +28,8 @@ class RawImage {
     RawImage(size_t width, size_t channels, size_t interleaving_size = 1);
     ~RawImage();
 
-    void push10Bit(const uint8_t *data, int offset);
-    void push16Bit(const uint16_t *data, int offset);
+    void push10Bit(const uint8_t *data, int offset = 0);
+    void push16Bit(const uint16_t *data, int offset = 0, int multiplier = 1);
 
     unsigned short *getChannel(size_t channel) {
         if (channel < m_channels) {

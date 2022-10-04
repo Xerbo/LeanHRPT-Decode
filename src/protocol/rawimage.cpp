@@ -41,27 +41,20 @@ void RawImage::push10Bit(const uint8_t *data, int offset) {
     int pxoffset = offset % 4;  // Numbers of pixels to offset after byte shifting
 
     repack10(&data[j], rowBuffer, m_width * m_channels + pxoffset);
-
-    // Scale 10 to 16 bit
-    // 2^16 / 2^10 is 64, not 60...
-    for (size_t i = 0; i < m_width * m_channels + pxoffset; i++) {
-        rowBuffer[i] *= 64;
-    }
-
-    push16Bit(rowBuffer, pxoffset);
+    push16Bit(rowBuffer, pxoffset, 64);
 }
-void RawImage::push16Bit(const uint16_t *data, int offset) {
+void RawImage::push16Bit(const uint16_t *data, int offset, int multiplier) {
     for (size_t channel = 0; channel < m_channels; channel++) {
         if (m_interleavingSize == 1) {
             for (size_t x = 0; x < m_width; x++) {
-                imageBuffer[channel][m_rows * m_width + x] = data[x * m_channels + channel + offset];
+                imageBuffer[channel][m_rows * m_width + x] = data[x * m_channels + channel + offset] * multiplier;
             }
             // Meteor just can't be normal can it
         } else {
             for (size_t x = 0; x < m_width; x += m_interleavingSize) {
                 for (size_t i = 0; i < m_interleavingSize; i++) {
                     imageBuffer[channel][m_rows * m_width + x + i] =
-                        data[x * m_channels + channel * m_interleavingSize + i + offset];
+                        data[x * m_channels + channel * m_interleavingSize + i + offset] * multiplier;
                 }
             }
         }

@@ -18,6 +18,8 @@
 
 #include "metop_hrpt.h"
 
+#include "protocol/repack.h"
+
 void MetopHRPTDecoder::work(std::istream &stream) {
     if (d_filetype == FileType::CADU) {
         stream.read(reinterpret_cast<char *>(frame), 1024);
@@ -35,7 +37,9 @@ void MetopHRPTDecoder::frame_work(uint8_t *ptr) {
 
         // The only thing that VCID 9 will ever contain is AVHRR data so no need for APID filtering
         if (line.size() == 12966) {
-            images[Imager::AVHRR]->push10Bit(&line[20], 11 * 5);
+            uint16_t data[10355];
+            repack10(&line[20], data, 10355);
+            images[Imager::AVHRR]->push16Bit(&data[11 * 5], 0, 64);
 
             // Days since 01/01/2000
             uint16_t days = line[6] << 8 | line[7];
@@ -45,6 +49,41 @@ void MetopHRPTDecoder::frame_work(uint8_t *ptr) {
             double timestamp = 946684800.0 + days * 86400.0 + ms / 1000.0;
             timestamps[Imager::AVHRR].push_back(timestamp);
             ch3a.push_back(ccsds::CPPDUHeader(line).apid == 103);
+
+            // Space view
+            for (size_t i = 0; i < 5; i++) {
+                double sum = 0.0;
+                for (size_t x = 0; x < 10; x++) {
+                    sum += data[x * 5 + i];
+                }
+
+                caldata["ch" + std::to_string(i + 1) + "_space"] += sum / 10.0;
+            }
+
+            // PRTs
+            uint16_t *prt = &data[10295 + 2];
+            if (prt[0] != 0) {
+                double sum = 0.0;
+                for (size_t i = 0; i < 3; i++) {
+                    // TODO: calibrate each PRT separately
+                    // Currently this uses the average of all 4 coefficients (excluding d2)
+                    sum += 276.57465 + prt[i] * 0.050912;
+                }
+
+                blackbody_temperature = sum / 3.0;
+            }
+            caldata["blackbody_temperature_sum"] += blackbody_temperature;
+
+            // Back Scan
+            for (size_t i = 0; i < 5; i++) {
+                double sum = 0.0;
+                for (size_t x = 0; x < 10; x++) {
+                    sum += data[10305 + x * 5 + i];
+                }
+
+                caldata["ch" + std::to_string(i + 1) + "_cal"] += sum / 10.0;
+            }
+            caldata["n"] += 1.0;
         }
     } else if (VCID == 12) {
         std::vector<uint8_t> line = mhs_demux.work(ptr);

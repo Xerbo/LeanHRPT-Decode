@@ -36,6 +36,7 @@ class MetopHRPTDecoder : public Decoder {
    private:
     uint8_t *frame;
     ccsds::SimpleDemuxer demux, mhs_demux;
+    double blackbody_temperature = 290;
 
     void work(std::istream &stream);
     void frame_work(uint8_t *ptr);
