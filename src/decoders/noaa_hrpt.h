@@ -43,6 +43,7 @@ class NOAAHRPTDecoder : public Decoder {
     uint16_t *repacked;
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer;
     double timestamp = 0.0;
+    double blackbody_temperature = 290;
 
     void work(std::istream &stream);
     void frame_work(uint16_t *ptr);

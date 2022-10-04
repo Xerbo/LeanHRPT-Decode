@@ -38,6 +38,7 @@ class NOAAGACDecoder : public Decoder {
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> deframer;
     ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270> deframer_reverse;
     double timestamp = 0.0;
+    double blackbody_temperature = 290;
 
     uint8_t frame[4159];
     uint16_t repacked[3327];

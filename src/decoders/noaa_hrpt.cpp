@@ -97,7 +97,19 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
     }
 
     // Extract calibration data
-    caldata["blackbody_temperature_sum"] += 276.6 + ptr[17] * 0.0511;
+    uint16_t *prt = &ptr[17];
+    if (prt[0] != 0) {
+        double sum = 0.0;
+        for (size_t i = 0; i < 3; i++) {
+            // TODO: calibrate each PRT separately
+            // Currently this uses the average of all 4 coefficients (excluding d2)
+            sum += 276.57465 + prt[i] * 0.050912;
+        }
+
+        blackbody_temperature = sum / 3.0;
+    }
+    caldata["blackbody_temperature_sum"] += blackbody_temperature;
+
     for (size_t i = 0; i < 5; i++) {
         double sum = 0.0;
         for (size_t x = 0; x < 10; x++) {
@@ -106,6 +118,7 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
 
         caldata["ch" + std::to_string(i + 1) + "_space"] += sum / 10.0;
     }
+
     for (size_t i = 0; i < 3; i++) {
         double sum = 0.0;
         for (size_t x = 0; x < 10; x++) {
