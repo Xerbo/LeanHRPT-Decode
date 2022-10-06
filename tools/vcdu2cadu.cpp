@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,7 +11,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     std::ofstream out;
     interface("input.vcdu", "output.cadu", in, out, argc, argv);
 
-    uint8_t frame[1024] = { 0x1A, 0xCF, 0xFC, 0x1D };
+    uint8_t frame[1024] = {0x1A, 0xCF, 0xFC, 0x1D};
     while (!in.eof()) {
         in.read((char *)&frame[4], 892);
         out.write((char *)frame, 1024);

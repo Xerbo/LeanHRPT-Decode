@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,13 +11,13 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "protocol/ccsds/deframer.h"
 #include "cli.h"
+#include "protocol/ccsds/deframer.h"
 
 int main(int argc, char *argv[]) {
     std::ifstream in;

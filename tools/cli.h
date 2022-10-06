@@ -1,7 +1,8 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
-static void interface(std::string in_filename, std::string out_filename, std::ifstream &in, std::ofstream &out, int argc, char *argv[]) {
+static void interface(std::string in_filename, std::string out_filename, std::ifstream &in, std::ofstream &out, int argc,
+                      char *argv[]) {
     if (argc != 3) {
         std::cout << "Usage: " << argv[0] << " " << in_filename << " " << out_filename << std::endl;
         exit(1);

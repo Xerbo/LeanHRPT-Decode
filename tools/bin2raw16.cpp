@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,14 +11,14 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "cli.h"
 #include "protocol/deframer.h"
 #include "protocol/repack.h"
-#include "cli.h"
 
 int main(int argc, char *argv[]) {
     std::ifstream in;
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 
         if (deframer.work(buffer, frame, 1024)) {
             repack10(frame, repacked, 11090);
-            out.write((char *)repacked, 11090*sizeof(uint16_t));
+            out.write((char *)repacked, 11090 * sizeof(uint16_t));
         }
     }
 }
