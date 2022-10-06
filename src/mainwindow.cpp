@@ -326,6 +326,9 @@ void MainWindow::startDecode(std::string filename) {
     }
 
     sensor_actions.clear();
+    for (auto compositor : compositors) {
+        delete compositor.second;
+    }
     for (auto sensor2 : data.imagers) {
         SensorInfo info = sensor_info.at(sensor2.first);
         QAction *action = new QAction(QString::fromStdString(info.name));
