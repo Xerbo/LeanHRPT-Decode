@@ -25,9 +25,9 @@
 
 enum class Protocol { Unknown, LRPT, HRPT, AHRPT, MeteorHRPT, FengYunHRPT, GAC, GACReverse, DSB };
 
-enum Mission { POES, MeteorM, FengYun3, MetOp };
+enum class Mission { POES, MeteorM, FengYun3, MetOp };
 
-enum SatID {
+enum class SatID {
     Unknown = 0,
     MetOpA = 29499,
     MetOpB = 38771,
@@ -42,7 +42,7 @@ enum SatID {
     MeteorM22 = 44387
 };
 
-enum Imager { AVHRR, VIRR, MSUMR, MHS, MTVZA, HIRS, AMSUA };
+enum class Imager { AVHRR, VIRR, MSUMR, MHS, MTVZA, HIRS, AMSUA };
 
 struct SensorInfo {
     std::string name;

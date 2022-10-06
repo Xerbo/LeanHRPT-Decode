@@ -33,11 +33,6 @@
 #include "geometry.h"
 #include "util.h"
 
-static double str2double(std::string str) {
-    QLocale l(QLocale::C);
-    return l.toDouble(QString::fromStdString(str));
-}
-
 void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, std::map<std::string, double> caldata,
                              double reverse) {
     m_width = image->width();
@@ -244,7 +239,7 @@ void ImageCompositor::getExpression(QImage &image, std::string expression) {
                         mwir = ch[2];
                     }
                 } else {
-                    if (m_sensor == VIRR) {
+                    if (m_sensor == Imager::VIRR) {
                         swir = ch[5];
                     } else {
                         swir = ch[2];
@@ -322,7 +317,7 @@ void ImageCompositor::_equalise(QImage &image, Equalization equalization, std::v
     }
 
     switch (equalization) {
-        case Histogram: {
+        case Equalization::Histogram: {
 #pragma omp parallel for
             for (size_t y = 0; y < (size_t)image.height(); y++) {
                 quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
@@ -333,7 +328,7 @@ void ImageCompositor::_equalise(QImage &image, Equalization equalization, std::v
             }
             break;
         }
-        case Stretch: {
+        case Equalization::Stretch: {
             size_t low = 0, high = max;
             for (size_t i = 0; i < max; i++) {
                 if (low == 0 && cf[i] > 0.01f * max) {

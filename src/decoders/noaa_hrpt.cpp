@@ -50,7 +50,7 @@ void NOAAHRPTDecoder::work(std::istream &stream) {
 
 void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
     uint16_t *data = &ptr[103];
-    bool line_ok = true;
+    // bool line_ok = true;
 
     // Parse TIP/AIP frames
     for (size_t i = 0; i < 5; i++) {
@@ -70,7 +70,7 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
         }
 
         if (!parity_ok) {
-            line_ok = false;
+            // line_ok = false;
             continue;
         }
 

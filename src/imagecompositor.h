@@ -30,7 +30,7 @@
 #include "satinfo.h"
 #include "util.h"
 
-enum Equalization { None, Histogram, Stretch };
+enum class Equalization { None, Histogram, Stretch };
 
 class ImageCompositor {
    public:

@@ -394,8 +394,8 @@ QImage map::reproject(const QImage &image, transform::CRS crs, QRectF source_bou
     projected.fill(Qt::transparent);
 
 #pragma omp parallel for
-    for (size_t y = 0; y < projected.height(); y++) {
-        for (size_t x = 0; x < projected.width(); x++) {
+    for (size_t y = 0; y < (size_t)projected.height(); y++) {
+        for (size_t x = 0; x < (size_t)projected.width(); x++) {
             double x2 = px2r(x, projected.width()) * xa2 + xb2;
             double y2 = px2r(y, projected.height()) * ya2 + yb2;
             transform::Geo point = transform::reverse(transform::XY(x2, y2), crs);

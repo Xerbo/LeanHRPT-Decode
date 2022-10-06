@@ -23,7 +23,7 @@
 #include <cstdint>
 
 namespace ccsds {
-enum SyncMachineState { State0, State1, State2, State3 };
+enum class SyncMachineState { State0, State1, State2, State3 };
 
 using asm_t = uint32_t;
 

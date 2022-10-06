@@ -53,8 +53,8 @@ class SimpleDemuxer {
     std::vector<uint8_t> packetBuffer;
 };
 
-enum DemuxerState { IDLE, HEADER, DATA };
-enum DemuxerStatus { PROCEED, FRAGMENT, PARSED };
+enum class DemuxerState { IDLE, HEADER, DATA };
+enum class DemuxerStatus { PROCEED, FRAGMENT, PARSED };
 
 /// Demuxer that can handle an arbitrary amount of packets per frame
 class Demuxer {
@@ -66,7 +66,7 @@ class Demuxer {
     const size_t fhp_offset;
     const size_t mpdu_size;
 
-    DemuxerState state = IDLE;
+    DemuxerState state = DemuxerState::IDLE;
     uint16_t offset = 0;
     uint16_t frag_offset = 0;
     std::vector<uint8_t> packet;

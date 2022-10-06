@@ -48,7 +48,7 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
-enum WindowState { Idle, Decoding, Finished };
+enum class WindowState { Idle, Decoding, Finished };
 
 #define ABOUT_TEXT \
     "<h2>LeanHRPT Decode</h2>\
@@ -98,7 +98,7 @@ class MainWindow : public QMainWindow {
     float clip_limit = 1.0f;
     size_t selectedChannel = 1;
     std::array<size_t, 3> selectedComposite;
-    Equalization selectedEqualization = None;
+    Equalization selectedEqualization = Equalization::None;
 
     // Satellite meta information
     SatID sat;

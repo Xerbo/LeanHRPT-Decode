@@ -367,13 +367,13 @@ std::set<Protocol> Fingerprint::ccsds_downlinks(SatID id) {
     }
 
     switch (satellite_info.at(id).mission) {
-        case POES:
+        case Mission::POES:
             return {Protocol::HRPT};
-        case FengYun3:
+        case Mission::FengYun3:
             return {Protocol::FengYunHRPT};
-        case MetOp:
+        case Mission::MetOp:
             return {Protocol::AHRPT /*, Protocol::LRPT*/};
-        case MeteorM:
+        case Mission::MeteorM:
             return {/*Protocol::MeteorHRPT,*/ Protocol::LRPT};
         default:
             return {Protocol::Unknown};

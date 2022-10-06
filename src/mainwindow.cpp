@@ -364,7 +364,7 @@ void MainWindow::startDecode(std::string filename) {
 
     // Anomaly detection and interpolation
     for (auto &sensor : timestamps) {
-        if (sensor.second.size() == 0) {
+        if (sensor.second.size() < 20) {
             continue;
         }
         if (protocol == Protocol::GACReverse) {
@@ -376,7 +376,7 @@ void MainWindow::startDecode(std::string filename) {
         std::vector<double> &timestamp = sensor.second;
         std::vector<double> copy = sensor.second;
 
-        for (int i = 9; i < copy.size() - 9; i++) {
+        for (size_t i = 9; i < copy.size() - 9; i++) {
             double average = 0.0;
             for (int j = 0; j < 19; j++) {
                 average += copy[i + (j - 9)];
@@ -551,7 +551,7 @@ void MainWindow::setComposite(std::array<size_t, 3> channels) {
 
 void MainWindow::setEqualization(Equalization type) {
     selectedEqualization = type;
-    if (selectedEqualization == None) {
+    if (selectedEqualization == Equalization::None) {
         QImage copy(display);
         compositors[sensor]->postprocess(copy);
         displayQImage(scene, copy);
@@ -607,7 +607,7 @@ void MainWindow::get_source(QImage &image) {
 
 void MainWindow::updateDisplay() {
     get_source(display);
-    if (selectedEqualization == None) {
+    if (selectedEqualization == Equalization::None) {
         QImage copy(display);
         compositors[sensor]->postprocess(copy);
         displayQImage(scene, copy);
