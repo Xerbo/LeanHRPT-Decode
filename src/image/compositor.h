@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_IMAGECOMPOSITOR_H_
-#define LEANHRPT_IMAGECOMPOSITOR_H_
+#ifndef LEANHRPT_IMAGE_COMPOSITOR_H_
+#define LEANHRPT_IMAGE_COMPOSITOR_H_
 
 #include <QImage>
 #include <QPainter>
@@ -25,8 +25,8 @@
 #include <cmath>
 #include <vector>
 
+#include "image/raw.h"
 #include "map.h"
-#include "protocol/rawimage.h"
 #include "satinfo.h"
 #include "util.h"
 

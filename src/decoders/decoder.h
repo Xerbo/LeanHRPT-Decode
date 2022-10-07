@@ -25,7 +25,7 @@
 #include <fstream>
 #include <istream>
 
-#include "protocol/rawimage.h"
+#include "image/raw.h"
 #include "satinfo.h"
 
 #define BUFFER_SIZE 1024

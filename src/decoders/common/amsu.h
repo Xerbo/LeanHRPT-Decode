@@ -23,7 +23,7 @@
 
 #include <map>
 
-#include "protocol/rawimage.h"
+#include "image/raw.h"
 #include "protocol/repack.h"
 #include "satinfo.h"
 

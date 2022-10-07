@@ -26,6 +26,7 @@ file(GLOB_RECURSE CXX_SOURCE_FILES
     src/geo/geolocation.cpp
     src/geometry.cpp
     src/image/compositor.cpp
+    src/image/raw.cpp
     src/main.cpp
     src/mainwindow.cpp
     src/map.cpp
@@ -38,7 +39,6 @@ file(GLOB_RECURSE CXX_SOURCE_FILES
     src/protocol/lrpt/huffman.cpp
     src/protocol/lrpt/jpeg.cpp
     src/protocol/lrpt/packet.cpp
-    src/protocol/rawimage.cpp
     src/protocol/repack.cpp
 )
 IF (WIN32)
