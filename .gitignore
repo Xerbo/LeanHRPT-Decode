@@ -64,7 +64,6 @@ CMakeUserPresets.json
 *.png
 *.tif
 !images/*
-!logo128.png
 
 # Binary files
 *.bin

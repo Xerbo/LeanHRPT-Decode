@@ -91,9 +91,9 @@ target_compile_definitions(LeanHRPT-Decode PRIVATE "VERSION=\"${VERSION}\"")
 install(TARGETS LeanHRPT-Decode RUNTIME DESTINATION bin)
 # Desktop file and icon
 install(FILES ${CMAKE_SOURCE_DIR}/LeanHRPT-Decode.desktop DESTINATION share/applications)
-install(FILES ${CMAKE_SOURCE_DIR}/logo128.png DESTINATION share/icons/hicolor/128x128/apps RENAME LeanHRPT-Decode.png)
+install(FILES ${CMAKE_SOURCE_DIR}/logo128.ico DESTINATION share/icons/hicolor/128x128/apps RENAME LeanHRPT-Decode.png)
 install(FILES ${CMAKE_SOURCE_DIR}/logo.svg DESTINATION share/icons/hicolor/scalable/apps RENAME LeanHRPT-Decode.svg)
-configure_file(logo128.png logo128.png COPYONLY)
+configure_file(logo128.ico logo128.ico COPYONLY)
 configure_file(logo.svg logo.svg COPYONLY)
 # Config files
 install(FILES ${CMAKE_SOURCE_DIR}/projection.ini DESTINATION share/leanhrpt)

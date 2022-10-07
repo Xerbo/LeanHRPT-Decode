@@ -257,7 +257,7 @@ jobs:
             mkdir LeanHRPT-Decode/plugins/styles &&
             mkdir LeanHRPT-Decode/plugins/imageformats &&
             mkdir LeanHRPT-Decode/platforms &&
-            cp logo128.png                                             LeanHRPT-Decode/ &&
+            cp logo128.ico                                             LeanHRPT-Decode/ &&
             cp presets.ini                                             LeanHRPT-Decode/ &&
             cp gradients.ini                                           LeanHRPT-Decode/ &&
             cp calibration.ini                                         LeanHRPT-Decode/ &&
