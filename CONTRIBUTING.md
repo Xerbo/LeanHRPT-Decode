@@ -18,9 +18,19 @@ If you don't have a GitHub account, you can email me the patch at `xerbo (at) pr
 
 ## Coding style
 
-The coding style of LeanHRPT is based off the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) with minor modifications (see `.clang-format`), in addition to this all files should use LF line endings and end in a newline.
+The coding style of LeanHRPT is based off the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) with minor modifications (see `.clang-format`), in addition to this all files should use LF line endings and end in a newline. Use American english (i.e. color, not colour).
 
 To automate this LeanHRPT comes with [pre-commit](https://pre-commit.com/) hooks which will enforce these rules.
+
+### Development environment
+
+LeanHRPT is developed with VSCode with the following extensions, while not required they may make your life easier:
+
+- [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
+- [CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools)
+- [CMake](https://marketplace.visualstudio.com/items?itemName=twxs.cmake)
+- [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker)
+- [Clang-Format](https://marketplace.visualstudio.com/items?itemName=xaver.clang-format)
 
 ## Commit message style
 
