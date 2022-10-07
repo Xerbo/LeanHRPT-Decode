@@ -190,12 +190,12 @@ std::vector<Landmark> map::warp_to_pass(const std::vector<Landmark> &landmarks,
 }
 
 // Convert from the center of a pixel at `x` to 0.0 to 1.0 (non inclusive)
-double px2r(double x, double range) { return (x + 0.5) / range; }
-QPointF px2r(QPointF x, QSize range) { return QPointF(px2r(x.x(), range.width()), px2r(x.y(), range.height())); }
+static double px2r(double x, double range) { return (x + 0.5) / range; }
+static QPointF px2r(QPointF x, QSize range) { return QPointF(px2r(x.x(), range.width()), px2r(x.y(), range.height())); }
 
 // Opposite of px2r
-double r2px(double x, double range) { return x * range - 0.5; }
-QPointF r2px(QPointF x, QSize range) { return QPointF(r2px(x.x(), range.width()), r2px(x.y(), range.height())); }
+static double r2px(double x, double range) { return x * range - 0.5; }
+static QPointF r2px(QPointF x, QSize range) { return QPointF(r2px(x.x(), range.width()), r2px(x.y(), range.height())); }
 
 QImage map::project(const QImage &image, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn, QSize resolution,
                     QRectF bounds) {

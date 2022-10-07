@@ -22,25 +22,25 @@
 
 #include "util.h"
 
-transform::XY forward_equirectangular(transform::Geo geo) {
+static transform::XY forward_equirectangular(transform::Geo geo) {
     double lon = geo.x();
     double lat = geo.y();
     return transform::XY((lon / M_PI + 1.0) / 2.0, (-lat / M_PI_2 + 1.0) / 2.0);
 }
-transform::XY forward_mercator(transform::Geo geo) {
+static transform::XY forward_mercator(transform::Geo geo) {
     double lon = geo.x();
     double lat = geo.y();
     double y = -log(tan(M_PI_4 + lat / 2.0)) / M_PI;
     return transform::XY((lon / M_PI + 1.0) / 2.0, (y + 1.0) / 2.0);
 }
-transform::XY forward_north_polar(transform::Geo geo) {
+static transform::XY forward_north_polar(transform::Geo geo) {
     double lon = geo.x();
     double lat = geo.y();
     double x = sin(lon) * (-lat + M_PI_2) / M_PI;
     double y = cos(lon) * (-lat + M_PI_2) / M_PI;
     return transform::XY((x + 1.0) / 2.0, (y + 1.0) / 2.0);
 }
-transform::XY forward_south_polar(transform::Geo geo) {
+static transform::XY forward_south_polar(transform::Geo geo) {
     double lon = geo.x();
     double lat = geo.y();
     double x = sin(lon) * (lat + M_PI_2) / M_PI;
@@ -62,25 +62,25 @@ transform::XY transform::forward(transform::Geo geo, CRS crs) {
     }
 }
 
-transform::Geo reverse_equirectangular(transform::XY xy) {
+static transform::Geo reverse_equirectangular(transform::XY xy) {
     double x = xy.x() * 2.0 - 1.0;
     double y = xy.y() * 2.0 - 1.0;
     return transform::Geo(x * M_PI, -y * M_PI_2);
 }
-transform::Geo reverse_mercator(transform::XY xy) {
+static transform::Geo reverse_mercator(transform::XY xy) {
     double x = xy.x() * 2.0 - 1.0;
     double y = xy.y() * 2.0 - 1.0;
     double lat = 2.0 * atan(exp(-y * M_PI)) - M_PI_2;
     return transform::Geo(x * M_PI, lat);
 }
-transform::Geo reverse_north_polar(transform::XY xy) {
+static transform::Geo reverse_north_polar(transform::XY xy) {
     double x = xy.x() * 2.0 - 1.0;
     double y = xy.y() * 2.0 - 1.0;
     double lon = atan2(x, y);
     double lat = hypot(x, y) * M_PI - M_PI_2;
     return transform::Geo(lon, -lat);
 }
-transform::Geo reverse_south_polar(transform::XY xy) {
+static transform::Geo reverse_south_polar(transform::XY xy) {
     double x = xy.x() * 2.0 - 1.0;
     double y = xy.y() * 2.0 - 1.0;
     double lon = atan2(x, -y);

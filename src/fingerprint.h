@@ -27,11 +27,6 @@
 #include "decoders/decoder.h"
 #include "satinfo.h"
 
-const std::map<std::string, FileType> known_extensions = {
-    {"cadu", FileType::CADU}, {"vcdu", FileType::VCDU}, {"raw16", FileType::raw16},
-    {"hrp", FileType::HRP},   {"tip", FileType::TIP},
-};
-
 class Fingerprint {
    public:
     Fingerprint() : is_running(true) {}
@@ -58,7 +53,7 @@ class Fingerprint {
     SatID fingerprint_dsb(std::istream &stream);
 
     Protocol fingerprint_raw(std::istream &stream);
-    std::set<Protocol> ccsds_downlinks(SatID id);
+    static std::set<Protocol> ccsds_downlinks(SatID id);
 
     static FileType id_magic(std::istream &stream) {
         uint8_t header[4];

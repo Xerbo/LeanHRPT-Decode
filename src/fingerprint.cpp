@@ -11,6 +11,11 @@
 #include "protocol/repack.h"
 #include "protocol/reverse.h"
 
+const std::map<std::string, FileType> known_extensions = {
+    {"cadu", FileType::CADU}, {"vcdu", FileType::VCDU}, {"raw16", FileType::raw16},
+    {"hrp", FileType::HRP},   {"tip", FileType::TIP},
+};
+
 /// Finds the most common value of T
 template <typename T>
 class Scoreboard {

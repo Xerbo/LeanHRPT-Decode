@@ -88,7 +88,7 @@ const uint8_t ac_table[] = {
 };
 // clang-format on
 
-int16_t apply_sign(uint16_t x, uint8_t category) {
+static int16_t apply_sign(uint16_t x, uint8_t category) {
     int16_t max = (1 << category) - 1;
 
     if (std::bitset<16>(x)[category - 1]) {
@@ -98,7 +98,7 @@ int16_t apply_sign(uint16_t x, uint8_t category) {
     }
 }
 
-int get_dc_category(uint16_t word) {
+static int get_dc_category(uint16_t word) {
     if (word >> 14 == 0x0) return 0;
     switch (word >> 13) {
         case 0x2:

@@ -76,7 +76,7 @@ namespace jpeg {
 	};
 // clang-format on
 
-void unzigzag(const std::array<int16_t, 64> &in, jpeg::block<int16_t> &out) {
+static void unzigzag(const std::array<int16_t, 64> &in, jpeg::block<int16_t> &out) {
     for (size_t y = 0; y < 8; y++) {
         for (size_t x = 0; x < 8; x++) {
             int pos = jpeg_zigzag[y][x];
@@ -86,7 +86,7 @@ void unzigzag(const std::array<int16_t, 64> &in, jpeg::block<int16_t> &out) {
 }
 
 // See https://web.archive.org/web/20150223223556/http://meteor.robonuka.ru/for-experts/soft/
-int qfactor(size_t x, size_t y, uint8_t q) {
+static int qfactor(size_t x, size_t y, uint8_t q) {
     float f;
     if (q < 50) {
         f = 5000.0f / (float)q;
@@ -102,7 +102,7 @@ int qfactor(size_t x, size_t y, uint8_t q) {
     }
 }
 
-void dequantize(jpeg::block<int16_t> &block, uint8_t q) {
+static void dequantize(jpeg::block<int16_t> &block, uint8_t q) {
     for (size_t y = 0; y < 8; y++) {
         for (size_t x = 0; x < 8; x++) {
             block[y][x] *= qfactor(x, y, q);
@@ -111,7 +111,7 @@ void dequantize(jpeg::block<int16_t> &block, uint8_t q) {
 }
 
 /// 2D 8x8 inverse DCT
-void idct(const jpeg::block<int16_t> &in, jpeg::block<uint8_t> &out) {
+static void idct(const jpeg::block<int16_t> &in, jpeg::block<uint8_t> &out) {
     for (size_t y = 0; y < 8; y++) {
         for (size_t x = 0; x < 8; x++) {
             float sum = 0.0;
