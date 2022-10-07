@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_CALIBRATION_H_
-#define LEANHRPT_CALIBRATION_H_
+#ifndef LEANHRPT_IMAGE_CALIBRATION_H_
+#define LEANHRPT_IMAGE_CALIBRATION_H_
 
 #include <QImage>
 
