@@ -376,7 +376,7 @@ QRectF map::bounds_crs(const std::vector<std::pair<xy, Geodetic>> &points, trans
 }
 
 QImage map::reproject(const QImage &image, transform::CRS crs, QRectF source_bounds, QRectF target_bounds) {
-    if (crs == transform::CRS::Equdistant) {
+    if (crs == transform::CRS::Equirectangular) {
         return image;
     }
 
@@ -404,7 +404,7 @@ QImage map::reproject(const QImage &image, transform::CRS crs, QRectF source_bou
             point.ry() = (point.y() - yb) / ya;
             point.rx() = point.x() * M_PI * 2.0 - M_PI;
             point.ry() = point.y() * M_PI - M_PI_2;
-            point = transform::forward(point, transform::CRS::Equdistant);
+            point = transform::forward(point, transform::CRS::Equirectangular);
             point.rx() = r2px(point.x(), image.width());
             point.ry() = r2px(point.y(), image.height());
             if (point.x() > 0 && point.x() < image.width() - 1 && point.y() > 0 && point.y() < image.height() - 1) {

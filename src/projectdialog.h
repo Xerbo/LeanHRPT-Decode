@@ -51,7 +51,7 @@ class ProjectDialog : public QDialog {
     void write_wld_file(QString filename);
     void write_pam_file(QString filename, std::string srs);
 
-    transform::CRS crs = transform::CRS::Equdistant;
+    transform::CRS crs = transform::CRS::Equirectangular;
     QRectF bounds;
     QRectF target_bounds;
     double pixelsize;

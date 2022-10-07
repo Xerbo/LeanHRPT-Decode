@@ -25,7 +25,7 @@ file(GLOB_RECURSE CXX_SOURCE_FILES
     src/geo/crs.cpp
     src/geo/geolocation.cpp
     src/geometry.cpp
-    src/imagecompositor.cpp
+    src/image/compositor.cpp
     src/main.cpp
     src/mainwindow.cpp
     src/map.cpp

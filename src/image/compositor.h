@@ -74,11 +74,11 @@ class ImageCompositor {
      */
     static void equalise(QImage &image, Equalization equalization, float clipLimit, bool brightness_only);
 
-    /// Gets the width of currenty loaded image
+    /// Gets the width of currently loaded image
     size_t width() { return m_width; };
-    /// Gets the height of currenty loaded image
+    /// Gets the height of currently loaded image
     size_t height() { return m_height; };
-    /// Gets the number of channels in the currenty loaded image
+    /// Gets the number of channels in the currently loaded image
     size_t channels() { return m_channels; };
     /// If the image is currently flipped
     bool flipped() { return m_isFlipped; }

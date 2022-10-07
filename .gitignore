@@ -75,6 +75,3 @@ CMakeUserPresets.json
 
 # CMake build directory
 build/
-
-# VSCode
-.vscode/

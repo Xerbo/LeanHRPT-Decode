@@ -36,7 +36,7 @@
 #include "config/preset.h"
 #include "decoders/decoder.h"
 #include "fingerprint.h"
-#include "imagecompositor.h"
+#include "image/compositor.h"
 #include "network.h"
 #include "projectdialog.h"
 #include "projection.h"

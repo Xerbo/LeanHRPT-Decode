@@ -25,9 +25,9 @@
 
 namespace transform {
 /// List of supported projections
-enum class CRS { Equdistant, Mercator, North_Polar, South_Polar };
+enum class CRS { Equirectangular, Mercator, North_Polar, South_Polar };
 /// Human readable names of CRS
-const std::vector<std::string> CRS_NAMES = {"Equdistant", "Mercator", "North Polar", "South Polar"};
+const std::vector<std::string> CRS_NAMES = {"Equirectangular", "Mercator", "North Polar", "South Polar"};
 /// EPSG names of projections
 const std::vector<std::string> CRS_EPSG_NAMES = {"EPSG:4326", "EPSG:3857", "EPSG:3995", "EPSG:3031"};
 

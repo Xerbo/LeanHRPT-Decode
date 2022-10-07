@@ -80,10 +80,10 @@ QSize ProjectDialog::calculate_dimensions(size_t resolution) {
         target_bounds = QRectF(0, 0, 1, 1);
     }
 
-    double scale = EARTH_CIRCUMFRANCE / ui->resolution->value();
+    double scale = EARTH_CIRCUMFERENCE / ui->resolution->value();
     pixelsize = 360.0 / scale;
     QSize dimensions(bounds.width() / 360.0 * scale, bounds.height() / 360.0 * scale);
-    if (crs != transform::CRS::Equdistant) {
+    if (crs != transform::CRS::Equirectangular) {
         dimensions.rheight() = dimensions.width() * (double)target_bounds.height() / (double)target_bounds.width();
     }
     ui->details->setText(QString("Final size: %1x%2").arg(dimensions.width()).arg(dimensions.height()));
@@ -142,7 +142,7 @@ void ProjectDialog::on_render_clicked() {
 
     QFuture<void> future = QtConcurrent::run([=]() {
         QImage image = render(dimensions);
-        if (crs == transform::CRS::Equdistant) {
+        if (crs == transform::CRS::Equirectangular) {
             QFileInfo fi(filename);
             write_wld_file(fi.absolutePath() + "/" + fi.completeBaseName() + ".wld");
             write_pam_file(filename + ".aux.xml", transform::CRS_EPSG_NAMES[(size_t)crs]);

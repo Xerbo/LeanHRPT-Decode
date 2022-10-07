@@ -129,7 +129,7 @@ void Calibrator::calibrate_ir(size_t ch, QImage &image, double Ns, double b0, do
             double Ncor = b0 + b1 * Nlin + b2 * pow(Nlin, 2);        // Non-linear correction
             double Ne = Nlin + Ncor;                                 // Radiance
 
-            double Testar = c2 * Vc / log(c1 * pow(Vc, 3) / Ne + 1.0);  // Equivlent black body temperature
+            double Testar = c2 * Vc / log(c1 * pow(Vc, 3) / Ne + 1.0);  // Equivalent black body temperature
             double Te = (Testar - A) / B;                               // Temperature (kelvin)
 
             // Convert to celsius

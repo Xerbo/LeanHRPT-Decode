@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "imagecompositor.h"
+#include "compositor.h"
 
 #include <muParser.h>
 #include <omp.h>

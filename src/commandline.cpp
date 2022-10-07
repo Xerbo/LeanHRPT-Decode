@@ -27,7 +27,7 @@
 #include "decoders/decoder.h"
 #include "fingerprint.h"
 #include "geometry.h"
-#include "imagecompositor.h"
+#include "image/compositor.h"
 #include "satinfo.h"
 
 static ulong str2ulong(QString str) {

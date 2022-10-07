@@ -22,7 +22,7 @@
 
 #include "util.h"
 
-transform::XY forward_equdistant(transform::Geo geo) {
+transform::XY forward_equirectangular(transform::Geo geo) {
     double lon = geo.x();
     double lat = geo.y();
     return transform::XY((lon / M_PI + 1.0) / 2.0, (-lat / M_PI_2 + 1.0) / 2.0);
@@ -49,8 +49,8 @@ transform::XY forward_south_polar(transform::Geo geo) {
 }
 transform::XY transform::forward(transform::Geo geo, CRS crs) {
     switch (crs) {
-        case CRS::Equdistant:
-            return forward_equdistant(geo);
+        case CRS::Equirectangular:
+            return forward_equirectangular(geo);
         case CRS::Mercator:
             return forward_mercator(geo);
         case CRS::North_Polar:
@@ -62,7 +62,7 @@ transform::XY transform::forward(transform::Geo geo, CRS crs) {
     }
 }
 
-transform::Geo reverse_equdistant(transform::XY xy) {
+transform::Geo reverse_equirectangular(transform::XY xy) {
     double x = xy.x() * 2.0 - 1.0;
     double y = xy.y() * 2.0 - 1.0;
     return transform::Geo(x * M_PI, -y * M_PI_2);
@@ -89,8 +89,8 @@ transform::Geo reverse_south_polar(transform::XY xy) {
 }
 transform::Geo transform::reverse(transform::XY xy, CRS crs) {
     switch (crs) {
-        case CRS::Equdistant:
-            return reverse_equdistant(xy);
+        case CRS::Equirectangular:
+            return reverse_equirectangular(xy);
         case CRS::Mercator:
             return reverse_mercator(xy);
         case CRS::North_Polar:
