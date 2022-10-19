@@ -139,9 +139,10 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
     timestamp = (double)year + (double)days * 86400.0 + (double)ms / 1000.0;
     timestamps[Imager::AVHRR].push_back(timestamp);
 
+    ch3a.push_back(std::bitset<10>(ptr[6]).test(0));
+
     for (size_t i = 0; i < 11090; i++) {
         ptr[i] *= 64;
     }
     images[Imager::AVHRR]->push16Bit(ptr, 750);
-    ch3a.push_back(false);
 }
