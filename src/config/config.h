@@ -43,8 +43,7 @@ class Config : public inipp::Ini<char> {
 #endif
 
         // System config
-        QString config =
-            QStandardPaths::locate(QStandardPaths::GenericDataLocation, QString::fromStdString("leanhrpt/" + filename));
+        config = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QString::fromStdString("leanhrpt/" + filename));
         if (!config.isEmpty() && try_load(config.toStdString())) return;
 
         std::cerr << "Could not open " << filename << std::endl;
