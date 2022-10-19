@@ -28,7 +28,7 @@
 #include "config/config.h"
 
 TLEManager::TLEManager() {
-    QString path = QStandardPaths::locate(QStandardPaths::TempLocation, "weather.txt");
+    QString path = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/weather.txt";
     quint64 time = QDateTime::currentSecsSinceEpoch();
     quint64 modified = QFileInfo(path).lastModified().toSecsSinceEpoch();
 

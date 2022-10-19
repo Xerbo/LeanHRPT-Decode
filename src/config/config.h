@@ -29,21 +29,23 @@
 class Config : public inipp::Ini<char> {
    public:
     Config(std::string filename) {
-        // Local (used for development)
+        // Local config
         if (try_load(filename)) return;
 
-        // Standard system config directories
+        // User config
         QString config = QStandardPaths::locate(QStandardPaths::ConfigLocation, QString::fromStdString("leanhrpt/" + filename));
-        if (try_load(config.toStdString())) return;
+        if (!config.isEmpty() && try_load(config.toStdString())) return;
 
 #ifndef _WIN32
-        // Running as AppImage
+        // Internal AppImage config
         std::string here = std::getenv("HERE") ? std::getenv("HERE") : "";
         if (!here.empty() && try_load(here + "/usr/share/leanhrpt/" + filename)) return;
-
-        if (try_load("/usr/share/leanhrpt/" + filename)) return;
-        if (try_load("/usr/local/share/leanhrpt/" + filename)) return;
 #endif
+
+        // System config
+        QString config =
+            QStandardPaths::locate(QStandardPaths::GenericDataLocation, QString::fromStdString("leanhrpt/" + filename));
+        if (!config.isEmpty() && try_load(config.toStdString())) return;
 
         std::cerr << "Could not open " << filename << std::endl;
     }
