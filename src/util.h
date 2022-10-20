@@ -94,4 +94,11 @@ inline QColor lerp2(const QImage &image, double x, double y) {
 inline QColor lerp2(const QImage &image, QPointF point) { return lerp2(image, point.x(), point.y()); }
 #endif
 
+template <typename T>
+void reverse(T &array) {
+    for (size_t i = 0; i < array.size() / 2; i++) {
+        std::swap(array[i], array[(array.size() - 1) - i]);
+    }
+}
+
 #endif

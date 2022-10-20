@@ -30,6 +30,7 @@
 #include "decoders/decoder.h"
 #include "map.h"
 #include "projectdialog.h"
+#include "protocol/timestamp.h"
 #include "qt/ui_mainwindow.h"
 #include "util.h"
 
@@ -364,64 +365,13 @@ void MainWindow::startDecode(std::string filename) {
 
     // Anomaly detection and interpolation
     for (auto &sensor : timestamps) {
-        if (sensor.second.size() < 20) {
-            continue;
-        }
-        if (protocol == Protocol::GACReverse) {
-            for (size_t i = 0; i < sensor.second.size() / 2; i++) {
-                std::swap(sensor.second[i], sensor.second[(sensor.second.size() - 1) - i]);
-            }
-        }
-
         std::vector<double> &timestamp = sensor.second;
-        std::vector<double> copy = sensor.second;
 
-        for (size_t i = 9; i < copy.size() - 9; i++) {
-            double average = 0.0;
-            for (int j = 0; j < 19; j++) {
-                average += copy[i + (j - 9)];
-            }
-            average /= 19.0;
-
-            if (abs(copy[i] - average) > 2) {
-                timestamp[i] = 0;
-            }
+        if (protocol == Protocol::GACReverse) {
+            reverse(timestamp);
         }
 
-        for (size_t i = 0; i < 9; i++) {
-            timestamp[i] = 0;
-        }
-        for (size_t i = copy.size() - 9; i < copy.size(); i++) {
-            timestamp[i] = 0;
-        }
-
-        int first = -1, last = -1;
-        for (size_t i = 0; i < timestamp.size(); i++) {
-            if (timestamp[i] != 0.0 && first == -1) {
-                first = i;
-            }
-            if (timestamp[i] != 0.0) {
-                last = i;
-            }
-        }
-        if (first < 0 || last < 0) {
-            break;
-        }
-
-        // Average seconds per line over the pass
-        double spl = (timestamp[last] - timestamp[first]) / (last - first);
-
-        // Interpolate based on average seconds per line
-        for (size_t i = 1; i < timestamp.size(); i++) {
-            if (timestamp[i] == 0.0 && timestamp[i - 1] != 0.0) {
-                timestamp[i] = timestamp[i - 1] + spl;
-            }
-        }
-        for (int i = timestamp.size() - 2; i >= 0; i--) {
-            if (timestamp[i] == 0.0 && timestamp[i + 1] != 0.0) {
-                timestamp[i] = timestamp[i + 1] - spl;
-            }
-        }
+        timestamp = filter_timestamps(timestamp);
     }
 
     for (auto &sensor : timestamps) {

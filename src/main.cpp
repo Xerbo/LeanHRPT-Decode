@@ -37,6 +37,8 @@ int main(int argc, char *argv[]) {
          "ini"});
     parser.addOption({{"o", "out"}, "Write images into <outdir>", "out"});
     parser.addOption({{"f", "flip"}, "Flip the image"});
+    parser.addOption({{"m", "map"}, "Path to a shapefile", "path"});
+    parser.addOption({{"l", "landmark"}, "Path to a landmarks file", "path"});
     parser.addPositionalArgument("file", "filename");
     parser.process(app);
 

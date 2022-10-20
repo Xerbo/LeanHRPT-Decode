@@ -28,6 +28,9 @@
 #include "fingerprint.h"
 #include "geometry.h"
 #include "image/compositor.h"
+#include "map.h"
+#include "network.h"
+#include "protocol/timestamp.h"
 #include "satinfo.h"
 
 static ulong str2ulong(QString str) {
@@ -43,6 +46,35 @@ int parseCommandLine(QCommandLineParser &parser) {
     if (!outdir.isEmpty() && !QDir(outdir).exists()) {
         std::cout << "Output directory doesn't exist, creating it" << std::endl;
         QDir().mkdir(outdir);
+    }
+
+    bool have_map = false;
+    bool have_landmarks = false;
+    std::array<std::vector<QLineF>, 36 * 18> map_buckets;
+    std::vector<Landmark> landmarks;
+
+    QString shapefile_path = parser.value("map");
+    if (!shapefile_path.isEmpty()) {
+        if (!map::verify_shapefile(shapefile_path.toStdString())) {
+            std::cout << "Could not open shapefile" << std::endl;
+            return 1;
+        }
+
+        map_buckets = map::index_line_segments(map::read_shapefile(shapefile_path.toStdString()));
+        have_map = true;
+    }
+
+    QString landmark_path = parser.value("landmark");
+    if (!landmark_path.isEmpty()) {
+        landmarks = map::read_landmarks(landmark_path.toStdString());
+        if (landmarks.size() != 0) {
+            have_landmarks = true;
+        }
+    }
+
+    TLEManager *tles;
+    if (have_map || have_landmarks) {
+        tles = new TLEManager;
     }
 
     std::cout << "Fingerprinting \"" << filename.toStdString() << "\"" << std::endl;
@@ -68,6 +100,16 @@ int parseCommandLine(QCommandLineParser &parser) {
     std::cout << "Finished decoding" << std::endl;
 
     // Timestamp is the middle of the pass on the main imager
+    for (auto &sensor : data.timestamps) {
+        std::vector<double> &timestamp = sensor.second;
+
+        if (protocol == Protocol::GACReverse) {
+            reverse(timestamp);
+        }
+
+        timestamp = filter_timestamps(timestamp);
+    }
+
     QDateTime timestamp;
     {
         Imager default_imager = satellite_info.at(sat).default_imager;
@@ -120,6 +162,7 @@ int parseCommandLine(QCommandLineParser &parser) {
         RawImage *image = sensor_data.second;
 
         compositors[imager].import(image, sat, imager, data.caldata);
+        compositors[imager].ch3a = data.ch3a;
 
         for (auto &file : ini.sections) {
             // Replace template strings in filename
@@ -180,13 +223,31 @@ int parseCommandLine(QCommandLineParser &parser) {
                 continue;
             }
 
-            if (parser.isSet("flip")) {
-                image = image.mirrored(true, true);
+            if (have_map || have_landmarks) {
+                size_t width = compositors[imager].width();
+                size_t height = compositors[imager].height();
+
+                Projector projector(tles->catalog_by_norad[(int)sat]);
+                std::vector<std::pair<xy, Geodetic>> gcps =
+                    projector.calculate_gcps(data.timestamps[imager], (height / width) * 21, 21, imager, sat, width);
+                if (gcps.size() == 0) {
+                    break;
+                }
+
+                if (have_map) {
+                    compositors[imager].overlay = map::warp_to_pass(map_buckets, gcps, 21);
+                    compositors[imager].enable_map = true;
+                    compositors[imager].map_color = QColor(255, 255, 0);
+                }
+                if (have_landmarks) {
+                    compositors[imager].landmarks = map::warp_to_pass(landmarks, gcps, 21);
+                    compositors[imager].enable_landmarks = true;
+                    compositors[imager].landmark_color = QColor(255, 0, 0);
+                }
             }
 
-            if (corrected == "true") {
-                image = correct_geometry(image, sat, imager, image.width());
-            }
+            compositors[imager].setFlipped(parser.isSet("flip"));
+            compositors[imager].postprocess(image, corrected == "true");
 
             std::cout << "Writing \"" << filename.toStdString() << "\"" << std::endl;
             image.save(QDir(outdir).filePath(filename));
