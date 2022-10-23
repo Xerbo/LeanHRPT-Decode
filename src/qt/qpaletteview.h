@@ -33,7 +33,10 @@ class QPaletteView : public QWidget {
     virtual void paintEvent([[maybe_unused]] QPaintEvent* p) override {
         QPainter painter(this);
         painter.fillRect(0, 0, width(), height(), QColor(0, 0, 0));
-        if (stops.size() == 0) return;
+        if (stops.size() == 0) {
+            stops.push_back(Qt::black);
+            stops.push_back(Qt::white);
+        };
 
         for (size_t x = 0; x < (size_t)width(); x++) {
             double i = (double)x / (double)(width() - 1) * (stops.size() - 1);
