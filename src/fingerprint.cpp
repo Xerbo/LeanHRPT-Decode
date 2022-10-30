@@ -105,6 +105,9 @@ std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
             file.close();
             return {id, FileType::Raw, Protocol::GACReverse};
         }
+        case Protocol::CPR: {
+            return {SatID::CloudSat, FileType::Raw, Protocol::CPR};
+        }
         default:
             break;
     }
@@ -149,29 +152,33 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream, FileType type) {
 }
 
 Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
-    uint8_t buffer[1024];
+    uint8_t buffer[402];
     ccsds::Deframer ccsds_deframer;
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> noaa_deframer(8,
                                                                                                                           true);
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> gac_deframer(8, true);
     ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270> gac_reverse_deframer(
         8, true);
+    ArbitraryDeframer<uint32_t, 0b00000011100100010101111011010011, 32, 3216> cpr_deframer(3, true);
     std::vector<uint8_t> out((11090 * 10) / 8);
     Scoreboard<Protocol> s;
 
     while (is_running && !stream.eof()) {
-        stream.read(reinterpret_cast<char *>(buffer), 1024);
-        if (ccsds_deframer.work(buffer, out.data(), 1024)) {
+        stream.read(reinterpret_cast<char *>(buffer), 402);
+        if (ccsds_deframer.work(buffer, out.data(), 402)) {
             s.add(Protocol::MeteorHRPT, 1);
         }
-        if (noaa_deframer.work(buffer, out.data(), 1024)) {
+        if (noaa_deframer.work(buffer, out.data(), 402)) {
             s.add(Protocol::HRPT, 3);
         }
-        if (gac_deframer.work(buffer, out.data(), 1024)) {
+        if (gac_deframer.work(buffer, out.data(), 402)) {
             s.add(Protocol::GAC, 1);
         }
-        if (gac_reverse_deframer.work(buffer, out.data(), 1024)) {
+        if (gac_reverse_deframer.work(buffer, out.data(), 402)) {
             s.add(Protocol::GACReverse, 1);
+        }
+        if (cpr_deframer.work(buffer, out.data(), 402)) {
+            s.add(Protocol::CPR, 1);
         }
 
         if (s.max() != Protocol::Unknown) return s.max();

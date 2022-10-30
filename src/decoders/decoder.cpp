@@ -18,6 +18,7 @@
 
 #include "decoder.h"
 
+#include "cloudsat_cpr.h"
 #include "fengyun_hrpt.h"
 #include "meteor_hrpt.h"
 #include "meteor_lrpt.h"
@@ -52,6 +53,9 @@ Decoder *Decoder::make(Protocol protocol, SatID sat) {
             break;
         case Protocol::DSB:
             decoder = new NOAADSBDecoder;
+            break;
+        case Protocol::CPR:
+            decoder = new CloudSatCPRDecoder;
             break;
         default:
             throw std::runtime_error("invalid value in enum `Protocol`");

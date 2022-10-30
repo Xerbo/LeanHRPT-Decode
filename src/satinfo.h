@@ -23,9 +23,9 @@
 #include <string>
 #include <vector>
 
-enum class Protocol { Unknown, LRPT, HRPT, AHRPT, MeteorHRPT, FengYunHRPT, GAC, GACReverse, DSB };
+enum class Protocol { Unknown, LRPT, HRPT, AHRPT, MeteorHRPT, FengYunHRPT, GAC, GACReverse, DSB, CPR };
 
-enum class Mission { POES, MeteorM, FengYun3, MetOp };
+enum class Mission { POES, MeteorM, FengYun3, MetOp, CloudSat };
 
 enum class SatID {
     Unknown = 0,
@@ -39,10 +39,11 @@ enum class SatID {
     NOAA18 = 28654,
     NOAA19 = 33591,
     MeteorM2 = 40069,
-    MeteorM22 = 44387
+    MeteorM22 = 44387,
+    CloudSat = 29107
 };
 
-enum class Imager { AVHRR, VIRR, MSUMR, MHS, MTVZA, HIRS, AMSUA };
+enum class Imager { AVHRR, VIRR, MSUMR, MHS, MTVZA, HIRS, AMSUA, CPR };
 
 struct SensorInfo {
     std::string name;
@@ -67,6 +68,7 @@ const std::map<Imager, SensorInfo> sensor_info = {
     { Imager::MTVZA, SensorInfo {"MTVZA",  1500.0f, 4.0f,  200  } },
     { Imager::HIRS,  SensorInfo {"HIRS",   2160.0f, 40.0f, 56   } },
     { Imager::AMSUA, SensorInfo {"AMSU-A", 2343.0f, 78.0f, 30   } },
+    { Imager::CPR,   SensorInfo {"CPR",    30.0f,   0.24f, 125  } },
 };
 
 const std::map<std::string, Imager> sensors = {
@@ -77,6 +79,7 @@ const std::map<std::string, Imager> sensors = {
     { "MTVZA",  Imager::MTVZA },
     { "HIRS",   Imager::HIRS },
     { "AMSU-A", Imager::AMSUA },
+    { "CPR",    Imager::CPR },
 };
 
 const std::map<SatID, SatelliteInfo> satellite_info {
@@ -91,6 +94,7 @@ const std::map<SatID, SatelliteInfo> satellite_info {
     { SatID::NOAA19,    SatelliteInfo { 870.0f, Mission::POES,     "NOAA-19",    Imager::AVHRR } },
     { SatID::MeteorM2,  SatelliteInfo { 820.0f, Mission::MeteorM,  "Meteor-M2",  Imager::MSUMR } },
     { SatID::MeteorM22, SatelliteInfo { 821.0f, Mission::MeteorM,  "Meteor-M22", Imager::MSUMR } },
+    { SatID::CloudSat,  SatelliteInfo { 689.0f, Mission::CloudSat, "CloudSat",   Imager::CPR } },
 };
 // clang-format on
 

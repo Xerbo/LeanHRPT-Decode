@@ -13,6 +13,7 @@ set(CMAKE_AUTOUIC ON)
 # Generate with `find src/ | grep "\\.cpp" | sort`
 file(GLOB_RECURSE CXX_SOURCE_FILES
     src/commandline.cpp
+    src/decoders/cloudsat_cpr.cpp
     src/decoders/decoder.cpp
     src/decoders/fengyun_hrpt.cpp
     src/decoders/meteor_hrpt.cpp
@@ -125,7 +126,7 @@ if (NOT VERSION STREQUAL "Unknown")
     include(CPack)
 endif()
 
-find_package(Doxygen)
+#find_package(Doxygen)
 if (DOXYGEN_FOUND)
     set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
     set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)

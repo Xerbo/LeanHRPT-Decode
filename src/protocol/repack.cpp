@@ -35,6 +35,8 @@ void arbitrary_repack(const uint8_t *in, T *out, size_t n) {
 
 // HIRS
 template void arbitrary_repack<uint16_t, 13>(const uint8_t *in, uint16_t *out, size_t n);
+// CPR
+template void arbitrary_repack<uint32_t, 20>(const uint8_t *in, uint32_t *out, size_t n);
 
 void repack10(const uint8_t *in, uint16_t *out, size_t n) {
     size_t j = 0;
