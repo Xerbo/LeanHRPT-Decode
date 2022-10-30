@@ -420,6 +420,13 @@ void MainWindow::decodeFinished() {
                         .arg(QString::fromStdString(sensor_info.at(sensor).name))
                         .arg(compositors.at(sensor)->height()));
     setState(WindowState::Finished);
+    if (sensor_info.at(sensor).name == "CPR"){
+        ui->menuGeo->setEnabled(false);
+        ui->imageTabs->setTabEnabled(1, false);
+    } else {
+        ui->menuGeo->setEnabled(true);
+        ui->imageTabs->setTabEnabled(1, true);
+    }
     on_actionFlip_triggered();
     ui->actionEnable_Overlay->setChecked(false);
     ui->actionIR_Blend->setChecked(false);
