@@ -76,6 +76,7 @@ Input files should be:
  - Meteor - raw data
  - MetOp - CADUs or VCDUs
  - FengYun - CADUs or VCDUs
+ - CloudSat - raw data
 
 ## Credits
 
