@@ -328,6 +328,7 @@ void MainWindow::startDecode(std::string filename) {
 
     sensor_actions.clear();
     for (auto compositor : compositors) {
+        compositor.second = 0;
         delete compositor.second;
     }
     for (auto sensor2 : data.imagers) {
