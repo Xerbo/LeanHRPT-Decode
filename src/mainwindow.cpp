@@ -423,9 +423,11 @@ void MainWindow::decodeFinished() {
     if (sensor_info.at(sensor).name == "CPR"){
         ui->menuGeo->setEnabled(false);
         ui->imageTabs->setTabEnabled(1, false);
+        ui->actionSave_Current_Image_Corrected->setEnabled(false);
     } else {
         ui->menuGeo->setEnabled(true);
         ui->imageTabs->setTabEnabled(1, true);
+        ui->actionSave_Current_Image_Corrected->setEnabled(true);
     }
     on_actionFlip_triggered();
     ui->actionEnable_Overlay->setChecked(false);
