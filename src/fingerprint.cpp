@@ -151,11 +151,11 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream, FileType type) {
 Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
     uint8_t buffer[1024];
     ccsds::Deframer ccsds_deframer;
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> noaa_deframer(8,
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> noaa_deframer(0,
                                                                                                                           true);
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> gac_deframer(8, true);
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> gac_deframer(0, true);
     ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270> gac_reverse_deframer(
-        8, true);
+        0, true);
     std::vector<uint8_t> out((11090 * 10) / 8);
     Scoreboard<Protocol> s;
 
@@ -183,8 +183,8 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
 SatID Fingerprint::fingerprint_gac(std::istream &stream, bool reverse) {
     uint8_t pn[20] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x74, 0x0c,
                       0x92, 0x94, 0x25, 0xee, 0xea, 0x8e, 0xe2, 0xc2, 0xfb, 0x1f};
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> deframer(8, true);
-    ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270> deframer_reverse(8,
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> deframer(4, true);
+    ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270> deframer_reverse(4,
                                                                                                                             true);
     std::vector<uint8_t> buffer(1024);
     std::vector<uint8_t> raw(4159);
@@ -240,7 +240,7 @@ SatID Fingerprint::fingerprint_gac(std::istream &stream, bool reverse) {
 SatID Fingerprint::fingerprint_noaa(std::istream &stream, FileType type) {
     std::vector<uint16_t> frame(11090);
     Scoreboard<SatID> s;
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer(8, true);
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer(4, true);
 
     while (is_running && !stream.eof()) {
         bool have_frame = false;
@@ -295,7 +295,7 @@ SatID Fingerprint::fingerprint_meteor(std::istream &stream, FileType type) {
     Scoreboard<SatID> s;
     ccsds::Deframer deframer;
     std::vector<uint8_t> frame(1024);
-    ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8> msumr_deframer;
+    ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8> msumr_deframer(2, false);
 
     while (is_running && !stream.eof()) {
         bool have_frame = false;
