@@ -20,7 +20,6 @@
 
 #include <bitset>
 
-#include "common/tip.h"
 #include "protocol/reverse.h"
 
 // Contains 1023 bits of data, last bit is zero
@@ -110,7 +109,7 @@ void NOAAGACDecoder::frame_work(uint16_t *ptr) {
         }*/
 
         if (i < 5) {
-            if (tip_work(images, frame)) {
+            if (tip_decoder.hirs_work(images, frame)) {
                 timestamps[Imager::HIRS].push_back(timestamp);
             }
         } else {

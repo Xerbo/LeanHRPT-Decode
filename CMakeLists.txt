@@ -125,8 +125,10 @@ if (NOT VERSION STREQUAL "Unknown")
     include(CPack)
 endif()
 
-find_package(Doxygen)
-if (DOXYGEN_FOUND)
+option(BUILD_DOXYGEN "Create HTML/LaTeX documentation with Doxygen" OFF)
+
+if (BUILD_DOXYGEN)
+    find_package(Doxygen)
     set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
     set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
     configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)

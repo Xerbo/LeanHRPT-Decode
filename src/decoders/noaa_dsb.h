@@ -27,11 +27,13 @@ class NOAADSBDecoder : public Decoder {
     NOAADSBDecoder() { images[Imager::HIRS] = new RawImage(56, 20); }
 
    private:
+    TIPDecoder tip_decoder;
+
     void work(std::istream &stream) {
         uint8_t frame[104];
         if (d_filetype == FileType::TIP) {
             stream.read((char *)frame, 104);
-            tip_work(images, frame);
+            tip_decoder.hirs_work(images, frame);
         }
     }
 };

@@ -20,6 +20,7 @@
 #define LEANHRPT_DECODERS_NOAA_HRPT_H_
 
 #include "common/aip.h"
+#include "common/tip.h"
 #include "decoder.h"
 #include "protocol/deframer.h"
 
@@ -50,6 +51,7 @@ class NOAAHRPTDecoder : public Decoder {
     void cal_data(uint16_t *ptr);
 
     AIPDecoder aip_decoder;
+    TIPDecoder tip_decoder;
 };
 
 #endif

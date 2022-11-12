@@ -25,7 +25,6 @@
 #include <iostream>
 #include <string>
 
-#include "common/tip.h"
 #include "protocol/repack.h"
 
 void NOAAHRPTDecoder::work(std::istream &stream) {
@@ -77,7 +76,7 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
         uint8_t frame_type = (ptr[6] >> 7) & 0b11;
         switch (frame_type) {
             case 1: {
-                if (tip_work(images, frame)) {
+                if (tip_decoder.hirs_work(images, frame)) {
                     timestamps[Imager::HIRS].push_back(timestamp);
                 }
                 break;
