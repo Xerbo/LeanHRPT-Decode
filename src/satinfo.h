@@ -69,15 +69,15 @@ const std::map<Imager, SensorInfo> sensor_info = {
     { Imager::AMSUA, SensorInfo {"AMSU-A", 2343.0f, 78.0f, 30   } },
 };
 
-const std::map<std::string, Imager> sensors = {
-    { "AVHRR",  Imager::AVHRR },
-    { "VIRR",   Imager::VIRR },
-    { "MSU-MR", Imager::MSUMR },
-    { "MHS",    Imager::MHS },
-    { "MTVZA",  Imager::MTVZA },
-    { "HIRS",   Imager::HIRS },
-    { "AMSU-A", Imager::AMSUA },
-};
+inline Imager get_sensor(std::string name) {
+    for (const auto &x : sensor_info) {
+        if (x.second.name == name) {
+            return x.first;
+        }
+    }
+
+    throw std::invalid_argument("get_sensor called with an unknown sensor name");
+}
 
 const std::map<SatID, SatelliteInfo> satellite_info {
     { SatID::MetOpA,    SatelliteInfo { 827.0f, Mission::MetOp,    "MetOp-A",    Imager::AVHRR } },

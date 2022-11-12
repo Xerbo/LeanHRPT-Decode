@@ -96,7 +96,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     sensor_select = new QActionGroup(this);
     QActionGroup::connect(sensor_select, &QActionGroup::triggered, [this](QAction *action) {
-        sensor = sensors.at(action->text().toStdString());
+        sensor = get_sensor(action->text().toStdString());
         decodeFinished();
         ui->actionEnable_Overlay->setEnabled(!compositors[sensor]->overlay.empty());
         ui->actionEnable_Overlay->setChecked(compositors[sensor]->enable_map);

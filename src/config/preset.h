@@ -48,7 +48,7 @@ class PresetManager {
                 for (const auto &x : i.second) {
                     size_t y = x.first.find(":");
                     if (y != std::string::npos) {
-                        overrides.insert(std::pair<Imager, std::string>(sensors.at(x.first.substr(y + 1)), x.second));
+                        overrides.insert(std::pair<Imager, std::string>(get_sensor(x.first.substr(y + 1)), x.second));
                     }
                 }
 
@@ -70,7 +70,7 @@ class PresetManager {
         std::stringstream stream(str);
         std::string imager;
         while (std::getline(stream, imager, '|')) {
-            imagers.insert(sensors.at(imager));
+            imagers.insert(get_sensor(imager));
         }
 
         return imagers;
