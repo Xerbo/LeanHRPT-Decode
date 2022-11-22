@@ -1,5 +1,23 @@
-#ifndef LEANHRPT_FINGERPRINT_H
-#define LEANHRPT_FINGERPRINT_H
+/*
+ * LeanHRPT Decode
+ * Copyright (C) 2021-2022 Xerbo
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#ifndef LEANHRPT_FINGERPRINT_H_
+#define LEANHRPT_FINGERPRINT_H_
 
 #include <atomic>
 #include <fstream>
@@ -9,16 +27,22 @@
 #include "decoders/decoder.h"
 #include "satinfo.h"
 
-const std::map<std::string, FileType> known_extensions = {
-    {"cadu", FileType::CADU}, {"vcdu", FileType::VCDU}, {"raw16", FileType::raw16},
-    {"hrp", FileType::HRP},   {"tip", FileType::TIP},
-};
-
 class Fingerprint {
    public:
     Fingerprint() : is_running(true) {}
+
+    /**
+     * Start fingerprinting a file
+     *
+     * @returns The detected satellite, filetype and protocol
+     */
     std::tuple<SatID, FileType, Protocol> file(std::string filename);
 
+    /**
+     * Stop fingerprinting a file
+     *
+     * This is a only used when running in a thread
+     */
     void stop() { is_running = false; }
 
    private:
@@ -29,7 +53,7 @@ class Fingerprint {
     SatID fingerprint_dsb(std::istream &stream);
 
     Protocol fingerprint_raw(std::istream &stream);
-    std::set<Protocol> ccsds_downlinks(SatID id);
+    static std::set<Protocol> ccsds_downlinks(SatID id);
 
     static FileType id_magic(std::istream &stream) {
         uint8_t header[4];

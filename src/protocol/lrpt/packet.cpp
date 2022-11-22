@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include "packet.h"
 
 #include <cstdint>
+#include <stdexcept>
 
 #include "huffman.h"
 
@@ -30,7 +31,11 @@ bool decode_packet(std::array<jpeg::block<uint8_t>, MCU_PER_PACKET> &out, const 
 
     // Huffman decompression
     std::array<std::array<int16_t, 64>, MCU_PER_PACKET> decompressed;
-    if (!huffman_decode(data, decompressed, MCU_PER_PACKET, n)) {
+    try {
+        if (!huffman_decode(data, decompressed, MCU_PER_PACKET, n)) {
+            return false;
+        }
+    } catch (std::out_of_range &e) {
         return false;
     }
 

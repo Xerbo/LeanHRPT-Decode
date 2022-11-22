@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,9 +29,10 @@
 
 #include "decoders/decoder.h"
 #include "map.h"
-#include "math.h"
 #include "projectdialog.h"
+#include "protocol/timestamp.h"
 #include "qt/ui_mainwindow.h"
+#include "util.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ui = new Ui::MainWindow;
@@ -95,7 +96,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     sensor_select = new QActionGroup(this);
     QActionGroup::connect(sensor_select, &QActionGroup::triggered, [this](QAction *action) {
-        sensor = sensors.at(action->text().toStdString());
+        sensor = get_sensor(action->text().toStdString());
         decodeFinished();
         ui->actionEnable_Overlay->setEnabled(!compositors[sensor]->overlay.empty());
         ui->actionEnable_Overlay->setChecked(compositors[sensor]->enable_map);
@@ -108,8 +109,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         QImage copy(display);
         compositors[sensor]->equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
         compositors[sensor]->enable_map = false;
+        compositors[sensor]->enable_landmarks = false;
         compositors[sensor]->postprocess(copy);
         compositors[sensor]->enable_map = ui->actionEnable_Map->isChecked();
+        compositors[sensor]->enable_landmarks = ui->actionEnable_Landmarks->isChecked();
         if (compositors[sensor]->flipped()) {
             copy = copy.mirrored(true, true);
         }
@@ -123,9 +126,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         return proj->calculate_gcps(timestamps[sensor], y, n, sensor, sat, width);
     });
     ProjectDialog::connect(project_diag, &ProjectDialog::map_shapefile, [this]() -> QString { return map_shapefile; });
+    ProjectDialog::connect(project_diag, &ProjectDialog::landmark_file, [this]() -> QString { return landmark_file; });
     ProjectDialog::connect(project_diag, &ProjectDialog::map_color, [this]() -> QColor { return map_color; });
+    ProjectDialog::connect(project_diag, &ProjectDialog::landmark_color, [this]() -> QColor { return landmark_color; });
     ProjectDialog::connect(project_diag, &ProjectDialog::map_enable,
                            [this]() -> bool { return ui->actionEnable_Map->isChecked(); });
+    ProjectDialog::connect(project_diag, &ProjectDialog::landmark_enable,
+                           [this]() -> bool { return ui->actionEnable_Landmarks->isChecked(); });
     ProjectDialog::connect(project_diag, &ProjectDialog::default_filename, [this]() -> QString { return getDefaultFilename(); });
 
     UpdateChecker *update_checker = new UpdateChecker();
@@ -144,10 +151,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     QColorDialog::connect(color_dialog, &QColorDialog::colorSelected, this, [this](QColor color) {
         QSettings settings;
         settings.setValue("map/color", color);
+        settings.sync();
 
         map_color = color;
         ui->actionMap_Color->setText(QString("Map Color (%1)").arg(color.name()));
         on_actionEnable_Map_triggered();
+    });
+    landmark_color_dialog = new QColorDialog(this);
+    landmark_color_dialog->setCurrentColor(map_color);
+    QColorDialog::connect(landmark_color_dialog, &QColorDialog::colorSelected, this, [this](QColor color) {
+        QSettings settings;
+        settings.setValue("landmark/color", color);
+        settings.sync();
+
+        landmark_color = color;
+        ui->actionLandmark_Color->setText(QString("Landmark Color (%1)").arg(color.name()));
+        on_actionEnable_Landmarks_triggered();
     });
 
     setAcceptDrops(true);
@@ -158,9 +177,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         ui->actionMap_Shapefile->setText(QString("Map Shapefile (%1)").arg(QFileInfo(map_shapefile).completeBaseName()));
         ui->actionEnable_Map->setEnabled(true);
     }
+    if (settings.contains("landmark/file")) {
+        landmark_file = settings.value("landmark/file").toString();
+        ui->actionLandmark_File->setText(QString("Landmark File (%1)").arg(QFileInfo(landmark_file).completeBaseName()));
+        ui->actionEnable_Landmarks->setEnabled(true);
+    }
     if (settings.contains("map/color")) {
         map_color = settings.value("map/color").value<QColor>();
         ui->actionMap_Color->setText(QString("Map Color (%1)").arg(map_color.name()));
+        color_dialog->setCurrentColor(map_color);
+    }
+    if (settings.contains("landmark/color")) {
+        landmark_color = settings.value("landmark/color").value<QColor>();
+        ui->actionLandmark_Color->setText(QString("Landmark Color (%1)").arg(landmark_color.name()));
+        landmark_color_dialog->setCurrentColor(landmark_color);
     }
 }
 
@@ -251,8 +281,8 @@ void MainWindow::populateChannelSelectors(size_t channels) {
 }
 
 void MainWindow::on_actionOpen_triggered() {
-    QString filename =
-        QFileDialog::getOpenFileName(this, "Open File", "", "Supported formats (*.bin *.cadu *.raw16 *.hrp *.vcdu *.tip *.dec)");
+    QString filename = QFileDialog::getOpenFileName(
+        this, "Open File", "", "Supported formats (*.bin *.cadu *.raw16 *.hrp *.vcdu *.tip *.dec);;All files (*)");
 
     if (!filename.isEmpty()) {
         decodeWatcher->setFuture(QtConcurrent::run([=]() { startDecode(filename.toStdString()); }));
@@ -297,6 +327,9 @@ void MainWindow::startDecode(std::string filename) {
     }
 
     sensor_actions.clear();
+    for (auto compositor : compositors) {
+        delete compositor.second;
+    }
     for (auto sensor2 : data.imagers) {
         SensorInfo info = sensor_info.at(sensor2.first);
         QAction *action = new QAction(QString::fromStdString(info.name));
@@ -322,85 +355,33 @@ void MainWindow::startDecode(std::string filename) {
     }
     sensor_actions.at(sensor_info.at(sensor).name)->setChecked(true);
 
-    // clang-format off
-    std::map<SatID, std::string> tle_names = {
-        { SatID::MetOpA, "METOP-A"},
-        { SatID::MetOpB, "METOP-B"},
-        { SatID::MetOpC, "METOP-C"},
-        { SatID::NOAA15, "NOAA 15"},
-        { SatID::NOAA18, "NOAA 18"},
-        { SatID::NOAA19, "NOAA 19"},
-        { SatID::MeteorM2, "METEOR-M 2"},
-        { SatID::MeteorM22, "METEOR-M2 2"},
-        { SatID::FengYun3A, "FENGYUN 3A"},
-        { SatID::FengYun3B, "FENGYUN 3B"},
-        { SatID::FengYun3C, "FENGYUN 3C"},
-    };
-    // clang-format oN
-    if (tle_manager.catalog.count(tle_names[sat])) {
-        proj = new Projector(tle_manager.catalog[tle_names[sat]]);
+    have_tles = false;
+    if (tle_manager.catalog_by_norad.count((int)sat)) {
+        proj = new Projector(tle_manager.catalog_by_norad[(int)sat]);
+        have_tles = true;
     }
-    have_tles = tle_manager.catalog.count(tle_names[sat]);
 
     timestamps = data.timestamps;
 
     // Anomaly detection and interpolation
     for (auto &sensor : timestamps) {
-        if (sensor.second.size() == 0) {
-            continue;
-        }
-        if (protocol == Protocol::GACReverse) {
-            for (size_t i = 0; i < sensor.second.size()/2; i++) {
-                std::swap(sensor.second[i], sensor.second[(sensor.second.size()-1) - i]);
-            }
-        }
-
         std::vector<double> &timestamp = sensor.second;
-        std::vector<double> filtered(timestamp.size());
 
-        for (size_t i = 1; i < filtered.size()-1; i++) {
-            // TODO: store seconds per line in satinfo
-            if ((timestamp[i-1] == 0 && timestamp[i+1] == 0) || (timestamp[i] - timestamp[i-1] < 10.0 && timestamp[i+1] - timestamp[i] < 10.0)) {
-                filtered[i] = timestamp[i];
-            }
-        }
-        timestamp = filtered;
-
-        int first = -1, last = -1;
-        for (size_t i = 0; i < timestamp.size(); i++) {
-            if (timestamp[i] != 0.0 && first == -1) {
-                first = i;
-            }
-            if (timestamp[i] != 0.0) {
-                last = i;
-            }
-        }
-        if (first < 0 || last < 0) {
-            break;
+        if (protocol == Protocol::GACReverse) {
+            reverse(timestamp);
         }
 
-        // Average seconds per line over the pass
-        double spl = (timestamp[last]-timestamp[first]) / (last-first);
-
-        // Interpolate based on average seconds per line
-        for (size_t i = 1; i < timestamp.size(); i++) {
-            if (timestamp[i] == 0.0 && timestamp[i-1] != 0.0) {
-                timestamp[i] = timestamp[i-1]+spl;
-            }
-        }
-        for (int i = timestamp.size()-2; i >= 0; i--) {
-            if (timestamp[i] == 0.0 && timestamp[i+1] != 0.0) {
-                timestamp[i] = timestamp[i+1]-spl;
-            }
-        }
+        timestamp = filter_timestamps(timestamp);
     }
 
     for (auto &sensor : timestamps) {
-        if (have_tles) compositors[sensor.first]->sunz = proj->calculate_sunz(sensor.second, sensor.first, sat, compositors[sensor.first]->width());
+        if (have_tles)
+            compositors[sensor.first]->sunz =
+                proj->calculate_sunz(sensor.second, sensor.first, sat, compositors[sensor.first]->width());
     }
 
     if (timestamps.count(sensor) && timestamps.at(sensor).size() > 0) {
-        pass_timestamp = timestamps[sensor][timestamps[sensor].size()/2];
+        pass_timestamp = timestamps[sensor][timestamps[sensor].size() / 2];
     }
 
     if (have_tles && timestamps.at(default_sensor).size() > 0) {
@@ -434,13 +415,17 @@ void MainWindow::decodeFinished() {
     compositors[sensor]->stops = {};
     ui->gradientView->stops = {};
     ui->gradientView->repaint();
-    status->setText(QString("%1 - %2: %3 lines").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(compositors.at(sensor)->height()));
+    status->setText(QString("%1 - %2: %3 lines")
+                        .arg(QString::fromStdString(satellite_info.at(sat).name))
+                        .arg(QString::fromStdString(sensor_info.at(sensor).name))
+                        .arg(compositors.at(sensor)->height()));
     setState(WindowState::Finished);
     on_actionFlip_triggered();
     ui->actionEnable_Overlay->setChecked(false);
     ui->actionIR_Blend->setChecked(false);
     ui->actionEnable_Map->setChecked(false);
-    ui->actionIR_Blend->setEnabled(compositors.at(sensor)->sunz.size() != 0 && sensor != Imager::MHS && sensor != Imager::MTVZA && sensor != Imager::HIRS);
+    ui->actionIR_Blend->setEnabled(compositors.at(sensor)->sunz.size() != 0 && sensor != Imager::MHS && sensor != Imager::MTVZA &&
+                                   sensor != Imager::HIRS);
 }
 
 void MainWindow::reloadPresets() {
@@ -467,7 +452,7 @@ void MainWindow::reloadPresets() {
         for (const auto &sensor : sensor_info) {
             sensors.insert(sensor.first);
         }
-        Preset preset = { "", "", "", sensors, "1", {}};
+        Preset preset = {"", "", "", sensors, "1", {}};
         selected_presets.insert({"Unable to load presets", preset});
     }
 
@@ -488,10 +473,10 @@ void MainWindow::reloadPresets() {
 
 // Zoom selector combo box
 void MainWindow::on_zoomSelector_activated(int index) {
-    float zoomLevels[] = { 0.25f, 0.5f, 1.0f, 2.0f };
-    QGraphicsView *views[] = { ui->channelView, ui->compositeView, ui->presetView };
+    float zoomLevels[] = {0.25f, 0.5f, 1.0f, 2.0f};
+    QGraphicsView *views[] = {ui->channelView, ui->compositeView, ui->presetView};
 
-    for(QGraphicsView *view : views) {
+    for (QGraphicsView *view : views) {
         view->resetTransform();
         view->scale(zoomLevels[index], zoomLevels[index]);
     }
@@ -506,17 +491,17 @@ void MainWindow::setCompositeChannel(int channel, int sensor_channel) {
     updateDisplay();
 }
 void MainWindow::setComposite(std::array<size_t, 3> channels) {
-    QComboBox *selectors[] = { ui->redSelector, ui->greenSelector, ui->blueSelector };
+    QComboBox *selectors[] = {ui->redSelector, ui->greenSelector, ui->blueSelector};
 
     for (size_t i = 0; i < channels.size(); i++) {
-        selectors[i]->setCurrentIndex(channels[i]-1);
+        selectors[i]->setCurrentIndex(channels[i] - 1);
         selectedComposite[i] = channels[i];
     }
 }
 
 void MainWindow::setEqualization(Equalization type) {
     selectedEqualization = type;
-    if (selectedEqualization == None) {
+    if (selectedEqualization == Equalization::None) {
         QImage copy(display);
         compositors[sensor]->postprocess(copy);
         displayQImage(scene, copy);
@@ -539,7 +524,7 @@ void MainWindow::on_actionIR_Blend_triggered() {
 }
 
 void MainWindow::on_imageTabs_currentChanged(int index) {
-    QGraphicsView *tabs[] = { ui->channelView, ui->compositeView, ui->presetView };
+    QGraphicsView *tabs[] = {ui->channelView, ui->compositeView, ui->presetView};
     tabs[index]->horizontalScrollBar()->setValue(tabs[previousTabIndex]->horizontalScrollBar()->value());
     tabs[index]->verticalScrollBar()->setValue(tabs[previousTabIndex]->verticalScrollBar()->value());
     previousTabIndex = index;
@@ -549,8 +534,12 @@ void MainWindow::on_imageTabs_currentChanged(int index) {
 
 void MainWindow::get_source(QImage &image) {
     switch (ui->imageTabs->currentIndex()) {
-        case 0: compositors.at(sensor)->getChannel(image, selectedChannel); break;
-        case 1: compositors.at(sensor)->getComposite(image, selectedComposite); break;
+        case 0:
+            compositors.at(sensor)->getChannel(image, selectedChannel);
+            break;
+        case 1:
+            compositors.at(sensor)->getComposite(image, selectedComposite);
+            break;
         case 2: {
             Preset preset = selected_presets.at(ui->presetSelector->currentText().toStdString());
 
@@ -561,13 +550,14 @@ void MainWindow::get_source(QImage &image) {
             compositors.at(sensor)->getExpression(image, expression);
             break;
         }
-        default: throw std::runtime_error("invalid tab index");
+        default:
+            throw std::runtime_error("invalid tab index");
     }
 }
 
 void MainWindow::updateDisplay() {
     get_source(display);
-    if (selectedEqualization == None) {
+    if (selectedEqualization == Equalization::None) {
         QImage copy(display);
         compositors[sensor]->postprocess(copy);
         displayQImage(scene, copy);
@@ -591,46 +581,62 @@ QString MainWindow::getDefaultFilename() {
         }
     }
 
-    QString types[3] = { QString::number(selectedChannel), composite, ui->presetSelector->currentText() };
-    return QString("%1_%2_%3_%4").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString("yyyyMMdd-hhmmss")).arg(types[ui->imageTabs->currentIndex()]);
+    QString types[3] = {QString::number(selectedChannel), composite, ui->presetSelector->currentText()};
+    return QString("%1_%2_%3_%4")
+        .arg(QString::fromStdString(satellite_info.at(sat).name))
+        .arg(QString::fromStdString(sensor_info.at(sensor).name))
+        .arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString("yyyyMMdd-hhmmss"))
+        .arg(types[ui->imageTabs->currentIndex()]);
 }
 
 void MainWindow::saveCurrentImage(bool corrected) {
-    QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", getDefaultFilename() + ".png", "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
+    QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", getDefaultFilename() + ".png",
+                                                    "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
 
     if (filename.isEmpty()) {
         return;
     }
 
     savingImage = true;
-    QtConcurrent::run([this](QString filename, bool corrected) {
-        QImage image(compositors[sensor]->width(), compositors[sensor]->height(), QImage::Format_RGBX64);
-        get_source(image);
-        ImageCompositor::equalise(image, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
-        compositors[sensor]->postprocess(image, corrected);
-        image.save(filename);
+    QtConcurrent::run(
+        [this](QString filename, bool corrected) {
+            QImage image(compositors[sensor]->width(), compositors[sensor]->height(), QImage::Format_RGBX64);
+            get_source(image);
+            ImageCompositor::equalise(image, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
+            compositors[sensor]->postprocess(image, corrected);
+            image.save(filename);
 
-        savingImage = false;
-    }, filename, corrected);
+            savingImage = false;
+        },
+        filename, corrected);
 }
 
 void MainWindow::saveAllChannels() {
-    QString directory = QFileDialog::getExistingDirectory(this, "Save All Channels", "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    QString directory = QFileDialog::getExistingDirectory(this, "Save All Channels", "",
+                                                          QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (directory.isEmpty()) return;
 
     savingImage = true;
-    QtConcurrent::run([this](QString directory) {
-        QImage channel(compositors.at(sensor)->width(), compositors.at(sensor)->height(), QImage::Format_Grayscale16);
+    QtConcurrent::run(
+        [this](QString directory) {
+            QImage channel(compositors.at(sensor)->width(), compositors.at(sensor)->height(), QImage::Format_Grayscale16);
 
-        for(size_t i = 0; i < compositors.at(sensor)->channels(); i++) {
-            status->setText(QString("Saving channel %1...").arg(i + 1));
-            compositors.at(sensor)->getChannel(channel, i + 1);
-            channel.save(QString("%1/%2_%3_%4_%5.png").arg(directory).arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString("yyyyMMdd-hhmmss")).arg(i + 1), "PNG");
-        }
+            for (size_t i = 0; i < compositors.at(sensor)->channels(); i++) {
+                status->setText(QString("Saving channel %1...").arg(i + 1));
+                compositors.at(sensor)->getChannel(channel, i + 1);
+                channel.save(QString("%1/%2_%3_%4_%5.png")
+                                 .arg(directory)
+                                 .arg(QString::fromStdString(satellite_info.at(sat).name))
+                                 .arg(QString::fromStdString(sensor_info.at(sensor).name))
+                                 .arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString("yyyyMMdd-hhmmss"))
+                                 .arg(i + 1),
+                             "PNG");
+            }
 
-        status->setText("Done");
-        savingImage = false;
-    }, directory);
+            status->setText("Done");
+            savingImage = false;
+        },
+        directory);
 }
 
 void MainWindow::save_gcp() {
@@ -639,12 +645,16 @@ void MainWindow::save_gcp() {
         return;
     }
 
-    QString name = QString("%1_%2_%3.gcp").arg(QString::fromStdString(satellite_info.at(sat).name)).arg(QString::fromStdString(sensor_info.at(sensor).name)).arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString("yyyyMMdd-hhmmss"));
+    QString name = QString("%1_%2_%3.gcp")
+                       .arg(QString::fromStdString(satellite_info.at(sat).name))
+                       .arg(QString::fromStdString(sensor_info.at(sensor).name))
+                       .arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString("yyyyMMdd-hhmmss"));
     QString filename = QFileDialog::getSaveFileName(this, "Save GCP File", name, "GCP (*.gcp)");
     if (filename.isEmpty()) return;
     double width = compositors[sensor]->width();
     double height = compositors[sensor]->height();
-    proj->save_gcp_file(timestamps[sensor], (double)height/(double)width * 21.0, 21, sensor, sat, filename.toStdString(), width);
+    proj->save_gcp_file(timestamps[sensor], (double)height / (double)width * 21.0, 21, sensor, sat, filename.toStdString(),
+                        width);
 }
 
 void MainWindow::on_presetSelector_textActivated(QString text) {
@@ -656,18 +666,16 @@ void MainWindow::on_presetSelector_textActivated(QString text) {
     updateDisplay();
 }
 
-void MainWindow::dragEnterEvent(QDragEnterEvent* e) {
+void MainWindow::dragEnterEvent(QDragEnterEvent *e) {
     if (e->mimeData()->urls().size() == 1) {
         e->acceptProposedAction();
     }
 }
 
-void MainWindow::dropEvent(QDropEvent* e) {
+void MainWindow::dropEvent(QDropEvent *e) {
     for (const QUrl &url : e->mimeData()->urls()) {
         QString filename = url.toLocalFile();
-        decodeWatcher->setFuture(QtConcurrent::run([=]() {
-            startDecode(filename.toStdString());
-        }));
+        decodeWatcher->setFuture(QtConcurrent::run([=]() { startDecode(filename.toStdString()); }));
     }
 }
 
@@ -689,7 +697,9 @@ void MainWindow::on_actionMap_Shapefile_triggered() {
     if (filename.isEmpty()) return;
 
     if (!map::verify_shapefile(filename.toStdString())) {
-        QMessageBox::critical(this, "Error", "Unable to open Shapefile, this may mean a required file is missing (check .shx/dbf) or that it's unsupported.");
+        QMessageBox::critical(
+            this, "Error",
+            "Unable to open Shapefile, this may mean a required file is missing (check .shx/dbf) or that it's unsupported.");
         return;
     }
 
@@ -700,9 +710,33 @@ void MainWindow::on_actionMap_Shapefile_triggered() {
 
     QSettings settings;
     settings.setValue("map/shapefile", map_shapefile);
+    settings.sync();
 
     if (update) {
         on_actionEnable_Map_triggered();
+    }
+}
+
+void MainWindow::on_actionLandmark_File_triggered() {
+    QString filename = QFileDialog::getOpenFileName(this, "Open File", "", "Landmark Files (*.csv)");
+    if (filename.isEmpty()) return;
+
+    if (map::read_landmarks(filename.toStdString()).size() == 0) {
+        QMessageBox::critical(this, "Error", "Unable to open Landmark file.");
+        return;
+    }
+
+    ui->actionLandmark_File->setText(QString("Map Shapefile (%1)").arg(QFileInfo(filename).completeBaseName()));
+    ui->actionEnable_Landmarks->setEnabled(true);
+    bool update = !landmark_file.isEmpty();
+    landmark_file = filename;
+
+    QSettings settings;
+    settings.setValue("landmark/file", landmark_file);
+    settings.sync();
+
+    if (update) {
+        on_actionEnable_Landmarks_triggered();
     }
 }
 
@@ -713,15 +747,34 @@ void MainWindow::on_actionEnable_Map_triggered() {
         return;
     }
 
-    size_t yn = (double)compositors[sensor]->height()/(double)compositors[sensor]->width() * 21.0;
+    size_t yn = (double)compositors[sensor]->height() / (double)compositors[sensor]->width() * 21.0;
     size_t xn = 21;
     auto points = proj->calculate_gcps(timestamps[sensor], yn, xn, sensor, sat, compositors[sensor]->width());
 
     std::vector<QLineF> shapefile = map::read_shapefile(map_shapefile.toStdString());
-    std::array<std::vector<QLineF>, 36*18> buckets = map::index_line_segments(shapefile);
+    std::array<std::vector<QLineF>, 36 * 18> buckets = map::index_line_segments(shapefile);
     compositors[sensor]->map_color = map_color;
     compositors[sensor]->overlay = map::warp_to_pass(buckets, points, xn);
     compositors[sensor]->enable_map = true;
+
+    updateDisplay();
+}
+
+void MainWindow::on_actionEnable_Landmarks_triggered() {
+    if (!ui->actionEnable_Landmarks->isChecked()) {
+        compositors[sensor]->enable_landmarks = false;
+        updateDisplay();
+        return;
+    }
+
+    size_t yn = (double)compositors[sensor]->height() / (double)compositors[sensor]->width() * 21.0;
+    size_t xn = 21;
+    auto points = proj->calculate_gcps(timestamps[sensor], yn, xn, sensor, sat, compositors[sensor]->width());
+
+    std::vector<Landmark> landmarks = map::read_landmarks(landmark_file.toStdString());
+    compositors[sensor]->landmark_color = landmark_color;
+    compositors[sensor]->landmarks = map::warp_to_pass(landmarks, points, xn);
+    compositors[sensor]->enable_landmarks = true;
 
     updateDisplay();
 }

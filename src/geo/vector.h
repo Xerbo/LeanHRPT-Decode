@@ -25,8 +25,8 @@
  * SOFTWARE.
  */
 
-#ifndef VECTOR_H
-#define VECTOR_H
+#ifndef LEANHRPT_GEO_VECTOR_H_
+#define LEANHRPT_GEO_VECTOR_H_
 
 struct Vector {
     double x;

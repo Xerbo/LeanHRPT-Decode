@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_DECODERS_NOAA_H
-#define LEANHRPT_DECODERS_NOAA_H
+#ifndef LEANHRPT_DECODERS_NOAA_HRPT_H_
+#define LEANHRPT_DECODERS_NOAA_HRPT_H_
 
 #include "common/aip.h"
+#include "common/tip.h"
 #include "decoder.h"
 #include "protocol/deframer.h"
 
@@ -31,17 +32,7 @@ class NOAAHRPTDecoder : public Decoder {
         images[Imager::AVHRR] = new RawImage(2048, 5);
         images[Imager::MHS] = new RawImage(90, 6);
         images[Imager::HIRS] = new RawImage(56, 20);
-
-        caldata["prt"] = 0.0;
-        caldata["ptrn"] = 0.0;
-        caldata["ch1_space"] = 0.0;
-        caldata["ch2_space"] = 0.0;
-        caldata["ch3_space"] = 0.0;
-        caldata["ch4_space"] = 0.0;
-        caldata["ch5_space"] = 0.0;
-        caldata["ch3_cal"] = 0.0;
-        caldata["ch4_cal"] = 0.0;
-        caldata["ch5_cal"] = 0.0;
+        images[Imager::AMSUA] = new RawImage(30, 15);
     }
     ~NOAAHRPTDecoder() {
         delete[] frame;
@@ -53,12 +44,14 @@ class NOAAHRPTDecoder : public Decoder {
     uint16_t *repacked;
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer;
     double timestamp = 0.0;
+    double blackbody_temperature = 290;
 
     void work(std::istream &stream);
     void frame_work(uint16_t *ptr);
     void cal_data(uint16_t *ptr);
 
     AIPDecoder aip_decoder;
+    TIPDecoder tip_decoder;
 };
 
 #endif

@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 
 #include <bitset>
 
-#include "common/tip.h"
 #include "protocol/reverse.h"
 
 // Contains 1023 bits of data, last bit is zero
@@ -110,7 +109,7 @@ void NOAAGACDecoder::frame_work(uint16_t *ptr) {
         }*/
 
         if (i < 5) {
-            if (tip_work(images, frame)) {
+            if (tip_decoder.hirs_work(images, frame)) {
                 timestamps[Imager::HIRS].push_back(timestamp);
             }
         } else {
@@ -118,9 +117,43 @@ void NOAAGACDecoder::frame_work(uint16_t *ptr) {
                 timestamps[Imager::MHS].push_back(0);
                 timestamps[Imager::MHS].push_back(0);
                 timestamps[Imager::MHS].push_back(timestamp);
+                timestamps[Imager::AMSUA].push_back(timestamp);
             }
         }
     }
+
+    // Extract calibration data
+    uint16_t *prt = &ptr[17];
+    if (prt[0] != 0) {
+        double sum = 0.0;
+        for (size_t i = 0; i < 3; i++) {
+            // TODO: calibrate each PRT separately
+            // Currently this uses the average of all 4 coefficients (excluding d2)
+            sum += 276.57465 + prt[i] * 0.050912;
+        }
+
+        blackbody_temperature = sum / 3.0;
+    }
+    caldata["blackbody_temperature_sum"] += blackbody_temperature;
+
+    for (size_t i = 0; i < 5; i++) {
+        double sum = 0.0;
+        for (size_t x = 0; x < 10; x++) {
+            sum += ptr[52 + x * 5 + i];
+        }
+
+        caldata["ch" + std::to_string(i + 1) + "_space"] += sum / 10.0;
+    }
+
+    for (size_t i = 0; i < 3; i++) {
+        double sum = 0.0;
+        for (size_t x = 0; x < 10; x++) {
+            sum += ptr[22 + x * 3 + i];
+        }
+
+        caldata["ch" + std::to_string(i + 3) + "_cal"] += sum / 10.0;
+    }
+    caldata["n"] += 1.0;
 
     // Calculate the timestamp of the start of the year
     int _year = QDateTime::fromSecsSinceEpoch(created).date().year();
@@ -132,9 +165,10 @@ void NOAAGACDecoder::frame_work(uint16_t *ptr) {
     timestamp = (double)year + (double)days * 86400.0 + (double)ms / 1000.0;
     timestamps[Imager::AVHRR].push_back(timestamp);
 
+    ch3a.push_back(std::bitset<10>(ptr[6]).test(0));
+
     for (size_t i = 0; i < 3327; i++) {
         ptr[i] *= 64;
     }
     images[Imager::AVHRR]->push16Bit(ptr, 1182);
-    ch3a.push_back(false);
 }

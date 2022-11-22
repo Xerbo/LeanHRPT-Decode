@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_ORBIT_H
-#define LEANHRPT_ORBIT_H
+#ifndef LEANHRPT_ORBIT_H_
+#define LEANHRPT_ORBIT_H_
 
 #include <predict/predict.h>
 
@@ -35,6 +35,12 @@ class OrbitPredictor {
     }
     ~OrbitPredictor() { predict_destroy_orbital_elements(orbital_elements); }
 
+    /**
+     * Gets orbital information at the specified timestamp
+     *
+     * @param timestamp UNIX timestamp
+     * @return A predict_position struct
+     */
     struct predict_position predict(double timestamp) {
         // UNIX to Julian date
         predict_julian_date_t prediction_time = (timestamp / 86400.0) - 3651.0;

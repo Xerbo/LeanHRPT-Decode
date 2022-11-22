@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_TLE_H
-#define LEANHRPT_TLE_H
+#ifndef LEANHRPT_TLE_H_
+#define LEANHRPT_TLE_H_
 
 #include <QObject>
 #include <map>
@@ -32,7 +32,19 @@
 class TLEManager {
    public:
     TLEManager();
+
+    /**
+     * Get the currently loaded catalog of TLEs
+     *
+     * @returns A map of the object name to the actual elements
+     */
     std::map<std::string, std::pair<std::string, std::string>> catalog;
+    /**
+     * Get the currently loaded catalog of TLEs
+     *
+     * @returns A map of the NORAD ID to the actual elements
+     */
+    std::map<int, std::pair<std::string, std::string>> catalog_by_norad;
 
    private:
     void parse(std::string filename);

@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,18 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_CCSDS_DEFRAMER_H
-#define LEANHRPT_CCSDS_DEFRAMER_H
+#ifndef LEANHRPT_PROTOCOL_CCSDS_DEFRAMER_H_
+#define LEANHRPT_PROTOCOL_CCSDS_DEFRAMER_H_
 
 #include <cstddef>
 #include <cstdint>
 
 namespace ccsds {
-enum SyncMachineState { State0, State1, State2, State3 };
+enum class SyncMachineState { State0, State1, State2, State3 };
 
 using asm_t = uint32_t;
 
-// A deframer based on http://www.sat.cc.ua/data/CADU%20Frame%20Synchro.pdf
+/// A deframer based on http://www.sat.cc.ua/data/CADU%20Frame%20Synchro.pdf
 class Deframer {
    public:
     Deframer();

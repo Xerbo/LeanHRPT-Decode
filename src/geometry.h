@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,14 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_GEOMETRY_H
-#define LEANHRPT_GEOMETRY_H
+#ifndef LEANHRPT_GEOMETRY_H_
+#define LEANHRPT_GEOMETRY_H_
 
 #include <QImage>
 
 #include "satinfo.h"
 
 QImage correct_geometry(QImage image, SatID satellite, Imager sensor, size_t width);
+void correct_points(std::vector<QPointF> &points, SatID satellite, Imager sensor, size_t width);
 void correct_lines(std::vector<QLineF> &lines, SatID satellite, Imager sensor, size_t width);
 
 #endif

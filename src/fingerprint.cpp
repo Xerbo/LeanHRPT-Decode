@@ -11,6 +11,11 @@
 #include "protocol/repack.h"
 #include "protocol/reverse.h"
 
+const std::map<std::string, FileType> known_extensions = {
+    {"cadu", FileType::CADU}, {"vcdu", FileType::VCDU}, {"raw16", FileType::raw16},
+    {"hrp", FileType::HRP},   {"tip", FileType::TIP},
+};
+
 /// Finds the most common value of T
 template <typename T>
 class Scoreboard {
@@ -134,7 +139,7 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream, FileType type) {
         }
         // clang-format on
 
-        if (n++ > 1000) {
+        if (n++ > 200) {
             return SatID::MeteorM22;
         }
         if (s.max() != SatID::Unknown) return s.max();
@@ -146,11 +151,11 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream, FileType type) {
 Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
     uint8_t buffer[1024];
     ccsds::Deframer ccsds_deframer;
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> noaa_deframer(8,
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> noaa_deframer(0,
                                                                                                                           true);
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> gac_deframer(8, true);
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> gac_deframer(0, true);
     ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270> gac_reverse_deframer(
-        8, true);
+        0, true);
     std::vector<uint8_t> out((11090 * 10) / 8);
     Scoreboard<Protocol> s;
 
@@ -163,10 +168,10 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
             s.add(Protocol::HRPT, 3);
         }
         if (gac_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::GAC, 3);
+            s.add(Protocol::GAC, 1);
         }
         if (gac_reverse_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::GACReverse, 3);
+            s.add(Protocol::GACReverse, 1);
         }
 
         if (s.max() != Protocol::Unknown) return s.max();
@@ -178,8 +183,8 @@ Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
 SatID Fingerprint::fingerprint_gac(std::istream &stream, bool reverse) {
     uint8_t pn[20] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x74, 0x0c,
                       0x92, 0x94, 0x25, 0xee, 0xea, 0x8e, 0xe2, 0xc2, 0xfb, 0x1f};
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> deframer(8, true);
-    ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270> deframer_reverse(8,
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> deframer(4, true);
+    ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270> deframer_reverse(4,
                                                                                                                             true);
     std::vector<uint8_t> buffer(1024);
     std::vector<uint8_t> raw(4159);
@@ -235,7 +240,7 @@ SatID Fingerprint::fingerprint_gac(std::istream &stream, bool reverse) {
 SatID Fingerprint::fingerprint_noaa(std::istream &stream, FileType type) {
     std::vector<uint16_t> frame(11090);
     Scoreboard<SatID> s;
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer(8, true);
+    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> deframer(4, true);
 
     while (is_running && !stream.eof()) {
         bool have_frame = false;
@@ -290,7 +295,7 @@ SatID Fingerprint::fingerprint_meteor(std::istream &stream, FileType type) {
     Scoreboard<SatID> s;
     ccsds::Deframer deframer;
     std::vector<uint8_t> frame(1024);
-    ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8> msumr_deframer;
+    ArbitraryDeframer<uint64_t, 0x0218A7A392DD9ABF, 64, 11850 * 8> msumr_deframer(2, false);
 
     while (is_running && !stream.eof()) {
         bool have_frame = false;
@@ -367,13 +372,13 @@ std::set<Protocol> Fingerprint::ccsds_downlinks(SatID id) {
     }
 
     switch (satellite_info.at(id).mission) {
-        case POES:
+        case Mission::POES:
             return {Protocol::HRPT};
-        case FengYun3:
+        case Mission::FengYun3:
             return {Protocol::FengYunHRPT};
-        case MetOp:
+        case Mission::MetOp:
             return {Protocol::AHRPT /*, Protocol::LRPT*/};
-        case MeteorM:
+        case Mission::MeteorM:
             return {/*Protocol::MeteorHRPT,*/ Protocol::LRPT};
         default:
             return {Protocol::Unknown};

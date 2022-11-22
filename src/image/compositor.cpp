@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "imagecompositor.h"
+#include "compositor.h"
 
 #include <muParser.h>
 #include <omp.h>
@@ -28,14 +28,10 @@
 #include <iostream>
 #include <limits>
 
+#include "calibration.h"
 #include "config/config.h"
 #include "geometry.h"
-#include "math.h"
-
-static double str2double(std::string str) {
-    QLocale l(QLocale::C);
-    return l.toDouble(QString::fromStdString(str));
-}
+#include "util.h"
 
 void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, std::map<std::string, double> caldata,
                              double reverse) {
@@ -62,39 +58,9 @@ void ImageCompositor::import(RawImage *image, SatID satellite, Imager sensor, st
         rawChannels[5].invertPixels();
     }
 
-    Config ini("calibration.ini");
+    Calibrator(d_caldata, ch3a).calibrate(satellite, sensor, rawChannels);
 
-    for (size_t i = 0; i < m_channels; i++) {
-        std::string name = satellite_info.at(satellite).name + "_" + sensor_info.at(sensor).name + "/" + std::to_string(i + 1);
-
-        if (ini.sections.count(name)) {
-            std::map<std::string, std::string> coefficients = ini.sections.at(name);
-
-            if (coefficients.count("a1")) {
-                double a1 = str2double(coefficients.at("a1"));
-                double b1 = str2double(coefficients.at("b1"));
-                double a2 = str2double(coefficients.at("a2"));
-                double b2 = str2double(coefficients.at("b2"));
-                double c = str2double(coefficients.at("c"));
-                calibrate_avhrr(i + 1, a1, b1, a2, b2, c);
-            } else if (coefficients.count("ns")) {
-                double ns = str2double(coefficients.at("ns"));
-                double b0 = str2double(coefficients.at("b0"));
-                double b1 = str2double(coefficients.at("b1"));
-                double b2 = str2double(coefficients.at("b2"));
-                double vc = str2double(coefficients.at("vc"));
-                double a = str2double(coefficients.at("a"));
-                double b = str2double(coefficients.at("b"));
-                calibrate_ir(i + 1, ns, b0, b1, b2, vc, a, b);
-            } else if (coefficients.count("a")) {
-                double a = str2double(coefficients.at("a"));
-                double b = str2double(coefficients.at("b"));
-                calibrate_linear(i + 1, a, b);
-            }
-        }
-    }
-
-    if (sensor == Imager::MHS || sensor == Imager::HIRS) {
+    if (sensor == Imager::MHS || sensor == Imager::HIRS || sensor == Imager::AMSUA) {
         for (size_t i = 0; i < m_channels; i++) {
             rawChannels[i] = rawChannels[i].mirrored(true, false);
         }
@@ -168,76 +134,43 @@ void ImageCompositor::postprocess(QImage &image, bool correct) {
     if (m_isFlipped) {
         image = image.mirrored(true, true);
     }
-}
 
-void ImageCompositor::calibrate_ir(size_t ch, double Ns, double b0, double b1, double b2, double Vc, double A, double B) {
-    double Cprt = d_caldata["prt"] / d_caldata["prtn"];  // Average PRT count
-
-    // Each PRT reading should be calculated seperately,
-    // but this seems to work well enough
-    double Tbb = 276.6 + Cprt * 0.0511;  // Blackbody temperature
-    double Tbbstar = A + B * Tbb;        // Effective blackbody temperature
-
-    const double c1 = 1.1910427e-5;                                 // mW/(m^2-sr-cm^-4)
-    const double c2 = 1.4387752;                                    // cm-K
-    double Nbb = c1 * pow(Vc, 3) / (exp(c2 * Vc / Tbbstar) - 1.0);  // Blackbody radiance
-
-    double Cs = d_caldata["ch" + std::to_string(ch) + "_space"] / static_cast<double>(m_height);  // Average space count
-    double Cbb = d_caldata["ch" + std::to_string(ch) + "_cal"] / static_cast<double>(m_height);   // Average backscan count
-
-    for (size_t y = 0; y < m_height; y++) {
-        quint16 *line = reinterpret_cast<quint16 *>(rawChannels[ch - 1].scanLine(y));
-
-        for (size_t x = 0; x < m_width; x++) {
-            double Ce = line[x] / 64;                                // Earth count
-            double Nlin = Ns + (Nbb - Ns) * (Cs - Ce) / (Cs - Cbb);  // Linear radiance estimate
-            double Ncor = b0 + b1 * Nlin + b2 * pow(Nlin, 2);        // Non-linear correction
-            double Ne = Nlin + Ncor;                                 // Radiance
-
-            double Testar = c2 * Vc / log(c1 * pow(Vc, 3) / Ne + 1.0);  // Equivlent black body temperature
-            double Te = (Testar - A) / B;                               // Temperature (kelvin)
-
-            // Convert to celsius
-            Te -= 273.15;
-
-            Te = (Te + 80.0) / 160.0 * (double)UINT16_MAX;
-            line[x] = clamp(Te, 0.0, (double)UINT16_MAX);
-        }
-    }
-}
-
-void ImageCompositor::calibrate_avhrr(size_t ch, double a1, double b1, double a2, double b2, double c) {
-    for (size_t y = 0; y < m_height; y++) {
-        quint16 *line = reinterpret_cast<quint16 *>(rawChannels[ch - 1].scanLine(y));
-        if (!ch3a[y] && ch == 3) continue;
-
-        for (size_t x = 0; x < m_width; x++) {
-            double count = line[x] / 64;
-            if (count < c) {
-                count = a1 * count + b1;
-            } else {
-                count = a2 * count + b2;
+    if (enable_landmarks) {
+        auto _landmarks = landmarks;
+        if (correct) {
+            std::vector<QPointF> points(_landmarks.size());
+            for (size_t i = 0; i < points.size(); i++) {
+                points[i] = _landmarks[i].geo;
             }
-            line[x] = clamp(count / 100.0, 0.0, 1.0) * UINT16_MAX;
+            correct_points(points, m_satellite, m_sensor, m_width);
+            for (size_t i = 0; i < points.size(); i++) {
+                _landmarks[i].geo = points[i];
+            }
         }
-    }
-}
 
-void ImageCompositor::calibrate_linear(size_t ch, double a, double b) {
-    for (size_t y = 0; y < m_height; y++) {
-        quint16 *line = reinterpret_cast<quint16 *>(rawChannels[ch - 1].scanLine(y));
+        image = image.convertToFormat(QImage::Format_RGBX64);
+        QPainter painter(&image);
+        painter.setBrush(QBrush(landmark_color, Qt::SolidPattern));
+        painter.setPen(landmark_color);
+        painter.setRenderHint(QPainter::Antialiasing);
+        QFont font = painter.font();
+        font.setPixelSize(image.width() / 130);
+        painter.setFont(font);
 
-        for (size_t x = 0; x < m_width; x++) {
-            double count = line[x] / 64;
-            count = a * count + b;
-            line[x] = clamp(count / 100.0, 0.0, 1.0) * UINT16_MAX;
+        for (const Landmark &landmark : _landmarks) {
+            QPointF point = landmark.geo;
+            if (m_isFlipped) {
+                point.rx() = image.width() - point.x();
+                point.ry() = image.height() - point.y();
+            }
+            painter.drawEllipse(point, image.width() / 500, image.width() / 500);
+            painter.drawText(point.x() - 500, point.y() + 2.5, 1000, 250, Qt::AlignHCenter, landmark.text);
         }
     }
 }
 
 void ImageCompositor::getChannel(QImage &image, size_t channel) { image = rawChannels[channel - 1]; }
 
-// Composites 3 Grayscale16 images into each channel of a RGB16 image
 void ImageCompositor::getComposite(QImage &image, std::array<size_t, 3> chs) {
     if (image.format() != QImage::Format_RGBX64) {
         image = QImage(image.width(), image.height(), QImage::Format_RGBX64);
@@ -256,7 +189,6 @@ void ImageCompositor::getComposite(QImage &image, std::array<size_t, 3> chs) {
     }
 }
 
-// Evaluate `expression` and store the results in `image`
 void ImageCompositor::getExpression(QImage &image, std::string expression) {
     std::vector<double> ch(m_channels);
     double sunz_val = 0.0;
@@ -307,7 +239,7 @@ void ImageCompositor::getExpression(QImage &image, std::string expression) {
                         mwir = ch[2];
                     }
                 } else {
-                    if (m_sensor == VIRR) {
+                    if (m_sensor == Imager::VIRR) {
                         swir = ch[5];
                     } else {
                         swir = ch[2];
@@ -385,7 +317,7 @@ void ImageCompositor::_equalise(QImage &image, Equalization equalization, std::v
     }
 
     switch (equalization) {
-        case Histogram: {
+        case Equalization::Histogram: {
 #pragma omp parallel for
             for (size_t y = 0; y < (size_t)image.height(); y++) {
                 quint16 *line = reinterpret_cast<quint16 *>(image.scanLine(y));
@@ -396,7 +328,7 @@ void ImageCompositor::_equalise(QImage &image, Equalization equalization, std::v
             }
             break;
         }
-        case Stretch: {
+        case Equalization::Stretch: {
             size_t low = 0, high = max;
             for (size_t i = 0; i < max; i++) {
                 if (low == 0 && cf[i] > 0.01f * max) {

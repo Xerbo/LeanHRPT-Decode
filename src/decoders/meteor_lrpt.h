@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef DECODERS_METEOR_LRPT_H
-#define DECODERS_METEOR_LRPT_H
+#ifndef LEANHRPT_DECODERS_METEOR_LRPT_H_
+#define LEANHRPT_DECODERS_METEOR_LRPT_H_
 
 #include "decoder.h"
 #include "protocol/ccsds/demuxer.h"

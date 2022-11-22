@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,10 +20,10 @@
 
 #include <cmath>
 
-#include "math.h"
 #include "projection.h"
+#include "util.h"
 
-// Based off https://github.com/Xerbo/meteor_corrector
+/// Based off https://github.com/Xerbo/meteor_corrector
 QImage correct_geometry(QImage image, SatID satellite, Imager sensor, size_t width) {
     const SatelliteInfo satinfo = satellite_info.at(satellite);
     const SensorInfo sensorinfo = sensor_info.at(sensor);
@@ -57,7 +57,7 @@ QImage correct_geometry(QImage image, SatID satellite, Imager sensor, size_t wid
     return corrected;
 }
 
-void correct_lines(std::vector<QLineF> &lines, SatID satellite, Imager sensor, size_t width) {
+void correct_points(std::vector<QPointF> &points, SatID satellite, Imager sensor, size_t width) {
     const SatelliteInfo satinfo = satellite_info.at(satellite);
     const SensorInfo sensorinfo = sensor_info.at(sensor);
 
@@ -69,18 +69,14 @@ void correct_lines(std::vector<QLineF> &lines, SatID satellite, Imager sensor, s
     float sat_edge = geo::earth2sat_angle(EARTH_RADIUS, satinfo.orbit_height, view_angle / 2);
 
     // Copy pixels over from the source to the corrected image
-    for (QLineF &line : lines) {
-        QPointF p1 = line.p1();
-        QPointF p2 = line.p2();
-
-        p1.rx() =
-            geo::sat2earth_angle(EARTH_RADIUS, satinfo.orbit_height, (p1.x() / width - 0.5) * 2.0 * sat_edge) / view_angle + 0.5;
-        p2.rx() =
-            geo::sat2earth_angle(EARTH_RADIUS, satinfo.orbit_height, (p2.x() / width - 0.5) * 2.0 * sat_edge) / view_angle + 0.5;
-        p1.rx() *= output_width;
-        p2.rx() *= output_width;
-
-        line.setP1(p1);
-        line.setP2(p2);
+    for (QPointF &point : points) {
+        point.rx() =
+            geo::sat2earth_angle(EARTH_RADIUS, satinfo.orbit_height, (point.x() / width - 0.5) * 2.0 * sat_edge) / view_angle +
+            0.5;
+        point.rx() *= output_width;
     }
+}
+
+void correct_lines(std::vector<QLineF> &lines, SatID satellite, Imager sensor, size_t width) {
+    correct_points((std::vector<QPointF> &)lines, satellite, sensor, width);
 }

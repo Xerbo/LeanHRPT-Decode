@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -11,70 +11,48 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_SATINFO_H
-#define LEANHRPT_SATINFO_H
+#ifndef LEANHRPT_SATINFO_H_
+#define LEANHRPT_SATINFO_H_
 
 #include <map>
 #include <string>
 #include <vector>
 
-enum class Protocol {
-    Unknown,
-    LRPT,
-    HRPT,
-    AHRPT,
-    MeteorHRPT,
-    FengYunHRPT,
-    GAC,
-    GACReverse,
-    DSB
+enum class Protocol { Unknown, LRPT, HRPT, AHRPT, MeteorHRPT, FengYunHRPT, GAC, GACReverse, DSB };
+
+enum class Mission { POES, MeteorM, FengYun3, MetOp };
+
+enum class SatID {
+    Unknown = 0,
+    MetOpA = 29499,
+    MetOpB = 38771,
+    MetOpC = 43689,
+    FengYun3A = 32958,
+    FengYun3B = 37214,
+    FengYun3C = 39260,
+    NOAA15 = 25338,
+    NOAA18 = 28654,
+    NOAA19 = 33591,
+    MeteorM2 = 40069,
+    MeteorM22 = 44387
 };
 
-enum Mission {
-    POES,
-    MeteorM,
-    FengYun3,
-    MetOp
-};
-
-enum SatID {
-    MetOpA,
-    MetOpB,
-    MetOpC,
-    FengYun3A,
-    FengYun3B,
-    FengYun3C,
-    NOAA15,
-    NOAA18,
-    NOAA19,
-    MeteorM2,
-    MeteorM22,
-    Unknown
-};
-
-enum Imager {
-    AVHRR,
-    VIRR,
-    MSUMR,
-    MHS,
-    MTVZA,
-    HIRS
-};
+enum class Imager { AVHRR, VIRR, MSUMR, MHS, MTVZA, HIRS, AMSUA };
 
 struct SensorInfo {
     std::string name;
-    float swath; // in km
-    float resolution; // in km/px
+    float swath;       /// in km
+    float resolution;  /// in km/px
     size_t width;
 };
 
 struct SatelliteInfo {
-    float orbit_height; // in km
+    float orbit_height;  /// in km
     Mission mission;
     std::string name;
     Imager default_imager;
@@ -88,16 +66,18 @@ const std::map<Imager, SensorInfo> sensor_info = {
     { Imager::MHS,   SensorInfo {"MHS",    2180.0f, 16.0f, 90   } },
     { Imager::MTVZA, SensorInfo {"MTVZA",  1500.0f, 4.0f,  200  } },
     { Imager::HIRS,  SensorInfo {"HIRS",   2160.0f, 40.0f, 56   } },
+    { Imager::AMSUA, SensorInfo {"AMSU-A", 2343.0f, 78.0f, 30   } },
 };
 
-const std::map<std::string, Imager> sensors = {
-    { "AVHRR",  Imager::AVHRR },
-    { "VIRR",   Imager::VIRR },
-    { "MSU-MR", Imager::MSUMR },
-    { "MHS",    Imager::MHS },
-    { "MTVZA",  Imager::MTVZA },
-    { "HIRS",   Imager::HIRS },
-};
+inline Imager get_sensor(std::string name) {
+    for (const auto &x : sensor_info) {
+        if (x.second.name == name) {
+            return x.first;
+        }
+    }
+
+    throw std::invalid_argument("get_sensor called with an unknown sensor name");
+}
 
 const std::map<SatID, SatelliteInfo> satellite_info {
     { SatID::MetOpA,    SatelliteInfo { 827.0f, Mission::MetOp,    "MetOp-A",    Imager::AVHRR } },

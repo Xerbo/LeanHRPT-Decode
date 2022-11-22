@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ Deframer::Deframer()
       byteBuffer(0),
       bufferPosition(0),
       bufferBitPosition(0),
-      state(State0),
+      state(SyncMachineState::State0),
       bitsWritten(0),
       writingData(false),
       invert(false),
@@ -48,7 +48,7 @@ Deframer::Deframer()
       skip(0) {}
 Deframer::~Deframer() { delete[] frameBuffer; }
 
-bool Deframer::asmCompare(asm_t a, asm_t b) { return std::bitset<ASM_SIZE>(a ^ b).count() <= stateThresholds[state]; }
+bool Deframer::asmCompare(asm_t a, asm_t b) { return std::bitset<ASM_SIZE>(a ^ b).count() <= stateThresholds[(int)state]; }
 
 // Push a byte into the buffer
 void Deframer::pushByte(uint8_t byte) { frameBuffer[bufferPosition++] = byte; }
@@ -108,7 +108,7 @@ bool Deframer::work(const uint8_t *in, uint8_t *out, size_t len) {
                     std::memcpy(out, frameBuffer, FRAME_SIZE_BYTES);
                 }
 
-                if (state != State1) continue;
+                if (state != SyncMachineState::State1) continue;
             }
 
             // Skip until next sync marker
@@ -119,54 +119,54 @@ bool Deframer::work(const uint8_t *in, uint8_t *out, size_t len) {
 
             switch (state) {
                 // Checks for a perfect sync marker with no errors, if we find one jump to State2
-                case State0:
+                case SyncMachineState::State0:
                     if (asmCompare(shifter, ASM)) {
-                        enterState(State2);
+                        enterState(SyncMachineState::State2);
                         startWriting();
                     } else if (asmCompare(shifter, INVERSE_ASM)) {
                         invert = !invert;
-                        enterState(State2);
+                        enterState(SyncMachineState::State2);
                         startWriting();
                     }
                     break;
                 // Allow up to 2 bit errors, if we check 5 frames without success go back to State0
                 // assuming we have lost all lock
-                case State1:
+                case SyncMachineState::State1:
                     if (asmCompare(shifter, ASM)) {
                         startWriting();
                         badFrames = 0;
-                        enterState(State2);
+                        enterState(SyncMachineState::State2);
                     } else {
                         badFrames++;
                         goodFrames = 0;
                         if (badFrames == 5) {
-                            enterState(State0);
+                            enterState(SyncMachineState::State0);
                         }
                     }
                     break;
                 // Intermediate state between the strict State0 and lenient State3
-                case State2:
+                case SyncMachineState::State2:
                     if (asmCompare(shifter, ASM)) {
                         startWriting();
                         goodFrames++;
                         badFrames = 0;
                         if (goodFrames == 5) {
-                            enterState(State3);
+                            enterState(SyncMachineState::State3);
                         }
                     } else {
                         badFrames++;
                         goodFrames = 0;
                         if (badFrames == 2) {
-                            enterState(State1);
+                            enterState(SyncMachineState::State1);
                         }
                     }
                     break;
                 // Assume fully locked, allow a very high level of errors
-                case State3:
+                case SyncMachineState::State3:
                     if (asmCompare(shifter, ASM)) {
                         startWriting();
                     } else {
-                        enterState(State2);
+                        enterState(SyncMachineState::State2);
                     }
                     break;
                 default:

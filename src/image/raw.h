@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_GENERIC_RAWIMAGE_H
-#define LEANHRPT_GENERIC_RAWIMAGE_H
+#ifndef LEANHRPT_IMAGE_RAW_H_
+#define LEANHRPT_IMAGE_RAW_H_
 
 #include <cstdint>
 #include <stdexcept>
@@ -25,15 +25,14 @@
 
 class RawImage {
    public:
-    RawImage(size_t width, size_t channels, size_t interleaving_size = 1);
-    ~RawImage();
+    RawImage(size_t width, size_t channels, size_t chunk_size = 1);
 
-    void push10Bit(const uint8_t *data, int offset);
-    void push16Bit(const uint16_t *data, int offset);
+    void push10Bit(const uint8_t *data, int offset = 0);
+    void push16Bit(const uint16_t *data, int offset = 0, int multiplier = 1);
 
-    unsigned short *getChannel(size_t channel) {
+    uint16_t *getChannel(size_t channel) {
         if (channel < m_channels) {
-            return imageBuffer[channel].data();
+            return image_buffer[channel].data();
         }
         throw std::runtime_error("Channel index out of range");
     }
@@ -44,20 +43,22 @@ class RawImage {
     void set_height(size_t new_height) {
         m_rows = new_height;
 
-        for (auto &channel : imageBuffer) {
-            if (channel.size() <= m_rows * m_width) {
-                channel.resize((m_rows + 1000) * m_width);
-            }
+        for (auto &channel : image_buffer) {
+            if (channel.size() > m_rows * m_width) continue;
+            channel.resize((m_rows + 2000) * m_width);
         }
     }
 
    private:
-    unsigned short *rowBuffer;
-    std::vector<std::vector<unsigned short>> imageBuffer;
+    std::vector<uint16_t> row_buffer;
+    std::vector<std::vector<uint16_t>> image_buffer;
+
+    void process_line(const uint16_t *data, size_t ch, int offset, int multiplier);
+    void process_line_chunked(const uint16_t *data, size_t ch, int offset, int multiplier);
 
     size_t m_width;
     size_t m_channels;
-    size_t m_interleavingSize;
+    size_t m_chunk_size;
     size_t m_rows;
 };
 

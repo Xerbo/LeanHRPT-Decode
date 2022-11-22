@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 #include "config/config.h"
 #include "geo/geolocation.h"
-#include "math.h"
+#include "util.h"
 
 static double str2double(std::string str) {
     QLocale l(QLocale::C);
@@ -62,9 +62,10 @@ std::vector<std::pair<xy, Geodetic>> Projector::calculate_gcps(const std::vector
 
         double azimuth;
         {
-            struct predict_position b = predictor.predict(timestamp + 0.1);
-            azimuth = deg2rad(90) - calculateBearingAngle(Geodetic(orbit), Geodetic(b));
-            if (azimuth > M_PI) {
+            struct predict_position a = predictor.predict(timestamp - 0.05);
+            struct predict_position b = predictor.predict(timestamp + 0.05);
+            azimuth = deg2rad(90) - CalculateGeodeticCurve(WGS84, Geodetic(a), Geodetic(b)).Azimuth;
+            if (azimuth < -M_PI) {
                 azimuth += deg2rad(yaw);
             } else {
                 azimuth -= deg2rad(yaw);
@@ -163,17 +164,13 @@ std::vector<std::pair<double, Geodetic>> Projector::calculate_scan(const Geodeti
     return scan;
 }
 
-bool Projector::is_northbound(const std::vector<double> &timestampts) {
-    double lower_quartile = timestampts[timestampts.size() / 4 * 1];
-    double upper_quartile = timestampts[timestampts.size() / 4 * 3];
+bool Projector::is_northbound(const std::vector<double> &timestamps) {
+    double lower_quartile = timestamps[timestamps.size() / 4 * 1];
+    double upper_quartile = timestamps[timestamps.size() / 4 * 3];
 
     struct predict_position a = predictor.predict(lower_quartile);
     struct predict_position b = predictor.predict(upper_quartile);
-    double azimuth = calculateBearingAngle(Geodetic(a), Geodetic(b));
+    double azimuth = CalculateGeodeticCurve(WGS84, Geodetic(a), Geodetic(b)).Azimuth;
 
-    if (azimuth < -M_PI / 2.0 || azimuth > M_PI / 2.0) {
-        return false;
-    } else {
-        return true;
-    }
+    return azimuth > M_PI * 1.5;
 }

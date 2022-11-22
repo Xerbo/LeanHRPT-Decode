@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,12 +20,14 @@
 
 #include <shapefil.h>
 
+#include <QFile>
 #include <QPainter>
 #include <QPolygonF>
 #include <QTransform>
 #include <set>
 
-#include "math.h"
+#include "geo/crs.h"
+#include "util.h"
 
 bool map::verify_shapefile(std::string filename) {
     SHPHandle shapefile = SHPOpen(filename.c_str(), "rb");
@@ -72,6 +74,23 @@ std::vector<QLineF> map::read_shapefile(std::string filename) {
 
     SHPClose(shapefile);
     return line_segments;
+}
+
+std::vector<Landmark> map::read_landmarks(std::string filename) {
+    QFile file(QString::fromStdString(filename));
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+
+    std::vector<Landmark> landmarks;
+    while (!file.atEnd()) {
+        QString string = QString::fromUtf8(file.readLine());
+        QStringList list = string.split(",");
+        if (list.length() != 3) continue;
+
+        Landmark landmark = {QPointF(list[2].toDouble(), list[1].toDouble()), list[0]};
+        landmarks.push_back(landmark);
+    }
+
+    return landmarks;
 }
 
 std::array<std::vector<QLineF>, 36 * 18> map::index_line_segments(const std::vector<QLineF> &line_segments) {
@@ -135,16 +154,58 @@ std::vector<QLineF> map::warp_to_pass(const std::array<std::vector<QLineF>, 36 *
     return warped;
 }
 
+std::vector<Landmark> map::warp_to_pass(const std::vector<Landmark> &landmarks,
+                                        const std::vector<std::pair<xy, Geodetic>> &points, size_t xn) {
+    std::vector<Landmark> warped;
+
+    for (size_t y = 0; y < points.size() / xn - 1; y++) {
+        for (size_t x = 0; x < xn - 1; x++) {
+            //                     top left      top right     bottom right  bottom left
+            size_t vertices[4] = {(y + 0) * xn + x + 0, (y + 0) * xn + x + 1, (y + 1) * xn + x + 1, (y + 1) * xn + x + 0};
+
+            QPolygonF geo, pixels;
+            for (size_t vertex : vertices) {
+                geo << QPointF(points[vertex].second.longitude * RAD2DEG, points[vertex].second.latitude * RAD2DEG);
+                pixels << QPointF(points[vertex].first.first, points[vertex].first.second);
+            }
+
+            // TODO: phase unwrapping
+            QRectF bounds = geo.boundingRect();
+            if (bounds.width() > 180) continue;
+
+            // Create the transformation
+            QTransform trans;
+            if (!QTransform::quadToQuad(geo, pixels, trans)) continue;
+
+            // Warp lines within the selected buckets
+            for (const Landmark &landmark : landmarks) {
+                if (geo.containsPoint(landmark.geo, Qt::OddEvenFill)) {
+                    warped.push_back({trans.map(landmark.geo), landmark.text});
+                }
+            }
+        }
+    }
+
+    return warped;
+}
+
 // Convert from the center of a pixel at `x` to 0.0 to 1.0 (non inclusive)
-double px2r(double x, double range) { return (x + 0.5) / range; }
+static double px2r(double x, double range) { return (x + 0.5) / range; }
+static QPointF px2r(QPointF x, QSize range) { return QPointF(px2r(x.x(), range.width()), px2r(x.y(), range.height())); }
 
 // Opposite of px2r
-double r2px(double x, double range) { return x * range - 0.5; }
+static double r2px(double x, double range) { return x * range - 0.5; }
+static QPointF r2px(QPointF x, QSize range) { return QPointF(r2px(x.x(), range.width()), r2px(x.y(), range.height())); }
 
 QImage map::project(const QImage &image, const std::vector<std::pair<xy, Geodetic>> &points, size_t xn, QSize resolution,
-                    double xa, double xb, double ya, double yb) {
-    QImage warped(resolution, image.format());
-    warped.fill(0);
+                    QRectF bounds) {
+    double xa = bounds.width();
+    double xb = bounds.x();
+    double ya = bounds.height();
+    double yb = bounds.y();
+
+    QImage warped(resolution, QImage::Format_RGBA64);
+    warped.fill(Qt::transparent);
 
     int height = resolution.height();
     int width = resolution.width();
@@ -235,24 +296,52 @@ QImage map::project(const QImage &image, const std::vector<std::pair<xy, Geodeti
     return warped;
 }
 
-void map::add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor color, double xa, double xb, double ya,
-                      double yb) {
-    image = image.convertToFormat(QImage::Format_RGBX64);
+void map::add_overlay(QImage &image, std::vector<QLineF> &line_segments, QColor color, transform::CRS crs, QRectF bounds) {
+    double xa = bounds.width();
+    double xb = bounds.x();
+    double ya = bounds.height();
+    double yb = bounds.y();
 
     QPainter painter(&image);
     painter.setPen(color);
     painter.setRenderHint(QPainter::Antialiasing);
 
     for (const QLineF &line : line_segments) {
-        QPointF p1 = line.p1();
-        QPointF p2 = line.p2();
+        QPointF p1 = transform::forward(deg2rad(line.p1()), crs);
+        QPointF p2 = transform::forward(deg2rad(line.p2()), crs);
 
         p1.rx() = r2px((p1.x() - xb) / xa, image.width());
         p2.rx() = r2px((p2.x() - xb) / xa, image.width());
-        p1.ry() = (image.height() - 1) - r2px((p1.y() - yb) / ya, image.height());
-        p2.ry() = (image.height() - 1) - r2px((p2.y() - yb) / ya, image.height());
+        p1.ry() = r2px((p1.y() - yb) / ya, image.height());
+        p2.ry() = r2px((p2.y() - yb) / ya, image.height());
 
-        painter.drawLine(p1, p2);
+        if (image.rect().contains(p1.toPoint()) && image.rect().contains(p2.toPoint())) {
+            painter.drawLine(p1, p2);
+        }
+    }
+}
+
+void map::add_landmarks(QImage &image, const std::vector<Landmark> &landmarks, QColor color, transform::CRS crs, QRectF bounds) {
+    double xa = bounds.width();
+    double xb = bounds.x();
+    double ya = bounds.height();
+    double yb = bounds.y();
+
+    QPainter painter(&image);
+    painter.setBrush(QBrush(color, Qt::SolidPattern));
+    painter.setPen(color);
+    painter.setRenderHint(QPainter::Antialiasing);
+    QFont font = painter.font();
+    font.setPixelSize(image.width() / 130);
+    painter.setFont(font);
+
+    for (const Landmark &landmark : landmarks) {
+        QPointF p1 = transform::forward(deg2rad(landmark.geo), crs);
+        p1.rx() = r2px((p1.x() - xb) / xa, image.width());
+        p1.ry() = r2px((p1.y() - yb) / ya, image.height());
+
+        painter.drawEllipse(p1, image.width() / 500, image.width() / 500);
+        painter.drawText(p1.x() - 500, p1.y() + 2.5, 1000, 250, Qt::AlignHCenter, landmark.text);
     }
 }
 
@@ -267,4 +356,62 @@ QRectF map::bounds(const std::vector<std::pair<xy, Geodetic>> &points) {
     }
 
     return QRectF(min, max);
+}
+
+QRectF map::bounds_crs(const std::vector<std::pair<xy, Geodetic>> &points, transform::CRS crs) {
+    QPointF min(1, 1);
+    QPointF max(0, 0);
+    for (const auto &x : points) {
+        double lon = x.second.longitude;
+        double lat = x.second.latitude;
+        transform::XY point = transform::forward(transform::Geo(lon, lat), crs);
+
+        min.rx() = std::min(min.x(), point.x());
+        min.ry() = std::min(min.y(), point.y());
+        max.rx() = std::max(max.x(), point.x());
+        max.ry() = std::max(max.y(), point.y());
+    }
+
+    return QRectF(min, max);
+}
+
+QImage map::reproject(const QImage &image, transform::CRS crs, QRectF source_bounds, QRectF target_bounds) {
+    if (crs == transform::CRS::Equirectangular) {
+        return image;
+    }
+
+    double xa = source_bounds.width() * DEG2RAD;
+    double xb = source_bounds.x() * DEG2RAD;
+    double ya = source_bounds.height() * DEG2RAD;
+    double yb = source_bounds.y() * DEG2RAD;
+    double xa2 = target_bounds.width();
+    double xb2 = target_bounds.x();
+    double ya2 = target_bounds.height();
+    double yb2 = target_bounds.y();
+
+    QImage projected(image.width(), image.width() * (double)target_bounds.height() / (double)target_bounds.width(),
+                     image.format());
+    projected.fill(Qt::transparent);
+
+#pragma omp parallel for
+    for (size_t y = 0; y < (size_t)projected.height(); y++) {
+        for (size_t x = 0; x < (size_t)projected.width(); x++) {
+            double x2 = px2r(x, projected.width()) * xa2 + xb2;
+            double y2 = px2r(y, projected.height()) * ya2 + yb2;
+            transform::Geo point = transform::reverse(transform::XY(x2, y2), crs);
+
+            point.rx() = (point.x() - xb) / xa;
+            point.ry() = (point.y() - yb) / ya;
+            point.rx() = point.x() * M_PI * 2.0 - M_PI;
+            point.ry() = point.y() * M_PI - M_PI_2;
+            point = transform::forward(point, transform::CRS::Equirectangular);
+            point.rx() = r2px(point.x(), image.width());
+            point.ry() = r2px(point.y(), image.height());
+            if (point.x() > 0 && point.x() < image.width() - 1 && point.y() > 0 && point.y() < image.height() - 1) {
+                projected.setPixelColor(x, y, lerp2(image, point));
+            }
+        }
+    }
+
+    return projected;
 }

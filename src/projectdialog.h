@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PROJECTDIALOG_H
-#define PROJECTDIALOG_H
+#ifndef LEANHRPT_PROJECTDIALOG_H_
+#define LEANHRPT_PROJECTDIALOG_H_
 
 #include <QColor>
 #include <QDialog>
@@ -26,6 +26,7 @@
 #include <QProcess>
 #include <QTimer>
 
+#include "geo/crs.h"
 #include "projection.h"
 #include "satinfo.h"
 
@@ -48,22 +49,33 @@ class ProjectDialog : public QDialog {
     QImage render(QSize dimensions);
     QSize calculate_dimensions(size_t resolution);
     void write_wld_file(QString filename);
+    void write_pam_file(QString filename, std::string srs);
 
+    transform::CRS crs = transform::CRS::Equirectangular;
     QRectF bounds;
+    QRectF target_bounds;
     double pixelsize;
 
     virtual void resizeEvent(QResizeEvent *event) override;
    private slots:
     void on_preview_clicked();
     void on_render_clicked();
+    void on_projection_textActivated(QString text);
    signals:
+    /// @cond
     QImage get_viewport();
     std::vector<std::pair<xy, Geodetic>> get_points(size_t n);
 
     QString map_shapefile();
     QColor map_color();
     bool map_enable();
+
+    QString landmark_file();
+    QColor landmark_color();
+    bool landmark_enable();
+
     QString default_filename();
+    /// @endcond
 };
 
 #endif

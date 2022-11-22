@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@
 #include <iostream>
 #include <string>
 
-#include "common/tip.h"
 #include "protocol/repack.h"
 
 void NOAAHRPTDecoder::work(std::istream &stream) {
@@ -50,7 +49,7 @@ void NOAAHRPTDecoder::work(std::istream &stream) {
 
 void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
     uint16_t *data = &ptr[103];
-    bool line_ok = true;
+    // bool line_ok = true;
 
     // Parse TIP/AIP frames
     for (size_t i = 0; i < 5; i++) {
@@ -70,14 +69,14 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
         }
 
         if (!parity_ok) {
-            line_ok = false;
+            // line_ok = false;
             continue;
         }
 
         uint8_t frame_type = (ptr[6] >> 7) & 0b11;
         switch (frame_type) {
             case 1: {
-                if (tip_work(images, frame)) {
+                if (tip_decoder.hirs_work(images, frame)) {
                     timestamps[Imager::HIRS].push_back(timestamp);
                 }
                 break;
@@ -87,6 +86,7 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
                     timestamps[Imager::MHS].push_back(0);
                     timestamps[Imager::MHS].push_back(0);
                     timestamps[Imager::MHS].push_back(timestamp);
+                    timestamps[Imager::AMSUA].push_back(timestamp);
                 };
                 break;
             }
@@ -96,10 +96,19 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
     }
 
     // Extract calibration data
-    if (ptr[17] == ptr[18] && ptr[18] == ptr[19] && ptr[17] != 0) {
-        caldata["prt"] += ptr[17];
-        caldata["prtn"] += 1.0;
+    uint16_t *prt = &ptr[17];
+    if (prt[0] != 0) {
+        double sum = 0.0;
+        for (size_t i = 0; i < 3; i++) {
+            // TODO: calibrate each PRT separately
+            // Currently this uses the average of all 4 coefficients (excluding d2)
+            sum += 276.57465 + prt[i] * 0.050912;
+        }
+
+        blackbody_temperature = sum / 3.0;
     }
+    caldata["blackbody_temperature_sum"] += blackbody_temperature;
+
     for (size_t i = 0; i < 5; i++) {
         double sum = 0.0;
         for (size_t x = 0; x < 10; x++) {
@@ -108,6 +117,7 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
 
         caldata["ch" + std::to_string(i + 1) + "_space"] += sum / 10.0;
     }
+
     for (size_t i = 0; i < 3; i++) {
         double sum = 0.0;
         for (size_t x = 0; x < 10; x++) {
@@ -116,6 +126,7 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
 
         caldata["ch" + std::to_string(i + 3) + "_cal"] += sum / 10.0;
     }
+    caldata["n"] += 1.0;
 
     // Calculate the timestamp of the start of the year
     int _year = QDateTime::fromSecsSinceEpoch(created).date().year();
@@ -125,15 +136,12 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
     uint16_t days = repacked[8] >> 1;
     uint32_t ms = (repacked[9] & 0b1111111) << 20 | repacked[10] << 10 | repacked[11];
     timestamp = (double)year + (double)days * 86400.0 + (double)ms / 1000.0;
-    if (line_ok) {
-        timestamps[Imager::AVHRR].push_back(timestamp);
-    } else {
-        timestamps[Imager::AVHRR].push_back(0.0);
-    }
+    timestamps[Imager::AVHRR].push_back(timestamp);
+
+    ch3a.push_back(std::bitset<10>(ptr[6]).test(0));
 
     for (size_t i = 0; i < 11090; i++) {
         ptr[i] *= 64;
     }
     images[Imager::AVHRR]->push16Bit(ptr, 750);
-    ch3a.push_back(false);
 }

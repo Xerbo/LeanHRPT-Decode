@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,10 +33,12 @@ int main(int argc, char *argv[]) {
 
     parser.addOption(
         {{"i", "ini"},
-         "Path to an ini continaing composite definitions (https://github.com/Xerbo/LeanHRPT-Decode/wiki/Command-Line)",
+         "Path to an ini containing composite definitions (https://github.com/Xerbo/LeanHRPT-Decode/wiki/Command-Line)",
          "ini"});
     parser.addOption({{"o", "out"}, "Write images into <outdir>", "out"});
     parser.addOption({{"f", "flip"}, "Flip the image"});
+    parser.addOption({{"m", "map"}, "Path to a shapefile", "path"});
+    parser.addOption({{"l", "landmark"}, "Path to a landmarks file", "path"});
     parser.addPositionalArgument("file", "filename");
     parser.process(app);
 

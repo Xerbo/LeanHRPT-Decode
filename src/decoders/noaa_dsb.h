@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef NOAA_DSB_H
-#define NOAA_DSB_H
+#ifndef LEANHRPT_DECODERS_NOAA_DSB_H_
+#define LEANHRPT_DECODERS_NOAA_DSB_H_
 
 #include "common/tip.h"
 #include "decoder.h"
@@ -27,11 +27,13 @@ class NOAADSBDecoder : public Decoder {
     NOAADSBDecoder() { images[Imager::HIRS] = new RawImage(56, 20); }
 
    private:
+    TIPDecoder tip_decoder;
+
     void work(std::istream &stream) {
         uint8_t frame[104];
         if (d_filetype == FileType::TIP) {
             stream.read((char *)frame, 104);
-            tip_work(images, frame);
+            tip_decoder.hirs_work(images, frame);
         }
     }
 };

@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,74 +16,52 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_CONFIG_H
-#define LEANHRPT_CONFIG_H
+#ifndef LEANHRPT_CONFIG_CONFIG_H_
+#define LEANHRPT_CONFIG_CONFIG_H_
 
 #include <config/inipp.h>
 
+#include <QStandardPaths>
 #include <fstream>
 #include <iostream>
 
-inline std::string get_temp_dir() {
-#ifdef _WIN32
-    return std::getenv("TEMP");
-#else
-    return "/tmp";
-#endif
-}
-
-// Load a config file, first try looking in the current directory and then the config path
+// Load a config file, first try looking in the current directory and then config paths
 class Config : public inipp::Ini<char> {
    public:
     Config(std::string filename) {
-        std::filebuf file;
+        // Local config
+        if (try_load(filename)) return;
 
-        if (file.open(filename, std::ios::in)) {
-            std::istream stream(&file);
-            parse(stream);
-            interpolate();
-            file.close();
-            return;
-        }
-
-        if (file.open(get_local_prefix() + filename, std::ios::in)) {
-            std::istream stream(&file);
-            parse(stream);
-            interpolate();
-            file.close();
-            return;
-        }
+        // User config
+        QString config = QStandardPaths::locate(QStandardPaths::ConfigLocation, QString::fromStdString("leanhrpt/" + filename));
+        if (!config.isEmpty() && try_load(config.toStdString())) return;
 
 #ifndef _WIN32
-        if (file.open(get_system_prefix() + "/share/leanhrpt/" + filename, std::ios::in)) {
-            std::istream stream(&file);
-            parse(stream);
-            interpolate();
-            file.close();
-            return;
-        }
+        // Internal AppImage config
+        std::string here = std::getenv("HERE") ? std::getenv("HERE") : "";
+        if (!here.empty() && try_load(here + "/usr/share/leanhrpt/" + filename)) return;
 #endif
+
+        // System config
+        config = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QString::fromStdString("leanhrpt/" + filename));
+        if (!config.isEmpty() && try_load(config.toStdString())) return;
 
         std::cerr << "Could not open " << filename << std::endl;
     }
 
    private:
-    static std::string get_local_prefix() {
-#ifdef _WIN32
-        std::string home = std::getenv("APPDATA");
-        return home + "\\LeanHRPT\\";
-#else
-        std::string home = std::getenv("HOME");
-        return home + "/.config/leanhrpt/";
-#endif
-    }
+    bool try_load(std::string filename) {
+        std::filebuf file;
+        if (file.open(filename, std::ios::in)) {
+            std::istream stream(&file);
+            parse(stream);
+            interpolate();
+            file.close();
+            return true;
+        }
 
-#ifndef _WIN32
-    static std::string get_system_prefix() {
-        std::string here = std::getenv("HERE") ? std::getenv("HERE") : "";
-        return here.empty() ? "/usr" : (here + "/usr");
+        return false;
     }
-#endif
 };
 
 #endif

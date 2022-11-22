@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <cstring>
 
 #include "protocol/lrpt/packet.h"
+#include "protocol/repack.h"
 
 void MeteorLRPTDecoder::work(std::istream &stream) {
     if (d_filetype == FileType::CADU) {
@@ -46,6 +47,26 @@ void MeteorLRPTDecoder::frame_work() {
             }
             continue;
         }
+        if (header.apid == 70 && header.length == 58) {
+            const uint8_t *data = &packet[14];
+
+            uint16_t out[12];
+            repack10(&data[35], out, 12);
+            caldata["wl1_sum"] += out[0];
+            caldata["bl1_sum"] += out[1];
+            caldata["wl2_sum"] += out[2];
+            caldata["bl2_sum"] += out[3];
+            caldata["wl3_sum"] += out[4];
+            caldata["bl3_sum"] += out[5];
+            caldata["ch4_space"] += out[6];
+            caldata["ch4_cal"] += out[7];
+            caldata["ch5_space"] += out[8];
+            caldata["ch5_cal"] += out[9];
+            caldata["ch6_space"] += out[10];
+            caldata["ch6_cal"] += out[11];
+            caldata["blackbody_temperature_sum"] += 300;
+            caldata["n"] += 1.0;
+        }
         if (header.apid < 64 || header.apid > 69) continue;
 
         // Sanity check
@@ -67,6 +88,8 @@ void MeteorLRPTDecoder::frame_work() {
             counter_offset += 16384;  // 2^14
         }
 
+        time_t day = created / 86400 * 86400;
+
         size_t counter = header.counter + counter_offset - start_offset;
         for (size_t j = 0; j < MCU_PER_PACKET; j++) {
             for (size_t y = 0; y < 8; y++) {
@@ -75,10 +98,10 @@ void MeteorLRPTDecoder::frame_work() {
                     size_t y1 = counter / (14 * 3 + 1) * 8 + y;
 
                     if (y == 0) {
-                        time_t day = created / 86400 * 86400;
-                        timestamps[Imager::MSUMR].resize(y1 + 1);
-                        timestamps[Imager::MSUMR][y1] = (double)day + (double)timestamp / 1000.0 - 10800.0;
+                        timestamps[Imager::MSUMR].resize(y1 + 8);
                     }
+                    timestamps[Imager::MSUMR][y1] = (double)day + (double)timestamp / 1000.0 - 10800.0 + y * 0.205;
+
                     images[Imager::MSUMR]->set_height(y1 + 1);
                     unsigned short *ch = images[Imager::MSUMR]->getChannel(header.apid - 64);
 

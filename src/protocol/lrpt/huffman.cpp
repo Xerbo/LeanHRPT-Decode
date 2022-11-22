@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +19,18 @@
 #include "huffman.h"
 
 #include <bitset>
+#include <stdexcept>
 
-// Provides bit level access to an array
+/// Provides bit level access to an array
 class BitArray {
    public:
-    BitArray(const uint8_t *data) : d_data(data) {}
+    BitArray(const uint8_t *data, size_t size = SIZE_MAX) : d_data(data), d_size(size * 8) {}
 
+    /// Get `n` bits
     uint32_t peek(size_t n) {
+        if (d_pos + n > d_size) {
+            throw std::out_of_range("BitArray: read past array boundary");
+        }
         uint32_t result = 0;
         for (size_t i = 0; i < n; i++) {
             size_t x = d_pos + i;
@@ -36,8 +41,10 @@ class BitArray {
         return result;
     }
 
+    /// Seek `n` bits forward
     void advance(size_t n) { d_pos += n; }
 
+    /// Get `n` bits and see forward
     uint32_t fetch(size_t n) {
         uint32_t result = peek(n);
         advance(n);
@@ -46,6 +53,7 @@ class BitArray {
 
    private:
     const uint8_t *d_data;
+    const size_t d_size;
     size_t d_pos = 0;
 };
 
@@ -80,7 +88,7 @@ const uint8_t ac_table[] = {
 };
 // clang-format on
 
-int16_t apply_sign(uint16_t x, uint8_t category) {
+static int16_t apply_sign(uint16_t x, uint8_t category) {
     int16_t max = (1 << category) - 1;
 
     if (std::bitset<16>(x)[category - 1]) {
@@ -90,7 +98,7 @@ int16_t apply_sign(uint16_t x, uint8_t category) {
     }
 }
 
-int get_dc_category(uint16_t word) {
+static int get_dc_category(uint16_t word) {
     if (word >> 14 == 0x0) return 0;
     switch (word >> 13) {
         case 0x2:
@@ -117,7 +125,7 @@ int get_dc_category(uint16_t word) {
 
 // TODO: exit if reading past the boundary of `in`
 bool huffman_decode(const uint8_t *in, std::array<std::array<int16_t, 64>, MCU_PER_PACKET> &out, size_t n, size_t size) {
-    BitArray b(in);
+    BitArray b(in, size);
     int16_t dc = 0;
 
     for (size_t i = 0; i < n; i++) {

@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 namespace jpeg {
 // clang-format off
-	// IJG standard (Q=50) quantization table
+	/// IJG standard (Q=50) quantization table
 	const int jpeg_qtable[8][8] = {
 		{ 16, 11, 10, 16, 24,  40,  51,  61  },
 		{ 12, 12, 14, 19, 26,  58,  60,  55  },
@@ -35,7 +35,7 @@ namespace jpeg {
 		{ 72, 92, 95, 98, 112, 100, 103, 99  }
 	};
 
-	// 8x8 zigzag pattern
+	/// 8x8 JPEG zigzag pattern
 	const int jpeg_zigzag[8][8] = {
 		{  0,  1,  5,  6, 14, 15, 27, 28 },
 		{  2,  4,  7, 13, 16, 26, 29, 42 },
@@ -47,20 +47,22 @@ namespace jpeg {
 		{ 35, 36, 48, 49, 57, 58, 62, 63 }
 	};
 
-	/* 
+	/**
 	 * Look up table for values of cosine needed for the 8x8 IDCT, generated with:
      *
-	 *  void init_cosine_lut() {
-	 *  	for (size_t y = 0; y < 8; y++) {
-	 *  		for (size_t x = 0; x < 8; x++) {
-	 *  			// https://en.wikipedia.org/wiki/JPEG#Decoding
-	 *  			cosine_lut[y][x] = cosf(((2.0f*y + 1.0f) * x * M_PI) / 16.0f);
-	 *  		}
-     *
-	 *  		// Normalizing factor
-	 *  		cosine_lut[y][0] /= sqrtf(2.0);
-	 *		}
-	 *	}
+	 * ```
+	 * void init_cosine_lut() {
+	 *     for (size_t y = 0; y < 8; y++) {
+	 *         for (size_t x = 0; x < 8; x++) {
+	 *             // https://en.wikipedia.org/wiki/JPEG#Decoding
+	 *             cosine_lut[y][x] = cosf(((2.0f*y + 1.0f) * x * M_PI) / 16.0f);
+	 *         }
+     *         
+	 *         // Normalizing factor
+	 *         cosine_lut[y][0] /= sqrtf(2.0);
+	 *     }
+	 * }
+	 * ```
 	 */
 	const float cosine_lut[8][8] = {
 		{ 0.707107f,  0.980785f, 0.92388f,   0.83147f,   0.707107f,  0.55557f,   0.382683f,  0.19509f  },
@@ -74,7 +76,7 @@ namespace jpeg {
 	};
 // clang-format on
 
-void unzigzag(const std::array<int16_t, 64> &in, jpeg::block<int16_t> &out) {
+static void unzigzag(const std::array<int16_t, 64> &in, jpeg::block<int16_t> &out) {
     for (size_t y = 0; y < 8; y++) {
         for (size_t x = 0; x < 8; x++) {
             int pos = jpeg_zigzag[y][x];
@@ -84,7 +86,7 @@ void unzigzag(const std::array<int16_t, 64> &in, jpeg::block<int16_t> &out) {
 }
 
 // See https://web.archive.org/web/20150223223556/http://meteor.robonuka.ru/for-experts/soft/
-int qfactor(size_t x, size_t y, uint8_t q) {
+static int qfactor(size_t x, size_t y, uint8_t q) {
     float f;
     if (q < 50) {
         f = 5000.0f / (float)q;
@@ -100,7 +102,7 @@ int qfactor(size_t x, size_t y, uint8_t q) {
     }
 }
 
-void dequantize(jpeg::block<int16_t> &block, uint8_t q) {
+static void dequantize(jpeg::block<int16_t> &block, uint8_t q) {
     for (size_t y = 0; y < 8; y++) {
         for (size_t x = 0; x < 8; x++) {
             block[y][x] *= qfactor(x, y, q);
@@ -108,8 +110,8 @@ void dequantize(jpeg::block<int16_t> &block, uint8_t q) {
     }
 }
 
-// 2D 8x8 inverse DCT
-void idct(const jpeg::block<int16_t> &in, jpeg::block<uint8_t> &out) {
+/// 2D 8x8 inverse DCT
+static void idct(const jpeg::block<int16_t> &in, jpeg::block<uint8_t> &out) {
     for (size_t y = 0; y < 8; y++) {
         for (size_t x = 0; x < 8; x++) {
             float sum = 0.0;

@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@
 
 #include <cstring>
 #include <ctime>
+
+#include "protocol/repack.h"
 
 void MeteorHRPTDecoder::work(std::istream &stream) {
     if (d_filetype == FileType::CADU) {
@@ -57,6 +59,23 @@ void MeteorHRPTDecoder::frame_work(uint8_t *ptr) {
         timestamps[Imager::MSUMR].push_back(msumr_timestamp);
 
         images[Imager::MSUMR]->push10Bit(&msumrFrame[50], 0);
+
+        uint16_t out[12];
+        repack10(&msumrFrame[35], out, 12);
+        caldata["wl1_sum"] += out[0];
+        caldata["bl1_sum"] += out[1];
+        caldata["wl2_sum"] += out[2];
+        caldata["bl2_sum"] += out[3];
+        caldata["wl3_sum"] += out[4];
+        caldata["bl3_sum"] += out[5];
+        caldata["ch4_space"] += out[6];
+        caldata["ch4_cal"] += out[7];
+        caldata["ch5_space"] += out[8];
+        caldata["ch5_cal"] += out[9];
+        caldata["ch6_space"] += out[10];
+        caldata["ch6_cal"] += out[11];
+        caldata["blackbody_temperature_sum"] += 300;
+        caldata["n"] += 1.0;
     }
 
     uint8_t mtvza_buffer[32];

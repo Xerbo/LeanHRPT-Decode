@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_GEO_GEODETIC_H
-#define LEANHRPT_GEO_GEODETIC_H
+#ifndef LEANHRPT_GEO_GEODETIC_H_
+#define LEANHRPT_GEO_GEODETIC_H_
 
 #include <predict/predict.h>
 

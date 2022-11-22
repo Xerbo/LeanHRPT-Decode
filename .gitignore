@@ -64,7 +64,6 @@ CMakeUserPresets.json
 *.png
 *.tif
 !images/*
-!logo128.png
 
 # Binary files
 *.bin
@@ -75,6 +74,3 @@ CMakeUserPresets.json
 
 # CMake build directory
 build/
-
-# VSCode
-.vscode/

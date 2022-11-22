@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_CCSDS_DEMUXER_H
-#define LEANHRPT_CCSDS_DEMUXER_H
+#ifndef LEANHRPT_PROTOCOL_CCSDS_DEMUXER_H_
+#define LEANHRPT_PROTOCOL_CCSDS_DEMUXER_H_
 
 #include <cstddef>
 #include <cstdint>
@@ -39,7 +39,7 @@ struct CPPDUHeader {
     CPPDUHeader(const std::vector<uint8_t> &header) : CPPDUHeader(header.data()) {}
 };
 
-// A (fast) demuxer that can only handle one packet per frame
+/// A (fast) demuxer that can only handle one packet per frame
 class SimpleDemuxer {
    public:
     SimpleDemuxer(bool insert_zone = true) : fhp_offset(insert_zone ? 12 : 10), mpdu_size(insert_zone ? 882 : 884) {}
@@ -53,10 +53,10 @@ class SimpleDemuxer {
     std::vector<uint8_t> packetBuffer;
 };
 
-enum DemuxerState { IDLE, HEADER, DATA };
-enum DemuxerStatus { PROCEED, FRAGMENT, PARSED };
+enum class DemuxerState { IDLE, HEADER, DATA };
+enum class DemuxerStatus { PROCEED, FRAGMENT, PARSED };
 
-// Demuxer that can handle an arbitrary amount of packets per frame
+/// Demuxer that can handle an arbitrary amount of packets per frame
 class Demuxer {
    public:
     Demuxer(bool insert_zone = true) : fhp_offset(insert_zone ? 12 : 10), mpdu_size(insert_zone ? 882 : 884), packet(65536) {}
@@ -66,7 +66,7 @@ class Demuxer {
     const size_t fhp_offset;
     const size_t mpdu_size;
 
-    DemuxerState state = IDLE;
+    DemuxerState state = DemuxerState::IDLE;
     uint16_t offset = 0;
     uint16_t frag_offset = 0;
     std::vector<uint8_t> packet;

@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef LEANHRPT_DECODERS_DECODER_H
-#define LEANHRPT_DECODERS_DECODER_H
+#ifndef LEANHRPT_DECODERS_DECODER_H_
+#define LEANHRPT_DECODERS_DECODER_H_
 
 #include <QDateTime>
 #include <QFileInfo>
@@ -25,7 +25,7 @@
 #include <fstream>
 #include <istream>
 
-#include "protocol/rawimage.h"
+#include "image/raw.h"
 #include "satinfo.h"
 
 #define BUFFER_SIZE 1024
@@ -49,6 +49,7 @@ class Decoder {
         delete[] buffer;
     }
 
+    /// Decode a file
     bool decodeFile(std::string filename, FileType filetype) {
         d_filetype = filetype;
         std::filebuf file;
@@ -70,11 +71,20 @@ class Decoder {
         file.close();
         return true;
     }
+    /// Current decode progress (0 to 1)
     float progress() { return static_cast<float>(read) / static_cast<float>(filesize); }
+
+    /**
+     * Stop the current decode
+     *
+     * This is only used when the decoder is running on another thread
+     */
     void stop() { is_running = false; }
 
+    /// Get the produced data
     Data get() { return {images, timestamps, caldata, ch3a}; }
 
+    /// Automatically make/allocate a decoder given satid
     static Decoder *make(Protocol protocol, SatID sat);
 
    protected:

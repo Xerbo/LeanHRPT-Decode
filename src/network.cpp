@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,24 +28,27 @@
 #include "config/config.h"
 
 TLEManager::TLEManager() {
+    QString path = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/weather.txt";
     quint64 time = QDateTime::currentSecsSinceEpoch();
-    quint64 modified = QFileInfo(QString::fromStdString(get_temp_dir() + "/weather.txt")).lastModified().toSecsSinceEpoch();
+    quint64 modified = QFileInfo(path).lastModified().toSecsSinceEpoch();
 
     if (time - modified > 24 * 60 * 60) {
+        qInfo() << "TLEManager: Downloading fresh TLEs";
         QNetworkAccessManager *manager = new QNetworkAccessManager();
-        QNetworkAccessManager::connect(manager, &QNetworkAccessManager::finished, [this](QNetworkReply *reply) {
+        QNetworkAccessManager::connect(manager, &QNetworkAccessManager::finished, [this, path](QNetworkReply *reply) {
             if (reply->error() != QNetworkReply::NoError) {
                 return;
             }
 
-            QFile tle(QString::fromStdString(get_temp_dir() + "/weather.txt"));
+            QFile tle(path);
             tle.open(QIODevice::WriteOnly | QIODevice::Text);
             while (!reply->atEnd()) {
                 tle.write(reply->read(1024));
             }
             tle.close();
+            qInfo() << "TLEManager: Downloaded finished";
 
-            parse(get_temp_dir() + "/weather.txt");
+            parse(path.toStdString());
         });
 
         QNetworkRequest request;
@@ -53,7 +56,8 @@ TLEManager::TLEManager() {
         request.setRawHeader("User-Agent", USER_AGENT);
         manager->get(request);
     } else {
-        parse(get_temp_dir() + "/weather.txt");
+        qInfo() << "TLEManager: Reusing existing TLEs";
+        parse(path.toStdString());
     }
 }
 
@@ -63,16 +67,19 @@ void TLEManager::parse(std::string filename) {
 
     while (!tle.atEnd()) {
         std::string name = tle.readLine().simplified().toStdString();
-        std::string line1 = tle.readLine().toStdString();
-        std::string line2 = tle.readLine().toStdString();
+        QString line1 = tle.readLine();
+        QString line2 = tle.readLine();
+        int norad = line2.split(" ")[1].toInt();
 
-        catalog.insert({name, {line1, line2}});
+        catalog.insert({name, {line1.toStdString(), line2.toStdString()}});
+        catalog_by_norad.insert({norad, {line1.toStdString(), line2.toStdString()}});
     }
 }
 
 UpdateChecker::UpdateChecker() {
     if (std::string(VERSION).find("-") != std::string::npos || std::string(VERSION) == "Unknown") return;
 
+    qInfo() << "UpdateChecker: Checking for updates";
     QNetworkAccessManager *manager = new QNetworkAccessManager();
     QNetworkAccessManager::connect(manager, &QNetworkAccessManager::finished, [this](QNetworkReply *reply) {
         if (reply->error() != QNetworkReply::NoError) {
@@ -82,7 +89,9 @@ UpdateChecker::UpdateChecker() {
         QJsonArray tags = QJsonDocument::fromJson(reply->readAll()).array();
         QString latest_version = tags.at(0)["name"].toString();
         if (latest_version != VERSION) {
-            updateAvailable(QString("https://github.com/Xerbo/LeanHRPT-Decode/releases/tag/%1").arg(latest_version));
+            QString url = QString("https://github.com/Xerbo/LeanHRPT-Decode/releases/tag/%1").arg(latest_version);
+            qInfo() << "UpdateChecker: An update is available" << url;
+            updateAvailable(url);
         }
     });
 

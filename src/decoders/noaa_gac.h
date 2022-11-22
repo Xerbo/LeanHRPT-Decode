@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef NOAA_GAC_H
-#define NOAA_GAC_H
+#ifndef LEANHRPT_DECODERS_NOAA_GAC_H_
+#define LEANHRPT_DECODERS_NOAA_GAC_H_
 
 #include "common/aip.h"
+#include "common/tip.h"
 #include "decoder.h"
 #include "protocol/deframer.h"
 
@@ -29,6 +30,7 @@ class NOAAGACDecoder : public Decoder {
         images[Imager::AVHRR] = new RawImage(409, 5);
         images[Imager::HIRS] = new RawImage(56, 20);
         images[Imager::MHS] = new RawImage(90, 6);
+        images[Imager::AMSUA] = new RawImage(30, 15);
         init_xor();
     }
 
@@ -37,6 +39,7 @@ class NOAAGACDecoder : public Decoder {
     ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> deframer;
     ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270> deframer_reverse;
     double timestamp = 0.0;
+    double blackbody_temperature = 290;
 
     uint8_t frame[4159];
     uint16_t repacked[3327];
@@ -48,6 +51,7 @@ class NOAAGACDecoder : public Decoder {
     void frame_work(uint16_t *ptr);
 
     AIPDecoder aip_decoder;
+    TIPDecoder tip_decoder;
 };
 
 #endif

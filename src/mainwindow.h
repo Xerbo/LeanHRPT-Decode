@@ -1,6 +1,6 @@
 /*
  * LeanHRPT Decode
- * Copyright (C) 2021 Xerbo
+ * Copyright (C) 2021-2022 Xerbo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef LEANHRPT_MAINWINDOW_H_
+#define LEANHRPT_MAINWINDOW_H_
 
 #include <QActionGroup>
 #include <QColorDialog>
@@ -36,7 +36,7 @@
 #include "config/preset.h"
 #include "decoders/decoder.h"
 #include "fingerprint.h"
-#include "imagecompositor.h"
+#include "image/compositor.h"
 #include "network.h"
 #include "projectdialog.h"
 #include "projection.h"
@@ -48,7 +48,7 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
-enum WindowState { Idle, Decoding, Finished };
+enum class WindowState { Idle, Decoding, Finished };
 
 #define ABOUT_TEXT \
     "<h2>LeanHRPT Decode</h2>\
@@ -59,7 +59,15 @@ A high quality, easy to use HRPT decoder\
 <li><code>Ctrl+F</code> Flip image</li>\
 </ul>\
 Licensed under GPL-3.0.\
-<p>This program uses <a href=\"https://github.com/mcmtroffaes/inipp\">inipp</a>, <a href=\"https://github.com/beltoforion/muparser\">muparser</a>, <a href=\"https://github.com/la1k/libpredict\">libpredict</a> and parts of <a href=\"https://github.com/Digitelektro/MeteorDemod\">MeteorDemod</a> which are licensed under the MIT, BSD 2-Clause \"Simplified\", GPL-2.0 and MIT license respectively.</p>"
+<p>This program uses:</p>\
+<ul>\
+<li><a href=\"https://github.com/mcmtroffaes/inipp\">inipp</a> - Licensed under MIT</li>\
+<li><a href=\"https://github.com/beltoforion/muparser\">muparser</a> - Licensed under BSD 2-Clause \"Simplified\"</li>\
+<li><a href=\"https://github.com/la1k/libpredict\">libpredict</a> - Licensed under GPL-2.0</li>\
+<li><a href=\"https://github.com/OSGeo/shapelib\">shapelib</a> - Licensed under GPL-2.0</li>\
+<li>Parts of <a href=\"https://github.com/Digitelektro/MeteorDemod\">MeteorDemod</a> - Licensed under MIT</li>\
+<li>Parts of <a href=\"https://github.com/airbreather/Gavaghan.Geodesy\">Gavaghan.Geodesy</a> - Public domain</li>\
+</ul>"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -90,7 +98,7 @@ class MainWindow : public QMainWindow {
     float clip_limit = 1.0f;
     size_t selectedChannel = 1;
     std::array<size_t, 3> selectedComposite;
-    Equalization selectedEqualization = None;
+    Equalization selectedEqualization = Equalization::None;
 
     // Satellite meta information
     SatID sat;
@@ -102,8 +110,11 @@ class MainWindow : public QMainWindow {
     Projector *proj;
     bool have_tles;
     QColorDialog *color_dialog;
+    QColorDialog *landmark_color_dialog;
     QColor map_color = QColor(255, 255, 0);
+    QColor landmark_color = QColor(255, 0, 0);
     QString map_shapefile;
+    QString landmark_file;
 
     // Sensor selection
     Imager sensor;
@@ -171,8 +182,11 @@ class MainWindow : public QMainWindow {
     // menuGeo
     void on_actionProjector_triggered() { project_diag->show(); };
     void on_actionMap_Shapefile_triggered();
+    void on_actionLandmark_File_triggered();
     void on_actionMap_Color_triggered() { color_dialog->show(); };
+    void on_actionLandmark_Color_triggered() { landmark_color_dialog->show(); };
     void on_actionEnable_Map_triggered();
+    void on_actionEnable_Landmarks_triggered();
     // menuOptions
     void on_actionFlip_triggered();
     void on_actionIR_Blend_triggered();

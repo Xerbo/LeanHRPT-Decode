@@ -10,6 +10,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+# Generate with `find src/ | grep "\\.cpp" | sort`
 file(GLOB_RECURSE CXX_SOURCE_FILES
     src/commandline.cpp
     src/decoders/decoder.cpp
@@ -20,9 +21,12 @@ file(GLOB_RECURSE CXX_SOURCE_FILES
     src/decoders/noaa_gac.cpp
     src/decoders/noaa_hrpt.cpp
     src/fingerprint.cpp
+    src/geo/crs.cpp
     src/geo/geolocation.cpp
     src/geometry.cpp
-    src/imagecompositor.cpp
+    src/image/calibration.cpp
+    src/image/compositor.cpp
+    src/image/raw.cpp
     src/main.cpp
     src/mainwindow.cpp
     src/map.cpp
@@ -35,11 +39,10 @@ file(GLOB_RECURSE CXX_SOURCE_FILES
     src/protocol/lrpt/huffman.cpp
     src/protocol/lrpt/jpeg.cpp
     src/protocol/lrpt/packet.cpp
-    src/protocol/rawimage.cpp
     src/protocol/repack.cpp
 )
 IF (WIN32)
-add_executable(LeanHRPT-Decode WIN32 ${CXX_SOURCE_FILES})
+add_executable(LeanHRPT-Decode WIN32 ${CXX_SOURCE_FILES} LeanHRPT-Decode.rc)
 ELSE()
 add_executable(LeanHRPT-Decode ${CXX_SOURCE_FILES})
 ENDIF()
@@ -88,9 +91,9 @@ target_compile_definitions(LeanHRPT-Decode PRIVATE "VERSION=\"${VERSION}\"")
 install(TARGETS LeanHRPT-Decode RUNTIME DESTINATION bin)
 # Desktop file and icon
 install(FILES ${CMAKE_SOURCE_DIR}/LeanHRPT-Decode.desktop DESTINATION share/applications)
-install(FILES ${CMAKE_SOURCE_DIR}/logo128.png DESTINATION share/icons/hicolor/128x128/apps RENAME LeanHRPT-Decode.png)
+install(FILES ${CMAKE_SOURCE_DIR}/logo128.ico DESTINATION share/icons/hicolor/128x128/apps RENAME LeanHRPT-Decode.png)
 install(FILES ${CMAKE_SOURCE_DIR}/logo.svg DESTINATION share/icons/hicolor/scalable/apps RENAME LeanHRPT-Decode.svg)
-configure_file(logo128.png logo128.png COPYONLY)
+configure_file(logo128.ico logo128.ico COPYONLY)
 configure_file(logo.svg logo.svg COPYONLY)
 # Config files
 install(FILES ${CMAKE_SOURCE_DIR}/projection.ini DESTINATION share/leanhrpt)
@@ -122,8 +125,10 @@ if (NOT VERSION STREQUAL "Unknown")
     include(CPack)
 endif()
 
-find_package(Doxygen)
-if (DOXYGEN_FOUND)
+option(BUILD_DOXYGEN "Create HTML/LaTeX documentation with Doxygen" OFF)
+
+if (BUILD_DOXYGEN)
+    find_package(Doxygen)
     set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
     set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
     configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
