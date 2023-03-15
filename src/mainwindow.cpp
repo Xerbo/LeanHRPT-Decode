@@ -291,6 +291,7 @@ void MainWindow::on_actionOpen_triggered() {
 }
 
 void MainWindow::startDecode(std::string filename) {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     // Fingerprint
     scene->clear();
     setState(WindowState::Decoding);
@@ -392,18 +393,22 @@ void MainWindow::startDecode(std::string filename) {
 
     delete decoder;
     decoder = nullptr;
+    QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::decodeFinished() {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     if (sat == SatID::Unknown) {
         status->setText("Fingerprinting failed");
         setState(WindowState::Idle);
+        QApplication::restoreOverrideCursor();
         return;
     }
 
     if (compositors.at(default_sensor)->height() == 0) {
         status->setText("Decode failed");
         setState(WindowState::Idle);
+        QApplication::restoreOverrideCursor();
         return;
     }
     display = QImage(compositors.at(sensor)->width(), compositors.at(sensor)->height(), QImage::Format_RGBX64);
@@ -421,6 +426,7 @@ void MainWindow::decodeFinished() {
                         .arg(QString::fromStdString(satellite_info.at(sat).name))
                         .arg(QString::fromStdString(sensor_info.at(sensor).name))
                         .arg(compositors.at(sensor)->height()));
+    QApplication::restoreOverrideCursor();
     setState(WindowState::Finished);
     on_actionFlip_triggered();
     ui->actionEnable_Overlay->setChecked(false);
@@ -562,6 +568,7 @@ void MainWindow::get_source(QImage &image) {
 }
 
 void MainWindow::updateDisplay() {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     get_source(display);
     if (selectedEqualization == Equalization::None) {
         QImage copy(display);
@@ -581,6 +588,7 @@ void MainWindow::updateDisplay() {
     }
 
     ui->gradient->setEnabled(display.format() == QImage::Format_Grayscale16);
+    QApplication::restoreOverrideCursor();
 }
 
 QString MainWindow::getDefaultFilename() {
@@ -603,11 +611,7 @@ QString MainWindow::getDefaultFilename() {
 
 void MainWindow::saveCurrentImage() {
 
-    if (ui->actionCorrect->isChecked()){
-        corrected = true;
-    } else {
-        corrected = false;
-    }
+    corrected = ui->actionCorrect->isChecked();
 
     QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", getDefaultFilename() + ".png",
                                                     "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
@@ -617,6 +621,7 @@ void MainWindow::saveCurrentImage() {
     }
 
     savingImage = true;
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     QtConcurrent::run(
         [this](QString filename, bool corrected) {
             QImage image(compositors[sensor]->width(), compositors[sensor]->height(), QImage::Format_RGBX64);
@@ -626,6 +631,7 @@ void MainWindow::saveCurrentImage() {
             image.save(filename);
 
             savingImage = false;
+            QApplication::restoreOverrideCursor();
         },
         filename, corrected);
 }
