@@ -291,6 +291,7 @@ void MainWindow::on_actionOpen_triggered() {
 
 void MainWindow::startDecode(std::string filename) {
     // Fingerprint
+    scene->clear();
     setState(WindowState::Decoding);
     status->setText("Fingerprinting");
 
