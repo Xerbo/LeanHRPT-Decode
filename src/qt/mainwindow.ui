@@ -475,7 +475,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>30</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -485,7 +485,6 @@
     <addaction name="actionOpen"/>
     <addaction name="separator"/>
     <addaction name="actionSave_Current_Image"/>
-    <addaction name="actionSave_Current_Image_Corrected"/>
     <addaction name="actionSave_All_Channels"/>
     <addaction name="actionSave_GCP_File"/>
    </widget>
@@ -494,6 +493,7 @@
      <string>Options</string>
     </property>
     <addaction name="actionFlip"/>
+    <addaction name="actionCorrect"/>
     <addaction name="actionIR_Blend"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -656,6 +656,14 @@
    </property>
    <property name="text">
     <string>Enable Landmarks</string>
+   </property>
+  </action>
+  <action name="actionCorrect">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Correct</string>
    </property>
   </action>
  </widget>

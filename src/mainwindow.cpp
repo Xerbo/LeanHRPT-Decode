@@ -33,6 +33,7 @@
 #include "protocol/timestamp.h"
 #include "qt/ui_mainwindow.h"
 #include "util.h"
+#include "geometry.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ui = new Ui::MainWindow;
@@ -505,17 +506,21 @@ void MainWindow::setEqualization(Equalization type) {
     if (selectedEqualization == Equalization::None) {
         QImage copy(display);
         compositors[sensor]->postprocess(copy);
-        displayQImage(scene, copy);
+        updateDisplay();
     } else {
         QImage copy(display);
         ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
         compositors[sensor]->postprocess(copy);
-        displayQImage(scene, copy);
+        updateDisplay();
     }
 }
 
 void MainWindow::on_actionFlip_triggered() {
     compositors.at(sensor)->setFlipped(ui->actionFlip->isChecked());
+    updateDisplay();
+}
+
+void MainWindow::on_actionCorrect_triggered() {
     updateDisplay();
 }
 
@@ -561,11 +566,17 @@ void MainWindow::updateDisplay() {
     if (selectedEqualization == Equalization::None) {
         QImage copy(display);
         compositors[sensor]->postprocess(copy);
+            if (ui->actionCorrect->isChecked()){
+                copy = correct_geometry(copy, sat, sensor, compositors[sensor]->width());
+            }
         displayQImage(scene, copy);
     } else {
         QImage copy(display);
         ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
         compositors[sensor]->postprocess(copy);
+            if (ui->actionCorrect->isChecked()){
+                copy = correct_geometry(copy, sat, sensor, compositors[sensor]->width());
+            }
         displayQImage(scene, copy);
     }
 
@@ -590,7 +601,14 @@ QString MainWindow::getDefaultFilename() {
         .arg(types[ui->imageTabs->currentIndex()]);
 }
 
-void MainWindow::saveCurrentImage(bool corrected) {
+void MainWindow::saveCurrentImage() {
+
+    if (ui->actionCorrect->isChecked()){
+        corrected = true;
+    } else {
+        corrected = false;
+    }
+
     QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", getDefaultFilename() + ".png",
                                                     "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
 

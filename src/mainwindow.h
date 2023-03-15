@@ -94,6 +94,7 @@ class MainWindow : public QMainWindow {
     std::map<std::string, Preset> selected_presets;
 
     // User settings
+    bool corrected = false;
     float clip_limit = 1.0f;
     size_t selectedChannel = 1;
     std::array<size_t, 3> selectedComposite;
@@ -161,7 +162,7 @@ class MainWindow : public QMainWindow {
     bool savingImage = false;
     void saveAllChannels();
     QString getDefaultFilename();
-    void saveCurrentImage(bool corrected);
+    void saveCurrentImage();
 
     // GCP Saving
     void save_gcp();
@@ -174,8 +175,7 @@ class MainWindow : public QMainWindow {
    private slots:
     // menuFile
     void on_actionOpen_triggered();
-    void on_actionSave_Current_Image_triggered() { saveCurrentImage(false); };
-    void on_actionSave_Current_Image_Corrected_triggered() { saveCurrentImage(true); };
+    void on_actionSave_Current_Image_triggered() { saveCurrentImage(); };
     void on_actionSave_All_Channels_triggered() { saveAllChannels(); };
     void on_actionSave_GCP_File_triggered() { save_gcp(); };
     // menuGeo
@@ -188,6 +188,7 @@ class MainWindow : public QMainWindow {
     void on_actionEnable_Landmarks_triggered();
     // menuOptions
     void on_actionFlip_triggered();
+    void on_actionCorrect_triggered();
     void on_actionIR_Blend_triggered();
     // menuHelp
     void on_actionDocumentation_triggered() { QDesktopServices::openUrl(QUrl("https://github.com/Xerbo/LeanHRPT-Decode/wiki")); };
