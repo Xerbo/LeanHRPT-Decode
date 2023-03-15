@@ -30,7 +30,6 @@
 #include <QString>
 #include <QUrl>
 #include <array>
-#include <cmath>
 
 #include "config/gradient.h"
 #include "config/preset.h"
@@ -220,9 +219,8 @@ class MainWindow : public QMainWindow {
     };
     void on_gradient_textActivated(const QString &text);
 
-    // https://www.desmos.com/calculator/ercsdr9hrq
     void on_contrastLimit_valueChanged(int value) {
-        clip_limit = std::log10(value / 100.0f * 0.9 + 0.1) + 1.0f;
+        clip_limit = (value/100.0f) * (value/100.0f);
         setEqualization(selectedEqualization);
     };
     void on_brightnessOnly_stateChanged() { setEqualization(selectedEqualization); }
