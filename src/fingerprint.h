@@ -27,6 +27,8 @@
 #include "decoders/decoder.h"
 #include "satinfo.h"
 
+enum class Suggestion { Automatic, POESHRPT, POESGAC, POESDSB, MeteorHRPT, MeteorLRPT, MetOpHRPT, FengYunHRPT };
+
 class Fingerprint {
    public:
     Fingerprint() : is_running(true) {}
@@ -36,7 +38,7 @@ class Fingerprint {
      *
      * @returns The detected satellite, filetype and protocol
      */
-    std::tuple<SatID, FileType, Protocol> file(std::string filename);
+    std::tuple<SatID, FileType, Protocol> file(std::string filename, Suggestion suggestion);
 
     /**
      * Stop fingerprinting a file
@@ -52,7 +54,7 @@ class Fingerprint {
     SatID fingerprint_gac(std::istream &stream, bool reverse);
     SatID fingerprint_dsb(std::istream &stream);
 
-    Protocol fingerprint_raw(std::istream &stream);
+    Protocol fingerprint_raw(std::istream &stream, Suggestion suggestion);
     static std::set<Protocol> ccsds_downlinks(SatID id);
 
     static FileType id_magic(std::istream &stream) {

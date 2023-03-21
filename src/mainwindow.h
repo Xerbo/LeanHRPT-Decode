@@ -99,6 +99,7 @@ class MainWindow : public QMainWindow {
     size_t selectedChannel = 1;
     std::array<size_t, 3> selectedComposite;
     Equalization selectedEqualization = Equalization::None;
+    Suggestion fingerprinterSuggestion = Suggestion::Automatic;
 
     // Satellite meta information
     SatID sat;
@@ -190,6 +191,7 @@ class MainWindow : public QMainWindow {
     void on_actionFlip_triggered();
     void on_actionCorrect_triggered();
     void on_actionIR_Blend_triggered();
+    void on_groupProtocol_triggered();
     // menuHelp
     void on_actionDocumentation_triggered() { QDesktopServices::openUrl(QUrl("https://github.com/Xerbo/LeanHRPT-Decode/wiki")); };
     void on_actionIssue_Tracker_triggered() {

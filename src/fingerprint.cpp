@@ -38,7 +38,7 @@ class Scoreboard {
     std::map<T, size_t> ids;
 };
 
-std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
+std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename, Suggestion suggestion) {
     std::filebuf file;
     if (!file.open(filename, std::ios::in | std::ios::binary) && QFileInfo(QString::fromStdString(filename)).size() != 0) {
         return {SatID::Unknown, FileType::Unknown, Protocol::Unknown};
@@ -84,7 +84,7 @@ std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename) {
     }
 
     // Brute force until we find meteor frames or noaa frames
-    switch (fingerprint_raw(stream)) {
+    switch (fingerprint_raw(stream, suggestion)) {
         case Protocol::HRPT: {
             SatID id = fingerprint_noaa(stream, FileType::Raw);
             file.close();
@@ -148,33 +148,37 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream, FileType type) {
     return SatID::Unknown;
 }
 
-Protocol Fingerprint::fingerprint_raw(std::istream &stream) {
-    uint8_t buffer[1024];
-    ccsds::Deframer ccsds_deframer;
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> noaa_deframer(0,
-                                                                                                                          true);
-    ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> gac_deframer(0, true);
-    ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270> gac_reverse_deframer(
-        0, true);
-    std::vector<uint8_t> out((11090 * 10) / 8);
-    Scoreboard<Protocol> s;
+Protocol Fingerprint::fingerprint_raw(std::istream &stream, Suggestion suggestion) {
+    if ((suggestion == Suggestion::Automatic) || (suggestion == Suggestion::POESGAC)){
+        uint8_t buffer[1024];
+        ccsds::Deframer ccsds_deframer;
+        ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 110900> noaa_deframer(0, true);
+        ArbitraryDeframer<uint64_t, 0b101000010001011011111101011100011001110110000011110010010101, 60, 33270> gac_deframer(0, true);
+        ArbitraryDeframer<uint64_t, 0b010011001111000011111001001010011011001001001000101010011110, 60, 33270> gac_reverse_deframer(0, true);
+        std::vector<uint8_t> out((11090 * 10) / 8);
+        Scoreboard<Protocol> s;
 
-    while (is_running && !stream.eof()) {
-        stream.read(reinterpret_cast<char *>(buffer), 1024);
-        if (ccsds_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::MeteorHRPT, 1);
-        }
-        if (noaa_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::HRPT, 3);
-        }
-        if (gac_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::GAC, 1);
-        }
-        if (gac_reverse_deframer.work(buffer, out.data(), 1024)) {
-            s.add(Protocol::GACReverse, 1);
-        }
+        while (is_running && !stream.eof()) {
+            stream.read(reinterpret_cast<char *>(buffer), 1024);
+            if ((ccsds_deframer.work(buffer, out.data(), 1024)) && ((suggestion == Suggestion::Automatic) || (suggestion == Suggestion::MeteorHRPT))) {
+                s.add(Protocol::MeteorHRPT, 1);
+            }
+            if ((noaa_deframer.work(buffer, out.data(), 1024)) && ((suggestion == Suggestion::Automatic) || (suggestion == Suggestion::POESHRPT))) {
+                s.add(Protocol::HRPT, 3);
+            }
+            if ((gac_deframer.work(buffer, out.data(), 1024)) && ((suggestion == Suggestion::Automatic) || (suggestion == Suggestion::POESGAC))) {
+                s.add(Protocol::GAC, 1);
+            }
+            if ((gac_reverse_deframer.work(buffer, out.data(), 1024)) && ((suggestion == Suggestion::Automatic) || (suggestion == Suggestion::POESGAC))) {
+                s.add(Protocol::GACReverse, 1);
+            }
 
-        if (s.max() != Protocol::Unknown) return s.max();
+            if (s.max() != Protocol::Unknown) return s.max();
+        }
+    } else if (suggestion == Suggestion::MeteorHRPT){
+        return Protocol::MeteorHRPT;
+    } else if (suggestion == Suggestion::POESHRPT){
+        return Protocol::HRPT;
     }
 
     return Protocol::Unknown;

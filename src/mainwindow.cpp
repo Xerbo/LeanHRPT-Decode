@@ -300,7 +300,7 @@ void MainWindow::startDecode(std::string filename) {
     fingerprinter = new Fingerprint;
     FileType type;
     Protocol protocol;
-    std::tie(sat, type, protocol) = fingerprinter->file(filename);
+    std::tie(sat, type, protocol) = fingerprinter->file(filename,fingerprinterSuggestion);
     if (sat == SatID::Unknown) {
         delete fingerprinter;
         fingerprinter = nullptr;
@@ -399,16 +399,16 @@ void MainWindow::startDecode(std::string filename) {
 void MainWindow::decodeFinished() {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     if (sat == SatID::Unknown) {
+        QApplication::restoreOverrideCursor();
         status->setText("Fingerprinting failed");
         setState(WindowState::Idle);
-        QApplication::restoreOverrideCursor();
         return;
     }
 
     if (compositors.at(default_sensor)->height() == 0) {
+        QApplication::restoreOverrideCursor();
         status->setText("Decode failed");
         setState(WindowState::Idle);
-        QApplication::restoreOverrideCursor();
         return;
     }
     display = QImage(compositors.at(sensor)->width(), compositors.at(sensor)->height(), QImage::Format_RGBX64);
@@ -508,6 +508,7 @@ void MainWindow::setComposite(std::array<size_t, 3> channels) {
 }
 
 void MainWindow::setEqualization(Equalization type) {
+    // TODO make it so it doesnt re-apply correction with each equ
     selectedEqualization = type;
     if (selectedEqualization == Equalization::None) {
         QImage copy(display);
@@ -528,6 +529,36 @@ void MainWindow::on_actionFlip_triggered() {
 
 void MainWindow::on_actionCorrect_triggered() {
     updateDisplay();
+}
+
+void MainWindow::on_groupProtocol_triggered() {
+    if (ui->groupProtocol->checkedAction() == ui->actionProtocolAutomatic){
+        fingerprinterSuggestion = Suggestion::Automatic;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolPOESHRPT){
+        fingerprinterSuggestion = Suggestion::POESHRPT;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolPOESGAC){
+        fingerprinterSuggestion = Suggestion::POESGAC;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolPOESDSB){
+        fingerprinterSuggestion = Suggestion::POESDSB;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolMeteorHRPT){
+        fingerprinterSuggestion = Suggestion::MeteorHRPT;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolMeteorLRPT){
+        fingerprinterSuggestion = Suggestion::MeteorLRPT;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolMetOp){
+        fingerprinterSuggestion = Suggestion::MetOpHRPT;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolFY3){
+        fingerprinterSuggestion = Suggestion::FengYunHRPT;
+    }
+    
+    // TODO remember the path to the current file instead of asking to reopen it 
+
+    QString filename = QFileDialog::getOpenFileName(
+        this, "Open File", "", "Supported formats (*.bin *.cadu *.raw16 *.hrp *.vcdu *.tip *.dec);;All files (*)");
+
+    if (!filename.isEmpty()) {
+        decodeWatcher->setFuture(QtConcurrent::run([=]() { startDecode(filename.toStdString()); }));
+    }
+    
 }
 
 void MainWindow::on_actionIR_Blend_triggered() {

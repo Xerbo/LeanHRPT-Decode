@@ -82,7 +82,7 @@ int parseCommandLine(QCommandLineParser &parser) {
     SatID sat;
     FileType type;
     Protocol protocol;
-    std::tie(sat, type, protocol) = Fingerprint().file(filename.toStdString());
+    std::tie(sat, type, protocol) = Fingerprint().file(filename.toStdString(),Suggestion::Automatic);
 
     if (sat == SatID::Unknown) {
         std::cout << "Unable to identify satellite" << std::endl;
