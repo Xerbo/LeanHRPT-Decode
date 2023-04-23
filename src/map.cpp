@@ -332,7 +332,7 @@ void map::add_landmarks(QImage &image, const std::vector<Landmark> &landmarks, Q
     painter.setPen(color);
     painter.setRenderHint(QPainter::Antialiasing);
     QFont font = painter.font();
-    font.setPixelSize(image.width() / 130);
+    font.setPixelSize(10);
     painter.setFont(font);
 
     for (const Landmark &landmark : landmarks) {
@@ -340,8 +340,7 @@ void map::add_landmarks(QImage &image, const std::vector<Landmark> &landmarks, Q
         p1.rx() = r2px((p1.x() - xb) / xa, image.width());
         p1.ry() = r2px((p1.y() - yb) / ya, image.height());
 
-        painter.drawEllipse(p1, image.width() / 500, image.width() / 500);
-        painter.drawText(p1.x() - 500, p1.y() + 2.5, 1000, 250, Qt::AlignHCenter, landmark.text);
+        painter.drawText(p1.x() - 500, p1.y(), 1000, 250, Qt::AlignHCenter, landmark.text);
     }
 }
 
