@@ -295,6 +295,7 @@ void MainWindow::startDecode(std::string filename) {
     // Fingerprint
     scene->clear();
     setState(WindowState::Decoding);
+    ui->contrastLimitApply->setEnabled(false);
     status->setText("Fingerprinting");
 
     fingerprinter = new Fingerprint;
@@ -434,6 +435,17 @@ void MainWindow::decodeFinished() {
     ui->actionEnable_Map->setChecked(false);
     ui->actionIR_Blend->setEnabled(compositors.at(sensor)->sunz.size() != 0 && sensor != Imager::MHS && sensor != Imager::MTVZA &&
                                    sensor != Imager::HIRS);
+}
+
+// Highlight the clip limit number and enable apply box as a reminder you didn't apply it yet
+void MainWindow::colorClipLimit(bool changed) {
+    if (changed){
+        ui->contrastLimit->setStyleSheet("color: rgb(0,0,200); ");
+        ui->contrastLimitApply->setEnabled(true);
+    } else {
+        ui->contrastLimit->setStyleSheet("");
+        ui->contrastLimitApply->setEnabled(false);
+    }
 }
 
 void MainWindow::reloadPresets() {

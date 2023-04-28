@@ -96,6 +96,7 @@ class MainWindow : public QMainWindow {
     // User settings
     bool corrected = false;
     float clip_limit = 1.0f;
+    float set_clip_limit = clip_limit;
     size_t selectedChannel = 1;
     std::array<size_t, 3> selectedComposite;
     Equalization selectedEqualization = Equalization::None;
@@ -158,6 +159,7 @@ class MainWindow : public QMainWindow {
 
     // Equalization
     void setEqualization(Equalization type);
+    void colorClipLimit(bool changed);
 
     // Image saving
     bool savingImage = false;
@@ -224,8 +226,21 @@ class MainWindow : public QMainWindow {
 
     void on_contrastLimit_valueChanged(int value) {
         clip_limit = (value/100.0f) * (value/100.0f);
-        setEqualization(selectedEqualization);
+        if (clip_limit != set_clip_limit){
+            colorClipLimit(true);
+        } else {
+            colorClipLimit(false);
+        }
     };
+    void on_contrastLimitApply_clicked(){
+        set_clip_limit = clip_limit;
+        setEqualization(selectedEqualization);
+        if (clip_limit != set_clip_limit){
+            colorClipLimit(true);
+        } else {
+            colorClipLimit(false);
+        }
+    }
     void on_brightnessOnly_stateChanged() { setEqualization(selectedEqualization); }
 };
 
