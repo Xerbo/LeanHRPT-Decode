@@ -154,7 +154,7 @@ void ImageCompositor::postprocess(QImage &image, bool correct) {
         painter.setPen(landmark_color);
         painter.setRenderHint(QPainter::Antialiasing);
         QFont font = painter.font();
-        font.setPixelSize(image.width() / 130);
+        font.setPixelSize(10);
         painter.setFont(font);
 
         for (const Landmark &landmark : _landmarks) {
@@ -163,8 +163,7 @@ void ImageCompositor::postprocess(QImage &image, bool correct) {
                 point.rx() = image.width() - point.x();
                 point.ry() = image.height() - point.y();
             }
-            painter.drawEllipse(point, image.width() / 500, image.width() / 500);
-            painter.drawText(point.x() - 500, point.y() + 2.5, 1000, 250, Qt::AlignHCenter, landmark.text);
+            painter.drawText(point.x() - 500, point.y(), 1000, 250, Qt::AlignHCenter, landmark.text);
         }
     }
 }

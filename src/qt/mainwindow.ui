@@ -297,18 +297,25 @@
            </widget>
           </item>
           <item>
-           <widget class="QSlider" name="contrastLimit">
+           <widget class="QSpinBox" name="contrastLimit">
+            <property name="suffix">
+             <string>%</string>
+            </property>
             <property name="maximum">
              <number>100</number>
             </property>
             <property name="value">
              <number>100</number>
             </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="contrastLimitApply">
+            <property name="enabled">
+             <bool>false</bool>
             </property>
-            <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+            <property name="text">
+             <string>Apply</string>
             </property>
            </widget>
           </item>
@@ -475,7 +482,7 @@
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>30</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -485,7 +492,6 @@
     <addaction name="actionOpen"/>
     <addaction name="separator"/>
     <addaction name="actionSave_Current_Image"/>
-    <addaction name="actionSave_Current_Image_Corrected"/>
     <addaction name="actionSave_All_Channels"/>
     <addaction name="actionSave_GCP_File"/>
    </widget>
@@ -494,6 +500,7 @@
      <string>Options</string>
     </property>
     <addaction name="actionFlip"/>
+    <addaction name="actionCorrect"/>
     <addaction name="actionIR_Blend"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -524,10 +531,20 @@
     <addaction name="actionEnable_Map"/>
     <addaction name="actionEnable_Landmarks"/>
    </widget>
+   <widget class="QMenu" name="menuProtocol">
+    <property name="title">
+     <string>Protocol</string>
+    </property>
+    <addaction name="actionProtocolAutomatic"/>
+    <addaction name="actionProtocolMeteorHRPT"/>
+    <addaction name="actionProtocolPOESGAC"/>
+    <addaction name="actionProtocolPOESHRPT"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuGeo"/>
    <addaction name="menuOptions"/>
    <addaction name="menuSensor"/>
+   <addaction name="menuProtocol"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -658,6 +675,83 @@
     <string>Enable Landmarks</string>
    </property>
   </action>
+  <action name="actionCorrect">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Correct</string>
+   </property>
+  </action>
+  <actiongroup name="groupProtocol">
+   <action name="actionProtocolAutomatic">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>Automatic/Other</string>
+    </property>
+   </action>
+   <action name="actionProtocolFY3">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>FengYun-3 HRPT</string>
+    </property>
+   </action>
+   <action name="actionProtocolPOESHRPT">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>NOAA POES HRPT</string>
+    </property>
+   </action>
+   <action name="actionProtocolPOESGAC">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>NOAA POES GAC</string>
+    </property>
+   </action>
+   <action name="actionProtocolPOESDSB">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>NOAA POES DSB</string>
+    </property>
+   </action>
+   <action name="actionProtocolMeteorHRPT">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>Meteor-M HRPT</string>
+    </property>
+   </action>
+   <action name="actionProtocolMeteorLRPT">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>Meteor-M LRPT</string>
+    </property>
+   </action>
+   <action name="actionProtocolMetOp">
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string>MetOp HRPT</string>
+    </property>
+   </action>
+  </actiongroup>
  </widget>
  <customwidgets>
   <customwidget>

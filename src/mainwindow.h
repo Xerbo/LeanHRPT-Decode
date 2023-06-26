@@ -30,7 +30,6 @@
 #include <QString>
 #include <QUrl>
 #include <array>
-#include <cmath>
 
 #include "config/gradient.h"
 #include "config/preset.h"
@@ -95,10 +94,13 @@ class MainWindow : public QMainWindow {
     std::map<std::string, Preset> selected_presets;
 
     // User settings
+    bool corrected = false;
     float clip_limit = 1.0f;
+    float set_clip_limit = clip_limit;
     size_t selectedChannel = 1;
     std::array<size_t, 3> selectedComposite;
     Equalization selectedEqualization = Equalization::None;
+    Suggestion fingerprinterSuggestion = Suggestion::Automatic;
 
     // Satellite meta information
     SatID sat;
@@ -157,12 +159,13 @@ class MainWindow : public QMainWindow {
 
     // Equalization
     void setEqualization(Equalization type);
+    void colorClipLimit(bool changed);
 
     // Image saving
     bool savingImage = false;
     void saveAllChannels();
     QString getDefaultFilename();
-    void saveCurrentImage(bool corrected);
+    void saveCurrentImage();
 
     // GCP Saving
     void save_gcp();
@@ -175,8 +178,7 @@ class MainWindow : public QMainWindow {
    private slots:
     // menuFile
     void on_actionOpen_triggered();
-    void on_actionSave_Current_Image_triggered() { saveCurrentImage(false); };
-    void on_actionSave_Current_Image_Corrected_triggered() { saveCurrentImage(true); };
+    void on_actionSave_Current_Image_triggered() { saveCurrentImage(); };
     void on_actionSave_All_Channels_triggered() { saveAllChannels(); };
     void on_actionSave_GCP_File_triggered() { save_gcp(); };
     // menuGeo
@@ -189,7 +191,9 @@ class MainWindow : public QMainWindow {
     void on_actionEnable_Landmarks_triggered();
     // menuOptions
     void on_actionFlip_triggered();
+    void on_actionCorrect_triggered();
     void on_actionIR_Blend_triggered();
+    void on_groupProtocol_triggered();
     // menuHelp
     void on_actionDocumentation_triggered() { QDesktopServices::openUrl(QUrl("https://github.com/Xerbo/LeanHRPT-Decode/wiki")); };
     void on_actionIssue_Tracker_triggered() {
@@ -220,11 +224,23 @@ class MainWindow : public QMainWindow {
     };
     void on_gradient_textActivated(const QString &text);
 
-    // https://www.desmos.com/calculator/ercsdr9hrq
     void on_contrastLimit_valueChanged(int value) {
-        clip_limit = std::log10(value / 100.0f * 0.9 + 0.1) + 1.0f;
-        setEqualization(selectedEqualization);
+        clip_limit = (value/100.0f) * (value/100.0f);
+        if (clip_limit != set_clip_limit){
+            colorClipLimit(true);
+        } else {
+            colorClipLimit(false);
+        }
     };
+    void on_contrastLimitApply_clicked(){
+        set_clip_limit = clip_limit;
+        setEqualization(selectedEqualization);
+        if (clip_limit != set_clip_limit){
+            colorClipLimit(true);
+        } else {
+            colorClipLimit(false);
+        }
+    }
     void on_brightnessOnly_stateChanged() { setEqualization(selectedEqualization); }
 };
 

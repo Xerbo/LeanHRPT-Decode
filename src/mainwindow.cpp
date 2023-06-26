@@ -33,6 +33,7 @@
 #include "protocol/timestamp.h"
 #include "qt/ui_mainwindow.h"
 #include "util.h"
+#include "geometry.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     ui = new Ui::MainWindow;
@@ -290,14 +291,17 @@ void MainWindow::on_actionOpen_triggered() {
 }
 
 void MainWindow::startDecode(std::string filename) {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     // Fingerprint
+    scene->clear();
     setState(WindowState::Decoding);
+    ui->contrastLimitApply->setEnabled(false);
     status->setText("Fingerprinting");
 
     fingerprinter = new Fingerprint;
     FileType type;
     Protocol protocol;
-    std::tie(sat, type, protocol) = fingerprinter->file(filename);
+    std::tie(sat, type, protocol) = fingerprinter->file(filename,fingerprinterSuggestion);
     if (sat == SatID::Unknown) {
         delete fingerprinter;
         fingerprinter = nullptr;
@@ -390,16 +394,20 @@ void MainWindow::startDecode(std::string filename) {
 
     delete decoder;
     decoder = nullptr;
+    QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::decodeFinished() {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     if (sat == SatID::Unknown) {
+        QApplication::restoreOverrideCursor();
         status->setText("Fingerprinting failed");
         setState(WindowState::Idle);
         return;
     }
 
     if (compositors.at(default_sensor)->height() == 0) {
+        QApplication::restoreOverrideCursor();
         status->setText("Decode failed");
         setState(WindowState::Idle);
         return;
@@ -419,6 +427,7 @@ void MainWindow::decodeFinished() {
                         .arg(QString::fromStdString(satellite_info.at(sat).name))
                         .arg(QString::fromStdString(sensor_info.at(sensor).name))
                         .arg(compositors.at(sensor)->height()));
+    QApplication::restoreOverrideCursor();
     setState(WindowState::Finished);
     on_actionFlip_triggered();
     ui->actionEnable_Overlay->setChecked(false);
@@ -426,6 +435,17 @@ void MainWindow::decodeFinished() {
     ui->actionEnable_Map->setChecked(false);
     ui->actionIR_Blend->setEnabled(compositors.at(sensor)->sunz.size() != 0 && sensor != Imager::MHS && sensor != Imager::MTVZA &&
                                    sensor != Imager::HIRS);
+}
+
+// Highlight the clip limit number and enable apply box as a reminder you didn't apply it yet
+void MainWindow::colorClipLimit(bool changed) {
+    if (changed){
+        ui->contrastLimit->setStyleSheet("color: rgb(0,0,200); ");
+        ui->contrastLimitApply->setEnabled(true);
+    } else {
+        ui->contrastLimit->setStyleSheet("");
+        ui->contrastLimitApply->setEnabled(false);
+    }
 }
 
 void MainWindow::reloadPresets() {
@@ -500,22 +520,57 @@ void MainWindow::setComposite(std::array<size_t, 3> channels) {
 }
 
 void MainWindow::setEqualization(Equalization type) {
+    // TODO make it so it doesnt re-apply correction with each equ
     selectedEqualization = type;
     if (selectedEqualization == Equalization::None) {
         QImage copy(display);
         compositors[sensor]->postprocess(copy);
-        displayQImage(scene, copy);
+        updateDisplay();
     } else {
         QImage copy(display);
         ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
         compositors[sensor]->postprocess(copy);
-        displayQImage(scene, copy);
+        updateDisplay();
     }
 }
 
 void MainWindow::on_actionFlip_triggered() {
     compositors.at(sensor)->setFlipped(ui->actionFlip->isChecked());
     updateDisplay();
+}
+
+void MainWindow::on_actionCorrect_triggered() {
+    updateDisplay();
+}
+
+void MainWindow::on_groupProtocol_triggered() {
+    if (ui->groupProtocol->checkedAction() == ui->actionProtocolAutomatic){
+        fingerprinterSuggestion = Suggestion::Automatic;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolPOESHRPT){
+        fingerprinterSuggestion = Suggestion::POESHRPT;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolPOESGAC){
+        fingerprinterSuggestion = Suggestion::POESGAC;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolPOESDSB){
+        fingerprinterSuggestion = Suggestion::POESDSB;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolMeteorHRPT){
+        fingerprinterSuggestion = Suggestion::MeteorHRPT;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolMeteorLRPT){
+        fingerprinterSuggestion = Suggestion::MeteorLRPT;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolMetOp){
+        fingerprinterSuggestion = Suggestion::MetOpHRPT;
+    } else if (ui->groupProtocol->checkedAction() == ui->actionProtocolFY3){
+        fingerprinterSuggestion = Suggestion::FengYunHRPT;
+    }
+    
+    // TODO remember the path to the current file instead of asking to reopen it 
+
+    QString filename = QFileDialog::getOpenFileName(
+        this, "Open File", "", "Supported formats (*.bin *.cadu *.raw16 *.hrp *.vcdu *.tip *.dec);;All files (*)");
+
+    if (!filename.isEmpty()) {
+        decodeWatcher->setFuture(QtConcurrent::run([=]() { startDecode(filename.toStdString()); }));
+    }
+    
 }
 
 void MainWindow::on_actionIR_Blend_triggered() {
@@ -556,19 +611,27 @@ void MainWindow::get_source(QImage &image) {
 }
 
 void MainWindow::updateDisplay() {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     get_source(display);
     if (selectedEqualization == Equalization::None) {
         QImage copy(display);
         compositors[sensor]->postprocess(copy);
+            if (ui->actionCorrect->isChecked()){
+                copy = correct_geometry(copy, sat, sensor, compositors[sensor]->width());
+            }
         displayQImage(scene, copy);
     } else {
         QImage copy(display);
         ImageCompositor::equalise(copy, selectedEqualization, clip_limit, ui->brightnessOnly->isChecked());
         compositors[sensor]->postprocess(copy);
+            if (ui->actionCorrect->isChecked()){
+                copy = correct_geometry(copy, sat, sensor, compositors[sensor]->width());
+            }
         displayQImage(scene, copy);
     }
 
     ui->gradient->setEnabled(display.format() == QImage::Format_Grayscale16);
+    QApplication::restoreOverrideCursor();
 }
 
 QString MainWindow::getDefaultFilename() {
@@ -589,7 +652,10 @@ QString MainWindow::getDefaultFilename() {
         .arg(types[ui->imageTabs->currentIndex()]);
 }
 
-void MainWindow::saveCurrentImage(bool corrected) {
+void MainWindow::saveCurrentImage() {
+
+    corrected = ui->actionCorrect->isChecked();
+
     QString filename = QFileDialog::getSaveFileName(this, "Save Current Image", getDefaultFilename() + ".png",
                                                     "PNG (*.png);;JPEG (*.jpg *.jpeg);;WEBP (*.webp);; BMP (*.bmp)");
 
@@ -598,6 +664,7 @@ void MainWindow::saveCurrentImage(bool corrected) {
     }
 
     savingImage = true;
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     QtConcurrent::run(
         [this](QString filename, bool corrected) {
             QImage image(compositors[sensor]->width(), compositors[sensor]->height(), QImage::Format_RGBX64);
@@ -607,6 +674,7 @@ void MainWindow::saveCurrentImage(bool corrected) {
             image.save(filename);
 
             savingImage = false;
+            QApplication::restoreOverrideCursor();
         },
         filename, corrected);
 }
