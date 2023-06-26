@@ -40,7 +40,7 @@ jobs:
         fetch-depth: 0
 
     - name: Install apt dependencies
-      run: 'sudo apt-get update && sudo apt-get install -y cmake make git g++ python3 python3-pip mesa-common-dev libglu1-mesa-dev'
+      run: 'sudo apt-get update && sudo apt-get install -y fuse cmake make git g++ python3 python3-pip mesa-common-dev libglu1-mesa-dev'
 
     - name: Install pip dependencies
       run: 'pip3 install -U pip && pip3 install aqtinstall'
