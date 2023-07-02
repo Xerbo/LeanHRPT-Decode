@@ -39,7 +39,8 @@ enum class SatID {
     NOAA18 = 28654,
     NOAA19 = 33591,
     MeteorM2 = 40069,
-    MeteorM22 = 44387
+    MeteorM22 = 44387,
+    MeteorM23 = 57166
 };
 
 enum class Imager { AVHRR, VIRR, MSUMR, MHS, MTVZA, HIRS, AMSUA };
@@ -89,8 +90,9 @@ const std::map<SatID, SatelliteInfo> satellite_info {
     { SatID::NOAA15,    SatelliteInfo { 813.0f, Mission::POES,     "NOAA-15",    Imager::AVHRR } },
     { SatID::NOAA18,    SatelliteInfo { 854.0f, Mission::POES,     "NOAA-18",    Imager::AVHRR } },
     { SatID::NOAA19,    SatelliteInfo { 870.0f, Mission::POES,     "NOAA-19",    Imager::AVHRR } },
-    { SatID::MeteorM2,  SatelliteInfo { 820.0f, Mission::MeteorM,  "Meteor-M2",  Imager::MSUMR } },
-    { SatID::MeteorM22, SatelliteInfo { 821.0f, Mission::MeteorM,  "Meteor-M22", Imager::MSUMR } },
+    { SatID::MeteorM2,  SatelliteInfo { 820.0f, Mission::MeteorM,  "Meteor-M N2",  Imager::MSUMR } },
+    { SatID::MeteorM22, SatelliteInfo { 821.0f, Mission::MeteorM,  "Meteor-M N2-2", Imager::MSUMR } },
+    { SatID::MeteorM23, SatelliteInfo { 821.0f, Mission::MeteorM,  "Meteor-M N2-3", Imager::MSUMR } },
 };
 // clang-format on
 

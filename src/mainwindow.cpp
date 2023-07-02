@@ -398,17 +398,18 @@ void MainWindow::startDecode(std::string filename) {
 }
 
 void MainWindow::decodeFinished() {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    //QApplication::setOverrideCursor(Qt::WaitCursor); // this gets stuck if fingerprinting fails i have no idea why, it doesnt happen in failed decode???
     if (sat == SatID::Unknown) {
         QApplication::restoreOverrideCursor();
-        status->setText("Fingerprinting failed");
+        status->setText(QString("Failed to fingerprint"));
         setState(WindowState::Idle);
         return;
     }
 
     if (compositors.at(default_sensor)->height() == 0) {
         QApplication::restoreOverrideCursor();
-        status->setText("Decode failed");
+        status->setText(QString("Failed to decode %1")
+                        .arg(QString::fromStdString(satellite_info.at(sat).name)));
         setState(WindowState::Idle);
         return;
     }
