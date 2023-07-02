@@ -331,7 +331,7 @@ SatID Fingerprint::fingerprint_meteor(std::istream &stream, FileType type) {
                         s.add(SatID::MeteorM22);
                         break;
                     case 3:                        
-                        s.add(SatID::MeteorM23);
+                        s.add(SatID::MeteorM22); // TODO: has to be implemented as MeteorM23
                         break;
                     default:
                         break;
@@ -342,7 +342,7 @@ SatID Fingerprint::fingerprint_meteor(std::istream &stream, FileType type) {
         }
     }
 
-    return SatID::Unknown;
+    return SatID::MeteorM2; // TODO: this is supposed to be Unknown, Meteor-M N2-3 LRPT ID has to be implemented
 }
 
 SatID Fingerprint::fingerprint_dsb(std::istream &stream) {
