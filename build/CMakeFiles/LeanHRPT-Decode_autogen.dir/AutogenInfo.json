@@ -1,0 +1,449 @@
+{
+	"BUILD_DIR" : "/home/roger/LeanHRPT-Decode/build/LeanHRPT-Decode_autogen",
+	"CMAKE_BINARY_DIR" : "/home/roger/LeanHRPT-Decode/build",
+	"CMAKE_CURRENT_BINARY_DIR" : "/home/roger/LeanHRPT-Decode/build",
+	"CMAKE_CURRENT_SOURCE_DIR" : "/home/roger/LeanHRPT-Decode",
+	"CMAKE_EXECUTABLE" : "/usr/bin/cmake",
+	"CMAKE_LIST_FILES" : 
+	[
+		"/home/roger/LeanHRPT-Decode/CMakeLists.txt",
+		"/usr/share/cmake-3.22/Modules/CMakeDetermineSystem.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeSystem.cmake.in",
+		"/home/roger/LeanHRPT-Decode/build/CMakeFiles/3.22.1/CMakeSystem.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeUnixFindMake.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeSystemSpecificInitialize.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeDetermineCXXCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeDetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Platform/Linux-Determine-CXX.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeDetermineCompilerId.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeCompilerIdDetection.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/ADSP-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/ARMCC-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/ARMClang-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/AppleClang-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/Clang-DetermineCompilerInternal.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/Borland-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/Clang-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/Clang-DetermineCompilerInternal.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/Comeau-CXX-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/Compaq-CXX-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/Cray-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/Embarcadero-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/Fujitsu-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/FujitsuClang-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/GHS-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/GNU-CXX-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/HP-CXX-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/IAR-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/Intel-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/IntelLLVM-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/MSVC-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/NVHPC-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/NVIDIA-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/OpenWatcom-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/PGI-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/PathScale-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/SCO-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/SunPro-CXX-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/TI-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/VisualAge-CXX-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/IBMCPP-CXX-DetermineVersionInternal.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/Watcom-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/XL-CXX-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/IBMCPP-CXX-DetermineVersionInternal.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/XLClang-CXX-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/zOS-CXX-DetermineCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/IBMCPP-CXX-DetermineVersionInternal.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeFindBinUtils.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/GNU-FindBinUtils.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeCXXCompiler.cmake.in",
+		"/home/roger/LeanHRPT-Decode/build/CMakeFiles/3.22.1/CMakeCXXCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeSystemSpecificInformation.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeGenericSystem.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeInitializeConfigs.cmake",
+		"/usr/share/cmake-3.22/Modules/Platform/Linux.cmake",
+		"/usr/share/cmake-3.22/Modules/Platform/UnixPaths.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeCXXInformation.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeLanguageInformation.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/GNU-CXX.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/GNU.cmake",
+		"/usr/share/cmake-3.22/Modules/Compiler/CMakeCommonCompilerMacros.cmake",
+		"/usr/share/cmake-3.22/Modules/Platform/Linux-GNU-CXX.cmake",
+		"/usr/share/cmake-3.22/Modules/Platform/Linux-GNU.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeCommonLanguageInclude.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeTestCXXCompiler.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeTestCompilerCommon.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeDetermineCompilerABI.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeParseImplicitIncludeInfo.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeParseImplicitLinkInfo.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeParseLibraryArchitecture.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeTestCompilerCommon.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeCXXCompilerABI.cpp",
+		"/usr/share/cmake-3.22/Modules/CMakeDetermineCompileFeatures.cmake",
+		"/usr/share/cmake-3.22/Modules/Internal/FeatureTesting.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeCXXCompiler.cmake.in",
+		"/home/roger/LeanHRPT-Decode/build/CMakeFiles/3.22.1/CMakeCXXCompiler.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5ConfigVersion.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5Config.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5ConfigVersion.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5Config.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5ModuleLocation.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Widgets/Qt5WidgetsConfigVersion.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Widgets/Qt5WidgetsConfig.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5GuiConfigVersion.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5GuiConfig.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Core/Qt5CoreConfigVersion.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Core/Qt5CoreConfig.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Core/Qt5CoreConfigExtras.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Core/Qt5CoreConfigExtrasMkspecDir.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Core/Qt5CoreMacros.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeParseArguments.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QComposePlatformInputContextPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEglFSEmulatorIntegrationPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEglFSIntegrationPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEglFSKmsEglDeviceIntegrationPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEglFSKmsGbmIntegrationPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEglFSX11IntegrationPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEvdevKeyboardPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEvdevMousePlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEvdevTabletPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QEvdevTouchScreenPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QGifPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QICOPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QIbusPlatformInputContextPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QJpegPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QLibInputPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QLinuxFbIntegrationPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QMinimalEglIntegrationPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QMinimalIntegrationPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QOffscreenIntegrationPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QTuioTouchPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QVncIntegrationPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QXcbEglIntegrationPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QXcbGlxIntegrationPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5Gui_QXcbIntegrationPlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Gui/Qt5GuiConfigExtras.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Widgets/Qt5WidgetsConfigExtras.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Widgets/Qt5WidgetsMacros.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeParseArguments.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5ConfigVersion.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5Config.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5/Qt5ModuleLocation.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Network/Qt5NetworkConfigVersion.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Network/Qt5NetworkConfig.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Network/Qt5Network_QConnmanEnginePlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Network/Qt5Network_QGenericEnginePlugin.cmake",
+		"/usr/lib/x86_64-linux-gnu/cmake/Qt5Network/Qt5Network_QNetworkManagerEnginePlugin.cmake",
+		"/usr/share/cmake-3.22/Modules/FindOpenMP.cmake",
+		"/usr/share/cmake-3.22/Modules/CMakeParseImplicitLinkInfo.cmake",
+		"/home/roger/LeanHRPT-Decode/build/CMakeFiles/FindOpenMP/OpenMPTryFlag.cpp",
+		"/usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake",
+		"/usr/share/cmake-3.22/Modules/FindPackageMessage.cmake",
+		"/home/roger/LeanHRPT-Decode/build/CMakeFiles/FindOpenMP/OpenMPCheckVersion.cpp",
+		"/usr/share/cmake-3.22/Modules/FindGit.cmake",
+		"/usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake",
+		"/usr/share/cmake-3.22/Modules/FindPackageMessage.cmake",
+		"/home/roger/LeanHRPT-Decode/logo128.ico",
+		"/home/roger/LeanHRPT-Decode/logo.svg",
+		"/home/roger/LeanHRPT-Decode/projection.ini",
+		"/home/roger/LeanHRPT-Decode/calibration.ini",
+		"/home/roger/LeanHRPT-Decode/presets.ini",
+		"/home/roger/LeanHRPT-Decode/gradients.ini",
+		"/usr/share/cmake-3.22/Modules/CPack.cmake",
+		"/usr/share/cmake-3.22/Modules/CPackComponent.cmake",
+		"/usr/share/cmake-3.22/Templates/CPackConfig.cmake.in",
+		"/usr/share/cmake-3.22/Templates/CPackConfig.cmake.in"
+	],
+	"CMAKE_SOURCE_DIR" : "/home/roger/LeanHRPT-Decode",
+	"DEP_FILE" : "",
+	"DEP_FILE_RULE_NAME" : "",
+	"HEADERS" : 
+	[
+		[
+			"/home/roger/LeanHRPT-Decode/src/commandline.h",
+			"MU",
+			"UVLADIE3JM/moc_commandline.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/decoders/decoder.h",
+			"MU",
+			"AT5PNXWLTV/moc_decoder.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/decoders/fengyun_hrpt.h",
+			"MU",
+			"AT5PNXWLTV/moc_fengyun_hrpt.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/decoders/meteor_hrpt.h",
+			"MU",
+			"AT5PNXWLTV/moc_meteor_hrpt.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/decoders/meteor_lrpt.h",
+			"MU",
+			"AT5PNXWLTV/moc_meteor_lrpt.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/decoders/metop_hrpt.h",
+			"MU",
+			"AT5PNXWLTV/moc_metop_hrpt.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/decoders/noaa_gac.h",
+			"MU",
+			"AT5PNXWLTV/moc_noaa_gac.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/decoders/noaa_hrpt.h",
+			"MU",
+			"AT5PNXWLTV/moc_noaa_hrpt.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/fingerprint.h",
+			"MU",
+			"UVLADIE3JM/moc_fingerprint.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/geo/crs.h",
+			"MU",
+			"CG2SJ52CHU/moc_crs.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/geo/geolocation.h",
+			"MU",
+			"CG2SJ52CHU/moc_geolocation.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/geometry.h",
+			"MU",
+			"UVLADIE3JM/moc_geometry.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/image/calibration.h",
+			"MU",
+			"43IXVV2HIM/moc_calibration.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/image/compositor.h",
+			"MU",
+			"43IXVV2HIM/moc_compositor.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/image/raw.h",
+			"MU",
+			"43IXVV2HIM/moc_raw.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/mainwindow.h",
+			"MU",
+			"UVLADIE3JM/moc_mainwindow.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/map.h",
+			"MU",
+			"UVLADIE3JM/moc_map.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/network.h",
+			"MU",
+			"UVLADIE3JM/moc_network.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/projectdialog.h",
+			"MU",
+			"UVLADIE3JM/moc_projectdialog.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/projection.h",
+			"MU",
+			"UVLADIE3JM/moc_projection.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/protocol/ccsds/deframer.h",
+			"MU",
+			"XJML25MCPU/moc_deframer.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/protocol/ccsds/demuxer.h",
+			"MU",
+			"XJML25MCPU/moc_demuxer.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/protocol/deframer.h",
+			"MU",
+			"X5TIYENYS2/moc_deframer.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/protocol/lrpt/huffman.h",
+			"MU",
+			"KGM66AOL33/moc_huffman.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/protocol/lrpt/jpeg.h",
+			"MU",
+			"KGM66AOL33/moc_jpeg.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/protocol/lrpt/packet.h",
+			"MU",
+			"KGM66AOL33/moc_packet.cpp",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/protocol/repack.h",
+			"MU",
+			"X5TIYENYS2/moc_repack.cpp",
+			null
+		]
+	],
+	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
+	"INCLUDE_DIR" : "/home/roger/LeanHRPT-Decode/build/LeanHRPT-Decode_autogen/include",
+	"MOC_COMPILATION_FILE" : "/home/roger/LeanHRPT-Decode/build/LeanHRPT-Decode_autogen/mocs_compilation.cpp",
+	"MOC_DEFINITIONS" : 
+	[
+		"QT_CORE_LIB",
+		"QT_GUI_LIB",
+		"QT_NETWORK_LIB",
+		"QT_NO_DEBUG",
+		"QT_WIDGETS_LIB",
+		"VERSION=\"v0.10.0-alpha.1\""
+	],
+	"MOC_DEPEND_FILTERS" : 
+	[
+		[
+			"Q_PLUGIN_METADATA",
+			"[\n][ \t]*Q_PLUGIN_METADATA[ \t]*\\([^\\)]*FILE[ \t]*\"([^\"]+)\""
+		]
+	],
+	"MOC_INCLUDES" : 
+	[
+		"/home/roger/LeanHRPT-Decode/build",
+		"/home/roger/LeanHRPT-Decode",
+		"/home/roger/LeanHRPT-Decode/src",
+		"/usr/include/x86_64-linux-gnu/qt5",
+		"/usr/include/x86_64-linux-gnu/qt5/QtWidgets",
+		"/usr/include/x86_64-linux-gnu/qt5/QtGui",
+		"/usr/include/x86_64-linux-gnu/qt5/QtCore",
+		"/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++",
+		"/usr/include/x86_64-linux-gnu/qt5/QtNetwork",
+		"/usr/include/c++/11",
+		"/usr/include/x86_64-linux-gnu/c++/11",
+		"/usr/include/c++/11/backward",
+		"/usr/lib/gcc/x86_64-linux-gnu/11/include",
+		"/usr/local/include",
+		"/usr/include/x86_64-linux-gnu",
+		"/usr/include"
+	],
+	"MOC_MACRO_NAMES" : [ "Q_OBJECT", "Q_GADGET", "Q_NAMESPACE", "Q_NAMESPACE_EXPORT" ],
+	"MOC_OPTIONS" : [],
+	"MOC_PATH_PREFIX" : false,
+	"MOC_PREDEFS_CMD" : 
+	[
+		"/usr/bin/c++",
+		"-dM",
+		"-E",
+		"-c",
+		"/usr/share/cmake-3.22/Modules/CMakeCXXCompilerABI.cpp"
+	],
+	"MOC_PREDEFS_FILE" : "/home/roger/LeanHRPT-Decode/build/LeanHRPT-Decode_autogen/moc_predefs.h",
+	"MOC_RELAXED_MODE" : false,
+	"MOC_SKIP" : [],
+	"MULTI_CONFIG" : false,
+	"PARALLEL" : 8,
+	"PARSE_CACHE_FILE" : "/home/roger/LeanHRPT-Decode/build/CMakeFiles/LeanHRPT-Decode_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "/usr/lib/qt5/bin/moc",
+	"QT_UIC_EXECUTABLE" : "/usr/lib/qt5/bin/uic",
+	"QT_VERSION_MAJOR" : 5,
+	"QT_VERSION_MINOR" : 15,
+	"SETTINGS_FILE" : "/home/roger/LeanHRPT-Decode/build/CMakeFiles/LeanHRPT-Decode_autogen.dir/AutogenUsed.txt",
+	"SOURCES" : 
+	[
+		[ "/home/roger/LeanHRPT-Decode/src/commandline.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/decoders/decoder.cpp", "MU", null ],
+		[
+			"/home/roger/LeanHRPT-Decode/src/decoders/fengyun_hrpt.cpp",
+			"MU",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/decoders/meteor_hrpt.cpp",
+			"MU",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/decoders/meteor_lrpt.cpp",
+			"MU",
+			null
+		],
+		[ "/home/roger/LeanHRPT-Decode/src/decoders/metop_hrpt.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/decoders/noaa_gac.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/decoders/noaa_hrpt.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/fingerprint.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/geo/crs.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/geo/geolocation.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/geometry.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/image/calibration.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/image/compositor.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/image/raw.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/main.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/mainwindow.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/map.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/network.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/projectdialog.cpp", "MU", null ],
+		[ "/home/roger/LeanHRPT-Decode/src/projection.cpp", "MU", null ],
+		[
+			"/home/roger/LeanHRPT-Decode/src/protocol/ccsds/deframer.cpp",
+			"MU",
+			null
+		],
+		[
+			"/home/roger/LeanHRPT-Decode/src/protocol/ccsds/demuxer.cpp",
+			"MU",
+			null
+		],
+		[ "/home/roger/LeanHRPT-Decode/src/protocol/deframer.cpp", "MU", null ],
+		[
+			"/home/roger/LeanHRPT-Decode/src/protocol/lrpt/huffman.cpp",
+			"MU",
+			null
+		],
+		[ "/home/roger/LeanHRPT-Decode/src/protocol/lrpt/jpeg.cpp", "MU", null ],
+		[
+			"/home/roger/LeanHRPT-Decode/src/protocol/lrpt/packet.cpp",
+			"MU",
+			null
+		],
+		[ "/home/roger/LeanHRPT-Decode/src/protocol/repack.cpp", "MU", null ]
+	],
+	"UIC_OPTIONS" : [],
+	"UIC_SEARCH_PATHS" : [],
+	"UIC_SKIP" : [],
+	"UIC_UI_FILES" : [],
+	"VERBOSITY" : 0
+}

@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG -rdynamic CMakeFiles/vcdu2cadu.dir/vcdu2cadu.cpp.o -o vcdu2cadu 
