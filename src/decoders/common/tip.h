@@ -18,7 +18,8 @@
 
 #include <bitset>
 #include <map>
-
+#include <iostream>
+#include <iomanip>
 #include "image/raw.h"
 #include "protocol/repack.h"
 #include "satinfo.h"
@@ -61,7 +62,10 @@ class TIPDecoder {
      * @return If a line was decoded
      */
     bool hirs_work(std::map<Imager, RawImage *> &images, const uint8_t *frame) {
-        // These are taken from the NOAA KLM Users Guide
+	for (int i = 0; i < 104; ++i)
+	    std::cout << std::hex << std::setfill('0') << std::setw(2) << (unsigned int)(unsigned char)frame[i] << " ";
+	std::cout << std::endl;
+	// These are taken from the NOAA KLM Users Guide
         const size_t offsets[36] = {16, 17, 22, 23, 26, 27, 30, 31, 34, 35, 38, 39, 42, 43, 54, 55, 58, 59,
                                     62, 63, 66, 67, 70, 71, 74, 75, 78, 79, 82, 83, 84, 85, 88, 89, 92, 93};
         const size_t channels[20] = {1, 17, 2, 3, 13, 4, 18, 11, 19, 7, 8, 20, 10, 14, 6, 5, 15, 12, 16, 9};
