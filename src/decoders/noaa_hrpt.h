@@ -28,7 +28,7 @@
 
 class NOAAHRPTDecoder : public Decoder {
    public:
-    NOAAHRPTDecoder() : deframer(8, true), tip_file((QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/temp.tip").toStdString()) {
+    NOAAHRPTDecoder() : deframer(8, true), tip_file((QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/temp.tip").toStdString(), std::ios::binary) {
         frame = new uint8_t[(11090 * 10) / 8];
         repacked = new uint16_t[11090];
         images[Imager::AVHRR] = new RawImage(2048, 5);

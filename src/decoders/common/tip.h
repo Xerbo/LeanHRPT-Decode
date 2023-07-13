@@ -18,7 +18,6 @@
 
 #include <bitset>
 #include <map>
-#include <iostream>
 
 #include "image/raw.h"
 #include "protocol/repack.h"

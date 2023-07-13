@@ -28,7 +28,7 @@
 
 class NOAAGACDecoder : public Decoder {
    public:
-    NOAAGACDecoder(bool reverse) : d_reverse(reverse), deframer(8, true), deframer_reverse(8, true), tip_file((QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/temp.tip").toStdString()) {
+    NOAAGACDecoder(bool reverse) : d_reverse(reverse), deframer(8, true), deframer_reverse(8, true), tip_file((QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/temp.tip").toStdString(), std::ios::binary) {
         images[Imager::AVHRR] = new RawImage(409, 5);
         images[Imager::HIRS] = new RawImage(56, 20);
         images[Imager::MHS] = new RawImage(90, 6);
