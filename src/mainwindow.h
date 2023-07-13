@@ -172,6 +172,9 @@ class MainWindow : public QMainWindow {
     std::map<Imager, std::vector<double>> timestamps;
     double pass_timestamp;
 
+    // TIP saving
+    void save_tip();
+
    protected:
     void dragEnterEvent(QDragEnterEvent *e);
     void dropEvent(QDropEvent *e);
@@ -181,6 +184,7 @@ class MainWindow : public QMainWindow {
     void on_actionSave_Current_Image_triggered() { saveCurrentImage(); };
     void on_actionSave_All_Channels_triggered() { saveAllChannels(); };
     void on_actionSave_GCP_File_triggered() { save_gcp(); };
+    void on_actionSave_TIP_triggered() { save_tip(); };
     // menuGeo
     void on_actionProjector_triggered() { project_diag->show(); };
     void on_actionMap_Shapefile_triggered();

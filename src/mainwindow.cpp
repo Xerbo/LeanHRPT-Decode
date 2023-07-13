@@ -436,6 +436,12 @@ void MainWindow::decodeFinished() {
     ui->actionEnable_Map->setChecked(false);
     ui->actionIR_Blend->setEnabled(compositors.at(sensor)->sunz.size() != 0 && sensor != Imager::MHS && sensor != Imager::MTVZA &&
                                    sensor != Imager::HIRS);
+
+    if (satellite_info.at(sat).mission == Mission::POES){
+        ui->actionSave_TIP->setEnabled(true);
+    } else {
+        ui->actionSave_TIP->setEnabled(false);
+    }
 }
 
 // Highlight the clip limit number and enable apply box as a reminder you didn't apply it yet
@@ -724,6 +730,15 @@ void MainWindow::save_gcp() {
     double height = compositors[sensor]->height();
     proj->save_gcp_file(timestamps[sensor], (double)height / (double)width * 21.0, 21, sensor, sat, filename.toStdString(),
                         width);
+}
+
+void MainWindow::save_tip() {
+    QString name = QString("%1_%2.tip")
+                       .arg(QString::fromStdString(satellite_info.at(sat).name))
+                       .arg(QDateTime::fromSecsSinceEpoch(pass_timestamp, Qt::UTC).toString("yyyyMMdd-hhmmss"));
+    QString filename = QFileDialog::getSaveFileName(this, "Save TIP File", name, "TIP (*.tip)");
+
+    QFile::copy(QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/temp.tip", filename );
 }
 
 void MainWindow::on_presetSelector_textActivated(QString text) {

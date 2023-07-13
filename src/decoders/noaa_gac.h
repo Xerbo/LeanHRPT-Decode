@@ -24,9 +24,11 @@
 #include "decoder.h"
 #include "protocol/deframer.h"
 
+#include <QStandardPaths>
+
 class NOAAGACDecoder : public Decoder {
    public:
-    NOAAGACDecoder(bool reverse) : d_reverse(reverse), deframer(8, true), deframer_reverse(8, true) {
+    NOAAGACDecoder(bool reverse) : d_reverse(reverse), deframer(8, true), deframer_reverse(8, true), tip_file((QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/temp.tip").toStdString()) {
         images[Imager::AVHRR] = new RawImage(409, 5);
         images[Imager::HIRS] = new RawImage(56, 20);
         images[Imager::MHS] = new RawImage(90, 6);
@@ -49,6 +51,8 @@ class NOAAGACDecoder : public Decoder {
 
     void work(std::istream &stream);
     void frame_work(uint16_t *ptr);
+
+    std::ofstream tip_file;
 
     AIPDecoder aip_decoder;
     TIPDecoder tip_decoder;
