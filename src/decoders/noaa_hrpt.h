@@ -20,13 +20,15 @@
 #define LEANHRPT_DECODERS_NOAA_HRPT_H_
 
 #include "common/aip.h"
-#include "common/tip.h"
+#include "common/tip.h" 
 #include "decoder.h"
 #include "protocol/deframer.h"
 
+#include <QStandardPaths>
+
 class NOAAHRPTDecoder : public Decoder {
    public:
-    NOAAHRPTDecoder() : deframer(8, true) {
+    NOAAHRPTDecoder() : deframer(8, true), tip_file((QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/temp.tip").toStdString(), std::ios::binary) {
         frame = new uint8_t[(11090 * 10) / 8];
         repacked = new uint16_t[11090];
         images[Imager::AVHRR] = new RawImage(2048, 5);
@@ -49,6 +51,8 @@ class NOAAHRPTDecoder : public Decoder {
     void work(std::istream &stream);
     void frame_work(uint16_t *ptr);
     void cal_data(uint16_t *ptr);
+
+    std::ofstream tip_file;
 
     AIPDecoder aip_decoder;
     TIPDecoder tip_decoder;

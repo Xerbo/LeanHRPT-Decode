@@ -60,6 +60,7 @@ class TIPDecoder {
      *
      * @return If a line was decoded
      */
+    
     bool hirs_work(std::map<Imager, RawImage *> &images, const uint8_t *frame) {
         // These are taken from the NOAA KLM Users Guide
         const size_t offsets[36] = {16, 17, 22, 23, 26, 27, 30, 31, 34, 35, 38, 39, 42, 43, 54, 55, 58, 59,

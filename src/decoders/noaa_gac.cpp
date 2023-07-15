@@ -109,6 +109,8 @@ void NOAAGACDecoder::frame_work(uint16_t *ptr) {
         }*/
 
         if (i < 5) {
+            tip_file.write(reinterpret_cast<const char*>(frame), 104);
+            tip_file.flush();
             if (tip_decoder.hirs_work(images, frame)) {
                 timestamps[Imager::HIRS].push_back(timestamp);
             }

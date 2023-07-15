@@ -22,8 +22,6 @@
 #include <cstdint>
 #include <cstring>
 #include <ctime>
-#include <iostream>
-#include <string>
 
 #include "protocol/repack.h"
 
@@ -76,6 +74,8 @@ void NOAAHRPTDecoder::frame_work(uint16_t *ptr) {
         uint8_t frame_type = (ptr[6] >> 7) & 0b11;
         switch (frame_type) {
             case 1: {
+                tip_file.write(reinterpret_cast<const char*>(frame), 104);
+                tip_file.flush();
                 if (tip_decoder.hirs_work(images, frame)) {
                     timestamps[Imager::HIRS].push_back(timestamp);
                 }

@@ -494,6 +494,7 @@
     <addaction name="actionSave_Current_Image"/>
     <addaction name="actionSave_All_Channels"/>
     <addaction name="actionSave_GCP_File"/>
+    <addaction name="actionSave_TIP"/>
    </widget>
    <widget class="QMenu" name="menuOptions">
     <property name="title">
@@ -681,6 +682,14 @@
    </property>
    <property name="text">
     <string>Correct</string>
+   </property>
+  </action>
+  <action name="actionSave_TIP">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save NOAA TIP File</string>
    </property>
   </action>
   <actiongroup name="groupProtocol">

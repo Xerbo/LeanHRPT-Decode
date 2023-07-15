@@ -115,8 +115,7 @@ std::tuple<SatID, FileType, Protocol> Fingerprint::file(std::string filename, Su
 
 SatID Fingerprint::fingerprint_ccsds(std::istream &stream, FileType type) {
     Scoreboard<SatID> s;
-    uint8_t frame[1024];
-    size_t n = 0;
+    uint8_t frame[1024]; // 8192 long frame
 
     while (is_running && !stream.eof()) {
         if (type == FileType::VCDU) {
@@ -139,12 +138,12 @@ SatID Fingerprint::fingerprint_ccsds(std::istream &stream, FileType type) {
         }
         // clang-format on
 
-        if (n++ > 200) {
-            return SatID::MeteorM22;
+        if ((s.max() != SatID::Unknown) & (s.max() != SatID::MeteorM2)){
+            return s.max();
+        } else if (s.max() == SatID::MeteorM2){
+            return fingerprint_meteor(stream, FileType::CADU);
         }
-        if (s.max() != SatID::Unknown) return s.max();
     }
-
     return SatID::Unknown;
 }
 
@@ -331,6 +330,9 @@ SatID Fingerprint::fingerprint_meteor(std::istream &stream, FileType type) {
                     case 2:
                         s.add(SatID::MeteorM22);
                         break;
+                    case 3:                        
+                        s.add(SatID::MeteorM22); // TODO: has to be implemented as MeteorM23
+                        break;
                     default:
                         break;
                 }
@@ -340,7 +342,7 @@ SatID Fingerprint::fingerprint_meteor(std::istream &stream, FileType type) {
         }
     }
 
-    return SatID::Unknown;
+    return SatID::MeteorM2; // TODO: this is supposed to be Unknown, Meteor-M N2-3 LRPT ID has to be implemented
 }
 
 SatID Fingerprint::fingerprint_dsb(std::istream &stream) {
